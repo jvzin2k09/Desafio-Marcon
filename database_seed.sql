@@ -3,6 +3,9 @@
 -- Script de Criação e População Inicial (Seed Atualizado)
 -- -----------------------------------------------------
 
+CREATE DATABASE IF NOT EXISTS `marcon_almoxarifado` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `marcon_almoxarifado`;
+
 SET FOREIGN_KEY_CHECKS=0;
 
 -- -----------------------------------------------------
@@ -99,6 +102,7 @@ SET FOREIGN_KEY_CHECKS=1;
 
 -- Usuários (Senha padrão 123456 | PIN padrão 1234)
 INSERT INTO `User` (`nome`, `email`, `senha`, `pin`, `role`, `setor`) VALUES
+('Almoxarife Til Marcon', 'almoxarife@tilmarcon.com.br', '123456', '0000', 'ALMOXARIFE', 'Almoxarifado'),
 ('Almoxarife Til Marcon', 'admin@tilmarcon.com.br', '123456', '0000', 'ALMOXARIFE', 'Almoxarifado'),
 ('Lucas Engenharia', 'lucas@tilmarcon.com.br', '123456', '1234', 'OPERADOR', 'Manutenção'),
 ('Operador Logística', 'op1@tilmarcon.com.br', '123456', '5678', 'OPERADOR', 'Usinagem');

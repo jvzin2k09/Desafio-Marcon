@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Mail, ShieldCheck, Zap } from "lucide-react";
+import { Lock, Mail, ShieldCheck, Zap, KeyRound, X, CheckCircle2, AlertCircle, Headphones, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
@@ -177,6 +177,69 @@ export default function AuthScreen() {
   const [isExiting, setIsExiting] = useState(false);
   const router = useRouter();
 
+  // Estados para modal "Esqueceu a senha"
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotTab, setForgotTab] = useState("reset"); // "reset" | "help"
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotPin, setForgotPin] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState("");
+  const [forgotSuccess, setForgotSuccess] = useState("");
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setForgotError("");
+    setForgotSuccess("");
+
+    if (!forgotEmail) {
+      setForgotError("Informe seu e-mail corporativo.");
+      return;
+    }
+    if (!forgotPin || forgotPin.trim().length !== 4) {
+      setForgotError("O PIN de segurança deve conter exatamente 4 dígitos.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setForgotError("A nova senha deve ter no mínimo 6 caracteres.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setForgotError("As senhas digitadas não conferem.");
+      return;
+    }
+
+    setForgotLoading(true);
+
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: forgotEmail,
+          pin: forgotPin,
+          novaSenha: newPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setForgotError(data.error || "Não foi possível redefinir a senha.");
+      } else {
+        setForgotSuccess(data.message || "Senha alterada com sucesso!");
+        setEmail(forgotEmail);
+        setSenha(newPassword);
+      }
+    } catch {
+      setForgotError("Erro de conexão com o servidor. Tente novamente.");
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
   const handleAuth = async (e) => {
     e.preventDefault();
     setError("");
@@ -208,8 +271,9 @@ export default function AuthScreen() {
   };
 
   return (
-    <AnimatePresence>
+    <>
       <motion.div 
+        key="auth-main-container"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -310,9 +374,22 @@ export default function AuthScreen() {
                 </div>
 
                 <div className="flex justify-end">
-                  <a href="#" className="text-sm font-bold text-slate-400 hover:text-primary transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setForgotEmail(email);
+                      setForgotPin("");
+                      setNewPassword("");
+                      setConfirmPassword("");
+                      setForgotError("");
+                      setForgotSuccess("");
+                      setForgotTab("reset");
+                      setShowForgotModal(true);
+                    }}
+                    className="text-sm font-bold text-slate-400 hover:text-primary transition-colors cursor-pointer"
+                  >
                     Esqueceu a senha?
-                  </a>
+                  </button>
                 </div>
 
                 <motion.button
@@ -441,6 +518,277 @@ export default function AuthScreen() {
             </div>
           </div>
       </motion.div>
-    </AnimatePresence>
+
+      {/* ── Modal: Recuperação de Senha ─────────────────────────── */}
+      <AnimatePresence>
+        {showForgotModal && (
+          <motion.div
+            key="forgot-password-modal-container"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10000] flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+          >
+            {/* Backdrop com desfoque */}
+            <div
+              onClick={() => setShowForgotModal(false)}
+              className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm cursor-pointer"
+            />
+
+            {/* Container Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden z-10 my-8"
+            >
+              {/* Topo com Identidade Til Marcon */}
+              <div 
+                className="p-6 text-white relative"
+                style={{ background: "linear-gradient(135deg, #1B3A6B 0%, #1e5fa8 100%)" }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(false)}
+                  className="absolute right-4 top-4 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+                  aria-label="Fechar"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/15 text-xs font-bold uppercase tracking-wider mb-2">
+                  <KeyRound className="w-3.5 h-3.5" />
+                  Segurança Corporativa
+                </div>
+                <h3 className="text-xl font-display font-black tracking-tight">
+                  Recuperação de Senha
+                </h3>
+                <p className="text-xs text-white/80 mt-1">
+                  Redefina sua senha corporativa usando seu PIN ou consulte as opções de suporte.
+                </p>
+
+                {/* Abas */}
+                <div className="flex gap-2 mt-4 pt-2 border-t border-white/15 text-xs font-bold">
+                  <button
+                    type="button"
+                    onClick={() => { setForgotTab("reset"); setForgotError(""); }}
+                    className={`px-3 py-1.5 rounded-md transition-all ${
+                      forgotTab === "reset"
+                        ? "bg-white text-[#1B3A6B] shadow-sm font-black"
+                        : "text-white/80 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    Redefinir com PIN
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setForgotTab("help"); setForgotError(""); }}
+                    className={`px-3 py-1.5 rounded-md transition-all ${
+                      forgotTab === "help"
+                        ? "bg-white text-[#1B3A6B] shadow-sm font-black"
+                        : "text-white/80 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    Ajuda & Suporte TI
+                  </button>
+                </div>
+              </div>
+
+              {/* Corpo do Modal */}
+              <div className="p-6">
+                {forgotTab === "reset" ? (
+                  forgotSuccess ? (
+                    <div className="py-6 text-center space-y-4">
+                      <div className="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center">
+                        <CheckCircle2 className="w-9 h-9" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-black text-slate-800">
+                          Senha Atualizada!
+                        </h4>
+                        <p className="text-sm text-slate-500 mt-1 max-w-sm mx-auto">
+                          {forgotSuccess}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowForgotModal(false);
+                          setForgotSuccess("");
+                        }}
+                        className="w-full py-3.5 rounded-lg text-white font-black text-sm tracking-wider uppercase shadow-md transition-all hover:shadow-lg"
+                        style={{ background: "linear-gradient(135deg, #1B3A6B 0%, #1e5fa8 100%)" }}
+                      >
+                        Entrar com Nova Senha
+                      </button>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleResetPassword} className="space-y-4">
+                      {forgotError && (
+                        <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs font-semibold flex items-center gap-2">
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <span>{forgotError}</span>
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+                          E-mail Corporativo
+                        </label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            type="email"
+                            required
+                            value={forgotEmail}
+                            onChange={e => setForgotEmail(e.target.value)}
+                            placeholder="seu.email@tilmarcon.com.br"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-9 pr-3 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1B3A6B] focus:bg-white transition-all"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
+                            PIN de Segurança (4 dígitos)
+                          </label>
+                          <span className="text-[11px] text-slate-400">Padrão: 0000 ou 1234</span>
+                        </div>
+                        <div className="relative">
+                          <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            type="password"
+                            inputMode="numeric"
+                            maxLength={4}
+                            required
+                            value={forgotPin}
+                            onChange={e => setForgotPin(e.target.value.replace(/\D/g, ""))}
+                            placeholder="••••"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-9 pr-3 text-sm font-mono tracking-widest text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1B3A6B] focus:bg-white transition-all"
+                          />
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-1">
+                          O mesmo PIN numérico utilizado para retirada de materiais no balcão.
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+                            Nova Senha
+                          </label>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <input
+                              type={showNewPassword ? "text" : "password"}
+                              required
+                              minLength={6}
+                              value={newPassword}
+                              onChange={e => setNewPassword(e.target.value)}
+                              placeholder="Mínimo 6 caracteres"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-9 pr-9 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1B3A6B] focus:bg-white transition-all"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPassword(!showNewPassword)}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                            >
+                              {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">
+                            Confirmar Senha
+                          </label>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <input
+                              type={showNewPassword ? "text" : "password"}
+                              required
+                              minLength={6}
+                              value={confirmPassword}
+                              onChange={e => setConfirmPassword(e.target.value)}
+                              placeholder="Repita a nova senha"
+                              className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-9 pr-3 text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1B3A6B] focus:bg-white transition-all"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex items-center justify-between gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setShowForgotModal(false)}
+                          className="px-4 py-2.5 rounded-lg border border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-600 hover:bg-slate-50 transition-colors"
+                        >
+                          Cancelar
+                        </button>
+
+                        <button
+                          type="submit"
+                          disabled={forgotLoading}
+                          className="flex-1 py-2.5 px-4 rounded-lg text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all disabled:opacity-60"
+                          style={{ background: "linear-gradient(135deg, #1B3A6B 0%, #1e5fa8 100%)" }}
+                        >
+                          {forgotLoading ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white" />
+                          ) : (
+                            <>
+                              <KeyRound className="w-3.5 h-3.5" />
+                              Atualizar Senha
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </form>
+                  )
+                ) : (
+                  <div className="space-y-4 py-1 text-slate-700">
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                      <div className="flex items-center gap-2 text-[#1B3A6B] font-bold text-sm">
+                        <Headphones className="w-4 h-4" />
+                        Central de TI e Almoxarifado Til Marcon
+                      </div>
+                      <p className="text-xs text-slate-600 leading-relaxed">
+                        Caso você não lembre do seu PIN corporativo ou necessite de desbloqueio, solicite o reset junto à equipe interna:
+                      </p>
+                      <div className="pt-2 text-xs space-y-1 font-medium text-slate-700">
+                        <div>📞 <strong>Ramal Interno:</strong> 204 (Almoxarifado Central)</div>
+                        <div>✉️ <strong>E-mail de Suporte:</strong> ti@tilmarcon.com.br</div>
+                        <div>⏰ <strong>Horário de Atendimento:</strong> 07:00 às 17:00</div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-100 text-xs space-y-1.5 text-slate-700">
+                      <div className="font-bold text-[#1B3A6B]">
+                        🔑 Contas de Demonstração / Testes Internos:
+                      </div>
+                      <div>
+                        • <strong>Almoxarife:</strong> almoxarife@tilmarcon.com.br | Senha: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">123456</code> | PIN: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">0000</code>
+                      </div>
+                      <div>
+                        • <strong>Operador:</strong> lucas@tilmarcon.com.br | Senha: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">123456</code> | PIN: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">1234</code>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setForgotTab("reset")}
+                      className="w-full py-2.5 rounded-lg border border-[#1B3A6B] text-[#1B3A6B] font-bold text-xs uppercase tracking-wider hover:bg-blue-50/50 transition-colors"
+                    >
+                      Voltar para Redefinição com PIN
+                    </button>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

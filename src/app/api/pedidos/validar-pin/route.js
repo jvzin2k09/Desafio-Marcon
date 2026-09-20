@@ -36,7 +36,16 @@ export async function POST(request) {
     }
 
     // Validar o PIN do Solicitante (Operador)
-    const isPinValid = await bcrypt.compare(pin, pedido.user.pin);
+    let isPinValid = false;
+    if (pedido.user.pin === pin) {
+      isPinValid = true;
+    } else if (pedido.user.pin) {
+      try {
+        isPinValid = await bcrypt.compare(pin, pedido.user.pin);
+      } catch (e) {
+        isPinValid = false;
+      }
+    }
 
     if (!isPinValid) {
       return NextResponse.json({ error: 'PIN incorreto. Tente novamente.' }, { status: 401 });

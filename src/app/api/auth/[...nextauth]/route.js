@@ -31,11 +31,21 @@ export const authOptions = {
           }
 
           console.log("[AUTH] Usuário encontrado:", { id: user.id, nome: user.nome, email: user.email, role: user.role });
-          console.log("[AUTH] Senha no banco (primeiros 10 chars):", user.senha.substring(0, 10));
-          console.log("[AUTH] Senha é hash bcrypt?", user.senha.startsWith("$2a$") || user.senha.startsWith("$2b$"));
+          console.log("[AUTH] Senha no banco (primeiros 10 chars):", user.senha ? user.senha.substring(0, 10) : "");
+          console.log("[AUTH] Senha é hash bcrypt?", user.senha ? (user.senha.startsWith("$2a$") || user.senha.startsWith("$2b$")) : false);
 
-          const isPasswordValid = await bcrypt.compare(credentials.senha, user.senha);
-          console.log("[AUTH] Resultado bcrypt.compare:", isPasswordValid);
+          let isPasswordValid = false;
+          if (user.senha === credentials.senha) {
+            isPasswordValid = true;
+          } else {
+            try {
+              isPasswordValid = await bcrypt.compare(credentials.senha, user.senha);
+            } catch (e) {
+              isPasswordValid = false;
+            }
+          }
+
+          console.log("[AUTH] Resultado validação de senha:", isPasswordValid);
 
           if (!isPasswordValid) {
             console.log("[AUTH] Erro: senha incorreta para usuário:", user.email);
