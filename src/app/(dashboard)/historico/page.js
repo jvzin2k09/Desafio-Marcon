@@ -40,7 +40,7 @@ export default function HistoricoPage() {
 
   // Paginação
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
 
   // Feedback de exportação
   const [exporting, setExporting] = useState(false);

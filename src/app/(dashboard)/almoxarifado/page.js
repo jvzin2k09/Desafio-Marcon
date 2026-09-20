@@ -2,20 +2,25 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, User as UserIcon, Package, ArrowRight, X, Lock, CheckCircle2, AlertCircle, Undo2, Loader2 } from "lucide-react";
+import {
+  Clock, User as UserIcon, Package, ArrowRight, X, Lock,
+  CheckCircle2, AlertCircle, Undo2, Loader2,
+  ChevronLeft, ChevronRight
+} from "lucide-react";
 
 const SPRING = { type: "spring", stiffness: 280, damping: 24 };
+const CARDS_PER_PAGE = 5;
 
 const COLUMNS = [
-  { id: "AGUARDANDO_SEPARACAO", title: "Aguardando", accent: "#2563eb", bg: "#EFF6FF", border: "#BFDBFE", dot: "bg-blue-500" },
-  { id: "EM_SEPARACAO", title: "Em Separação", accent: "#d97706", bg: "#FFFBEB", border: "#FDE68A", dot: "bg-amber-500" },
-  { id: "PRONTO_RETIRADA", title: "Pronto p/ Retirada", accent: "#7c3aed", bg: "#F5F3FF", border: "#DDD6FE", dot: "bg-violet-500" },
-  { id: "CONCLUIDO", title: "Entregue", accent: "#16a34a", bg: "#F0FDF4", border: "#BBF7D0", dot: "bg-green-500" },
+  { id: "AGUARDANDO_SEPARACAO", title: "Aguardando",        accent: "#2563eb", bg: "#EFF6FF", border: "#BFDBFE", dot: "bg-blue-500"   },
+  { id: "EM_SEPARACAO",         title: "Em Separação",      accent: "#d97706", bg: "#FFFBEB", border: "#FDE68A", dot: "bg-amber-500"  },
+  { id: "PRONTO_RETIRADA",      title: "Pronto p/ Retirada",accent: "#7c3aed", bg: "#F5F3FF", border: "#DDD6FE", dot: "bg-violet-500" },
+  { id: "CONCLUIDO",            title: "Entregue",          accent: "#16a34a", bg: "#F0FDF4", border: "#BBF7D0", dot: "bg-green-500"  },
 ];
 
 function getTempoEspera(ds) {
   const diff = Math.floor((new Date() - new Date(ds)) / 60000);
-  if (diff < 60) return `${diff}min`;
+  if (diff < 60)   return `${diff}min`;
   if (diff < 1440) return `${Math.floor(diff / 60)}h`;
   return `${Math.floor(diff / 1440)}d`;
 }
@@ -72,16 +77,14 @@ function InputsSeparacao({ pedido, onQtyChange }) {
   );
 }
 
-// ─── PIN Validation Modal (Balcão) ───────────────────────────────────────────
+// ─── PIN Validation Modal ─────────────────────────────────────────────────────
 function PinBalcaoModal({ pedido, onClose, onSuccess }) {
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef(null);
 
-  useEffect(() => {
-    if (inputRef.current) inputRef.current.focus();
-  }, []);
+  useEffect(() => { if (inputRef.current) inputRef.current.focus(); }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,18 +98,10 @@ function PinBalcaoModal({ pedido, onClose, onSuccess }) {
         body: JSON.stringify({ pedidoId: pedido.id, pin }),
       });
       const data = await res.json();
-      if (res.ok) {
-        onSuccess();
-      } else {
-        setError(data.error || "Erro ao validar PIN.");
-        setPin("");
-        inputRef.current?.focus();
-      }
-    } catch {
-      setError("Erro de conexão.");
-    } finally {
-      setLoading(false);
-    }
+      if (res.ok) { onSuccess(); }
+      else { setError(data.error || "Erro ao validar PIN."); setPin(""); inputRef.current?.focus(); }
+    } catch { setError("Erro de conexão."); }
+    finally { setLoading(false); }
   };
 
   return (
@@ -120,18 +115,15 @@ function PinBalcaoModal({ pedido, onClose, onSuccess }) {
         className="site-card w-full max-w-md p-8 relative overflow-hidden"
       >
         <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full mix-blend-multiply filter blur-3xl opacity-20" style={{ background: "var(--primary)" }} />
-
         <div className="relative z-10 flex flex-col items-center">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ background: "var(--surface-2)" }}>
             <Lock className="w-8 h-8" style={{ color: "var(--primary)" }} />
           </div>
-
           <h2 className="text-xl font-display font-black text-slate-900 mb-1">Confirmar Entrega</h2>
           <p className="text-xs font-mono text-slate-400 mb-1">Pedido #{pedido.id.toString().padStart(4, '0')}</p>
           <p className="text-sm text-slate-500 text-center mb-6">
             Solicite ao operador <span className="font-bold text-slate-700">{pedido.user?.nome}</span> que digite seu PIN de 4 dígitos.
           </p>
-
           <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
             <input
               ref={inputRef}
@@ -145,13 +137,11 @@ function PinBalcaoModal({ pedido, onClose, onSuccess }) {
               maxLength={4}
               disabled={loading}
             />
-
             {error && (
               <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 mt-4 text-red-600 text-sm bg-red-50 px-4 py-2 rounded-lg">
                 <AlertCircle className="w-4 h-4" /> {error}
               </motion.div>
             )}
-
             <div className="flex gap-3 w-full mt-6">
               <button type="button" onClick={onClose} className="flex-1 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all border" style={{ borderColor: "var(--border)" }}>
                 Cancelar
@@ -174,7 +164,7 @@ function PinBalcaoModal({ pedido, onClose, onSuccess }) {
   );
 }
 
-// ─── Estorno Modal ───────────────────────────────────────────────────────────
+// ─── Estorno Modal ────────────────────────────────────────────────────────────
 function EstornoModal({ pedido, onClose, onSuccess }) {
   const [motivo, setMotivo] = useState("");
   const [loading, setLoading] = useState(false);
@@ -206,7 +196,6 @@ function EstornoModal({ pedido, onClose, onSuccess }) {
       >
         <h2 className="text-lg font-display font-black text-slate-900 mb-1">Estornar Pedido</h2>
         <p className="text-xs font-mono text-slate-400 mb-4">Pedido #{pedido.id.toString().padStart(4, '0')} · {pedido.user?.nome}</p>
-
         <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">Motivo do Estorno</label>
         <textarea
           value={motivo}
@@ -215,9 +204,7 @@ function EstornoModal({ pedido, onClose, onSuccess }) {
           className="site-input w-full rounded-xl p-3 text-sm resize-none mb-4"
           placeholder="Descreva o motivo da devolução ou cancelamento..."
         />
-
         {error && <p className="text-red-600 text-xs font-bold mb-3">{error}</p>}
-
         <div className="flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all border" style={{ borderColor: "var(--border)" }}>Cancelar</button>
           <button onClick={handleEstorno} disabled={loading} className="flex-1 py-2.5 rounded-xl text-sm font-black text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 transition-all flex items-center justify-center gap-2">
@@ -229,7 +216,7 @@ function EstornoModal({ pedido, onClose, onSuccess }) {
   );
 }
 
-// ─── Kanban Card ─────────────────────────────────────────────────────────────
+// ─── Kanban Card ──────────────────────────────────────────────────────────────
 function KanbanCard({ pedido, column, onStatusChange, onQtyChange, updating, onPinModal, onEstornoModal }) {
   return (
     <motion.div
@@ -325,14 +312,54 @@ function KanbanCard({ pedido, column, onStatusChange, onQtyChange, updating, onP
   );
 }
 
-// ─── Página Principal ────────────────────────────────────────────────────────
+// ─── Controles de Paginação da Coluna ────────────────────────────────────────
+function ColunaPaginacao({ currentPage, totalPages, onPage, accent, bg, border }) {
+  if (totalPages <= 1) return null;
+  return (
+    <div
+      className="flex items-center justify-between px-3 py-2 border-t mx-3 mb-3 mt-1 rounded-b-xl"
+      style={{ borderColor: border, background: bg }}
+    >
+      <button
+        onClick={() => onPage(p => Math.max(1, p - 1))}
+        disabled={currentPage === 1}
+        className="w-7 h-7 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 hover:brightness-90"
+        style={{ background: "white", border: `1px solid ${border}`, color: accent }}
+        title="Página anterior"
+      >
+        <ChevronLeft className="w-3.5 h-3.5" />
+      </button>
+
+      <span className="text-[11px] font-mono font-black" style={{ color: accent }}>
+        {currentPage} / {totalPages}
+      </span>
+
+      <button
+        onClick={() => onPage(p => Math.min(totalPages, p + 1))}
+        disabled={currentPage === totalPages}
+        className="w-7 h-7 rounded-lg flex items-center justify-center transition-all disabled:opacity-30 hover:brightness-90"
+        style={{ background: "white", border: `1px solid ${border}`, color: accent }}
+        title="Próxima página"
+      >
+        <ChevronRight className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
+
+// ─── Página Principal ─────────────────────────────────────────────────────────
 export default function AlmoxarifadoPage() {
-  const [pedidos, setPedidos] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
-  const [pinModal, setPinModal] = useState(null);
-  const [estornoModal, setEstornoModal] = useState(null);
-  const [qtyMap, setQtyMap] = useState({});
+  const [pedidos, setPedidos]             = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [updating, setUpdating]           = useState(false);
+  const [pinModal, setPinModal]           = useState(null);
+  const [estornoModal, setEstornoModal]   = useState(null);
+  const [qtyMap, setQtyMap]               = useState({});
+
+  // Página atual de cada coluna: { AGUARDANDO_SEPARACAO: 1, EM_SEPARACAO: 1, ... }
+  const [colunaPages, setColunaPages] = useState(() =>
+    Object.fromEntries(COLUMNS.map(c => [c.id, 1]))
+  );
 
   const fetchPedidos = async () => {
     try {
@@ -343,13 +370,10 @@ export default function AlmoxarifadoPage() {
     finally { setLoading(false); }
   };
 
-  useEffect(() => { 
+  useEffect(() => {
     fetchPedidos();
-    // Atualiza automaticamente a cada 15 segundos
     const interval = setInterval(() => {
-      if (!updating && !pinModal && !estornoModal) {
-        fetchPedidos();
-      }
+      if (!updating && !pinModal && !estornoModal) fetchPedidos();
     }, 15000);
     return () => clearInterval(interval);
   }, [updating, pinModal, estornoModal]);
@@ -379,6 +403,10 @@ export default function AlmoxarifadoPage() {
     }
   };
 
+  const setPageForColumn = (colId, updater) => {
+    setColunaPages(prev => ({ ...prev, [colId]: typeof updater === "function" ? updater(prev[colId]) : updater }));
+  };
+
   const now = new Date();
   const filtered = pedidos.filter(p => {
     if (p.status === 'CONCLUIDO' || p.status === 'ESTORNADO') {
@@ -402,13 +430,20 @@ export default function AlmoxarifadoPage() {
     <div className="h-full flex flex-col space-y-6">
       <div>
         <h2 className="text-2xl font-display font-black text-slate-900 tracking-tight">Fila de Atendimento</h2>
-        <p className="text-slate-500 text-sm mt-1">Gerencie as requisições de todos os setores · {filtered.length} pedidos</p>
+        <p className="text-slate-500 text-sm mt-1">
+          Gerencie as requisições de todos os setores · {filtered.length} pedidos
+        </p>
       </div>
 
       <div className="flex-1 overflow-x-auto pb-6">
         <div className="flex gap-5 min-w-max items-start h-full">
           {COLUMNS.map((column, colIdx) => {
-            const colPedidos = filtered.filter(p => p.status === column.id);
+            const colPedidos   = filtered.filter(p => p.status === column.id);
+            const totalPages   = Math.max(1, Math.ceil(colPedidos.length / CARDS_PER_PAGE));
+            const currentPage  = Math.min(colunaPages[column.id] ?? 1, totalPages);
+            const pageStart    = (currentPage - 1) * CARDS_PER_PAGE;
+            const pagePedidos  = colPedidos.slice(pageStart, pageStart + CARDS_PER_PAGE);
+
             return (
               <motion.div
                 key={column.id}
@@ -418,19 +453,30 @@ export default function AlmoxarifadoPage() {
                 className="w-[310px] flex-shrink-0 flex flex-col rounded-2xl border"
                 style={{ background: "var(--surface-2)", borderColor: "var(--border)", minHeight: 480, maxHeight: "calc(100vh - 220px)" }}
               >
+                {/* Cabeçalho da coluna */}
                 <div className="px-4 py-3 flex items-center justify-between border-b" style={{ borderColor: column.border }}>
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${column.dot}`} />
                     <h3 className="font-display font-black text-sm text-slate-700 uppercase tracking-wide">{column.title}</h3>
                   </div>
-                  <span className="text-xs font-mono font-black px-2.5 py-1 rounded-full border" style={{ background: column.bg, color: column.accent, borderColor: column.border }}>
-                    {colPedidos.length}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    {/* Badge total de pedidos */}
+                    <span className="text-xs font-mono font-black px-2.5 py-1 rounded-full border" style={{ background: column.bg, color: column.accent, borderColor: column.border }}>
+                      {colPedidos.length}
+                    </span>
+                    {/* Indicador de página se houver mais de 1 */}
+                    {totalPages > 1 && (
+                      <span className="text-[10px] font-mono text-slate-400 font-bold">
+                        pág {currentPage}/{totalPages}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
+                {/* Cards com scroll se necessário dentro da página */}
                 <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
-                  <AnimatePresence>
-                    {colPedidos.map(pedido => (
+                  <AnimatePresence mode="popLayout">
+                    {pagePedidos.map(pedido => (
                       <KanbanCard
                         key={pedido.id}
                         pedido={pedido}
@@ -443,12 +489,23 @@ export default function AlmoxarifadoPage() {
                       />
                     ))}
                   </AnimatePresence>
+
                   {colPedidos.length === 0 && (
                     <div className="h-28 flex items-center justify-center rounded-xl border-2 border-dashed" style={{ borderColor: "var(--border)" }}>
                       <p className="text-xs font-medium text-slate-400">— vazio —</p>
                     </div>
                   )}
                 </div>
+
+                {/* Paginação no rodapé da coluna */}
+                <ColunaPaginacao
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPage={(updater) => setPageForColumn(column.id, updater)}
+                  accent={column.accent}
+                  bg={column.bg}
+                  border={column.border}
+                />
               </motion.div>
             );
           })}
