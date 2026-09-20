@@ -26,6 +26,7 @@ export default function SolicitantePage() {
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState([]);
+  const [itemInputs, setItemInputs] = useState({});
   const [setor, setSetor] = useState(session?.user?.setor || "");
   const [loading, setLoading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null); // null | success | error
@@ -58,20 +59,51 @@ export default function SolicitantePage() {
     item.codigo.toLowerCase().includes(search.toLowerCase())
   );
 
-  const addToCart = (item) => {
+  const addToCart = (item, initialQty = 1) => {
+    const qtyToAdd = Math.max(1, Math.min(parseInt(initialQty, 10) || 1, item.quantidade || 999999));
     const existing = cart.find(c => c.itemId === item.id);
     if (existing) {
-      setCart(cart.map(c => c.itemId === item.id ? { ...c, quantidade: c.quantidade + 1 } : c));
+      setCart(cart.map(c => c.itemId === item.id ? { ...c, quantidade: Math.min(c.quantidade + qtyToAdd, c.maxQtd) } : c));
     } else {
-      setCart([...cart, { itemId: item.id, nome: item.nome, codigo: item.codigo, unidade: item.unidade, quantidade: 1, maxQtd: item.quantidade }]);
+      setCart([...cart, { itemId: item.id, nome: item.nome, codigo: item.codigo, unidade: item.unidade, quantidade: qtyToAdd, maxQtd: item.quantidade }]);
     }
   };
 
   const updateCartQty = (itemId, delta) => {
     setCart(cart.map(c => {
       if (c.itemId === itemId) {
-        const newQty = Math.max(1, c.quantidade + delta);
+        const currentQty = parseInt(c.quantidade, 10) || 0;
+        const newQty = Math.max(1, currentQty + delta);
         return { ...c, quantidade: Math.min(newQty, c.maxQtd) };
+      }
+      return c;
+    }));
+  };
+
+  const setCartQty = (itemId, val) => {
+    setCart(cart.map(c => {
+      if (c.itemId === itemId) {
+        if (val === "" || val === null || val === undefined) {
+          return { ...c, quantidade: "" };
+        }
+        const num = parseInt(val, 10);
+        if (isNaN(num)) {
+          return { ...c, quantidade: "" };
+        }
+        return { ...c, quantidade: Math.min(Math.max(1, num), c.maxQtd || 999999) };
+      }
+      return c;
+    }));
+  };
+
+  const handleBlurCartQty = (itemId) => {
+    setCart(cart.map(c => {
+      if (c.itemId === itemId) {
+        const num = parseInt(c.quantidade, 10);
+        if (isNaN(num) || num <= 0) {
+          return { ...c, quantidade: 1 };
+        }
+        return { ...c, quantidade: Math.min(num, c.maxQtd || 999999) };
       }
       return c;
     }));
@@ -90,7 +122,7 @@ export default function SolicitantePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          itens: cart.map(c => ({ itemId: c.itemId, quantidade: c.quantidade })),
+          itens: cart.map(c => ({ itemId: c.itemId, quantidade: Math.max(1, parseInt(c.quantidade, 10) || 1) })),
           setor: setor || null,
         }),
       });
@@ -186,20 +218,85 @@ export default function SolicitantePage() {
                       </p>
                     </div>
                     {inCart ? (
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md" style={{ background: "var(--surface-3)", color: "var(--primary)" }}>
-                        ✓ No carrinho ({inCart.quantidade})
-                      </span>
+                      <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200">
+                        <button 
+                          onClick={() => updateCartQty(item.id, -1)} 
+                          className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-xs transition-colors"
+                          title="Diminuir 1"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <input
+                          type="number"
+                          min={1}
+                          max={item.quantidade}
+                          value={inCart.quantidade}
+                          onChange={e => setCartQty(item.id, e.target.value)}
+                          onBlur={() => handleBlurCartQty(item.id)}
+                          onFocus={e => e.target.select()}
+                          className="w-14 h-6 text-center font-mono font-black text-xs text-[#1B3A6B] bg-white border border-slate-200 focus:border-[#1B3A6B] rounded focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
+                          title={`No carrinho: ${inCart.quantidade} (Estoque: ${item.quantidade})`}
+                        />
+                        <button 
+                          onClick={() => updateCartQty(item.id, 1)} 
+                          className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-xs transition-colors"
+                          title="Aumentar 1"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                        <button 
+                          onClick={() => removeFromCart(item.id)} 
+                          className="w-6 h-6 rounded flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors ml-0.5"
+                          title="Remover do carrinho"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
                     ) : (
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => addToCart(item)}
-                        disabled={item.quantidade === 0}
-                        className="btn-magnetic flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-lg text-white disabled:opacity-30"
-                        style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
-                      >
-                        <Plus className="w-3.5 h-3.5" /> Adicionar
-                      </motion.button>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="number"
+                          min={1}
+                          max={item.quantidade}
+                          value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : 1}
+                          onChange={e => {
+                            const val = e.target.value;
+                            if (val === "") {
+                              setItemInputs(prev => ({ ...prev, [item.id]: "" }));
+                            } else {
+                              const num = parseInt(val, 10);
+                              setItemInputs(prev => ({
+                                ...prev,
+                                [item.id]: isNaN(num) ? 1 : Math.max(1, Math.min(num, item.quantidade))
+                              }));
+                            }
+                          }}
+                          onBlur={() => {
+                            const current = itemInputs[item.id];
+                            if (!current || parseInt(current, 10) <= 0) {
+                              setItemInputs(prev => ({ ...prev, [item.id]: 1 }));
+                            }
+                          }}
+                          onFocus={e => e.target.select()}
+                          disabled={item.quantidade === 0}
+                          className="w-14 h-8 text-center font-mono font-black text-xs text-slate-800 bg-slate-50 border border-slate-200 focus:border-[#1B3A6B] rounded-lg focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
+                          placeholder="1"
+                          title={`Digite a quantidade desejada (Disponível: ${item.quantidade} ${item.unidade})`}
+                        />
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => {
+                            const qty = parseInt(itemInputs[item.id], 10) || 1;
+                            addToCart(item, qty);
+                          }}
+                          disabled={item.quantidade === 0}
+                          className="btn-magnetic flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-lg text-white disabled:opacity-30 whitespace-nowrap shadow-sm"
+                          style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Adicionar
+                        </motion.button>
+                      </div>
                     )}
                   </motion.div>
                 );
@@ -238,14 +335,36 @@ export default function SolicitantePage() {
                           <p className="text-[10px] font-mono text-slate-400">{c.codigo}</p>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <button onClick={() => updateCartQty(c.itemId, -1)} className="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">
+                          <button 
+                            onClick={() => updateCartQty(c.itemId, -1)} 
+                            className="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors"
+                            title="Diminuir 1"
+                          >
                             <Minus className="w-3.5 h-3.5" />
                           </button>
-                          <span className="text-sm font-mono font-black text-slate-800 w-8 text-center">{c.quantidade}</span>
-                          <button onClick={() => updateCartQty(c.itemId, 1)} className="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">
+                          <input
+                            type="number"
+                            min={1}
+                            max={c.maxQtd}
+                            value={c.quantidade}
+                            onChange={e => setCartQty(c.itemId, e.target.value)}
+                            onBlur={() => handleBlurCartQty(c.itemId)}
+                            onFocus={e => e.target.select()}
+                            className="w-16 h-7 text-center font-mono font-black text-sm text-slate-800 bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 focus:border-[#1B3A6B] rounded-md focus:outline-none focus:ring-1 focus:ring-[#1B3A6B] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
+                            title={`Digite a quantidade (Disponível: ${c.maxQtd} ${c.unidade})`}
+                          />
+                          <button 
+                            onClick={() => updateCartQty(c.itemId, 1)} 
+                            className="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors"
+                            title="Aumentar 1"
+                          >
                             <Plus className="w-3.5 h-3.5" />
                           </button>
-                          <button onClick={() => removeFromCart(c.itemId)} className="w-7 h-7 rounded-md flex items-center justify-center text-red-400 hover:bg-red-50 transition-colors ml-1">
+                          <button 
+                            onClick={() => removeFromCart(c.itemId)} 
+                            className="w-7 h-7 rounded-md flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors ml-1"
+                            title="Remover do carrinho"
+                          >
                             <X className="w-3.5 h-3.5" />
                           </button>
                         </div>
