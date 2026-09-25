@@ -102,7 +102,7 @@ SET FOREIGN_KEY_CHECKS=1;
 
 -- Usuários (Senha padrão 123456 | PIN padrão 1234)
 INSERT INTO `User` (`nome`, `email`, `senha`, `pin`, `role`, `setor`) VALUES
-('Almoxarife Til Marcon', 'almoxarife@tilmarcon.com.br', '123456', '0000', 'ALMOXARIFE', 'Almoxarifado'),
+('Almoxarife Til Marcon', 'a  ', '123456', '0000', 'ALMOXARIFE', 'Almoxarifado'),
 ('Almoxarife Til Marcon', 'admin@tilmarcon.com.br', '123456', '0000', 'ALMOXARIFE', 'Almoxarifado'),
 ('Operador Geral', 'operador@tilmarcon.com.br', '123456', '1234', 'OPERADOR', 'Produção'),
 ('Lucas Engenharia', 'lucas@tilmarcon.com.br', '123456', '1234', 'OPERADOR', 'Manutenção'),

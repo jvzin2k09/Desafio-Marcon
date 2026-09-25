@@ -7,33 +7,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int       @id @default(autoincrement())
-  nome      String
-  email     String    @unique
-  senha     String
-  pin       String?
-  role      String    @default("OPERADOR")
-  setor     String?
-  pedidos   Pedido[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+model estorno {
+  id                  Int      @id @default(autoincrement())
+  pedidoId            Int
+  itemId              Int
+  quantidadeEstornada Int
+  motivo              String   @db.VarChar(255)
+  realizadoPorUserId  Int
+  createdAt           DateTime @default(now())
+  item                item     @relation(fields: [itemId], references: [id], map: "Estorno_itemId_fkey")
+  pedido              pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade, map: "Estorno_pedidoId_fkey")
+
+  @@index([itemId], map: "Estorno_itemId_fkey")
+  @@index([pedidoId], map: "Estorno_pedidoId_fkey")
 }
 
-model Item {
+model item {
   id          Int          @id @default(autoincrement())
-  codigo      String       @unique
+  codigo      String       @unique(map: "Item_codigo_key")
   nome        String
-  unidade     String       @default("UN")
+  unidade     String       @default("UN") @db.VarChar(20)
   quantidade  Int          @default(0)
   localizacao String?
-  pedidoItens PedidoItem[]
-  estornos    Estorno[]
   createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  updatedAt   DateTime     @default(now())
+  estorno     estorno[]
+  pedidoitem  pedidoitem[]
 }
 
-model Pedido {
+model pedido {
   id            Int          @id @default(autoincrement())
   userId        Int
   setor         String?
@@ -41,32 +43,38 @@ model Pedido {
   pinValidadoEm DateTime?
   entregueEm    DateTime?
   observacao    String?      @db.Text
-  user          User         @relation(fields: [userId], references: [id])
-  itens         PedidoItem[]
-  estornos      Estorno[]
   createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  updatedAt     DateTime     @default(now())
+  estorno       estorno[]
+  user          user         @relation(fields: [userId], references: [id], map: "Pedido_userId_fkey")
+  pedidoitem    pedidoitem[]
+
+  @@index([userId], map: "Pedido_userId_fkey")
 }
 
-model PedidoItem {
-  id                Int      @id @default(autoincrement())
+model pedidoitem {
+  id                Int     @id @default(autoincrement())
   pedidoId          Int
   itemId            Int
   quantidade        Int
   quantidadeEnviada Int?
-  separado          Boolean  @default(false)
-  pedido            Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
-  item              Item     @relation(fields: [itemId], references: [id])
+  separado          Boolean @default(false)
+  item              item    @relation(fields: [itemId], references: [id], map: "PedidoItem_itemId_fkey")
+  pedido            pedido  @relation(fields: [pedidoId], references: [id], onDelete: Cascade, map: "PedidoItem_pedidoId_fkey")
+
+  @@index([itemId], map: "PedidoItem_itemId_fkey")
+  @@index([pedidoId], map: "PedidoItem_pedidoId_fkey")
 }
 
-model Estorno {
-  id                  Int      @id @default(autoincrement())
-  pedidoId            Int
-  itemId              Int
-  quantidadeEstornada Int
-  motivo              String
-  realizadoPorUserId  Int
-  createdAt           DateTime @default(now())
-  pedido              Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
-  item                Item     @relation(fields: [itemId], references: [id])
+model user {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique(map: "User_email_key")
+  senha     String
+  pin       String?
+  role      String   @default("OPERADOR")
+  setor     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  pedido    pedido[]
 }
