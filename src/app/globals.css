@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Cores fiel ao site tilmarcon.com.br */
+  --background: #F0F4F8;
+  --foreground: #0F172A;
+  --primary: #1B3A6B;      /* Azul marinho escuro da marca */
+  --accent: #1e5fa8;       /* Azul médio da marca */
+  --highlight: #f97316;    /* Laranja para destaques pontuais */
+  --card: #FFFFFF;
+  --border: #DDE3ED;
+
+  /* Superfícies */
+  --surface-1: #FFFFFF;
+  --surface-2: #F0F4F8;
+  --surface-3: #E4EAF3;
+  --text-muted: #64748B;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Noise overlay sutil — mistura ao fundo claro */
+.noise-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  mix-blend-mode: multiply;
+}
+
+/* Malha técnica sutil para fundos claros */
+.technical-grid {
+  background-image:
+    linear-gradient(rgba(27,58,107,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(27,58,107,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Componente de card padrão */
+.site-card {
+  background: #ffffff;
+  border: 1px solid #DDE3ED;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 12px rgba(27,58,107,0.06);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+.site-card:hover {
+  box-shadow: 0 6px 24px rgba(27,58,107,0.12);
+  transform: translateY(-2px);
+}
+
+/* Inputs */
+.site-input {
+  background: #ffffff;
+  border: 1.5px solid #DDE3ED;
+  color: #0F172A;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.site-input:focus {
+  outline: none;
+  border-color: #1B3A6B;
+  box-shadow: 0 0 0 3px rgba(27,58,107,0.1);
+}
+.site-input::placeholder {
+  color: #94A3B8;
+}
+
+/* Selects */
+.site-select {
+  background: #ffffff;
+  border: 1.5px solid #DDE3ED;
+  color: #0F172A;
+}
+.site-select option {
+  background: #ffffff;
+  color: #0F172A;
+}
+
+/* Botão magnético */
+.btn-magnetic {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+.btn-magnetic:hover {
+  transform: translateY(-3px) scale(1.015);
+}
+.btn-magnetic:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Scrollbar fiel ao tema claro */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #E4EAF3; }
+::-webkit-scrollbar-thumb { background: #9eb3d4; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #1B3A6B; }
+
+/* Shimmer */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes pulse-blue {
+  0%, 100% { box-shadow: 0 0 20px rgba(27,58,107,0.25); }
+  50% { box-shadow: 0 0 40px rgba(27,58,107,0.45); }
+}
+
+/* Scrollbar customizado nas colunas do kanban */
+.custom-scrollbar::-webkit-scrollbar { width: 3px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #c5d4e8; border-radius: 2px; }
