@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Plus, Minus, ShoppingCart, Send, X, Clock, Package, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
@@ -19,6 +19,87 @@ function getTempoEspera(ds) {
   if (diff < 1440) return `${Math.floor(diff / 60)}h`;
   return `${Math.floor(diff / 1440)}d`;
 }
+
+// Memoized ItemRow to eliminate unnecessary re-renders of the whole stock list on input
+const ItemRow = memo(function ItemRow({ item, inCart, itemInputVal, onAddToCart, onUpdateCartQty, onSetCartQty, onBlurCartQty, onRemoveFromCart, onItemInputChange }) {
+  return (
+    <motion.div
+      layout
+      className="site-card flex items-center justify-between p-3 pl-4"
+    >
+      <div className="flex-1 min-w-0 mr-3">
+        <p className="text-sm font-bold text-slate-800 truncate">{item.nome}</p>
+        <p className="text-xs font-mono text-slate-400 mt-0.5">
+          {item.codigo} · {item.quantidade} {item.unidade} disponível · <span className="text-slate-300">{item.localizacao}</span>
+        </p>
+      </div>
+      {inCart ? (
+        <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200">
+          <button 
+            onClick={() => onUpdateCartQty(item.id, -1)} 
+            className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-xs transition-colors"
+            title="Diminuir 1"
+          >
+            <Minus className="w-3 h-3" />
+          </button>
+          <input
+            type="number"
+            min={1}
+            max={item.quantidade}
+            value={inCart.quantidade}
+            onChange={e => onSetCartQty(item.id, e.target.value)}
+            onBlur={() => onBlurCartQty(item.id)}
+            onFocus={e => e.target.select()}
+            className="w-14 h-6 text-center font-mono font-black text-xs text-[#1B3A6B] bg-white border border-slate-200 focus:border-[#1B3A6B] rounded focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
+            title={`No carrinho: ${inCart.quantidade} (Estoque: ${item.quantidade})`}
+          />
+          <button 
+            onClick={() => onUpdateCartQty(item.id, 1)} 
+            className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-xs transition-colors"
+            title="Aumentar 1"
+          >
+            <Plus className="w-3 h-3" />
+          </button>
+          <button 
+            onClick={() => onRemoveFromCart(item.id)} 
+            className="w-6 h-6 rounded flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors ml-0.5"
+            title="Remover do carrinho"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5">
+          <input
+            type="number"
+            min={1}
+            max={item.quantidade}
+            value={itemInputVal !== undefined ? itemInputVal : 1}
+            onChange={e => onItemInputChange(item.id, e.target.value, item.quantidade)}
+            onFocus={e => e.target.select()}
+            disabled={item.quantidade === 0}
+            className="w-14 h-8 text-center font-mono font-black text-xs text-slate-800 bg-slate-50 border border-slate-200 focus:border-[#1B3A6B] rounded-lg focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
+            placeholder="1"
+            title={`Digite a quantidade desejada (Disponível: ${item.quantidade} ${item.unidade})`}
+          />
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              const qty = parseInt(itemInputVal, 10) || 1;
+              onAddToCart(item, qty);
+            }}
+            disabled={item.quantidade === 0}
+            className="btn-magnetic flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-lg text-white disabled:opacity-30 whitespace-nowrap shadow-sm"
+            style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
+          >
+            <Plus className="w-3.5 h-3.5" /> Adicionar
+          </motion.button>
+        </div>
+      )}
+    </motion.div>
+  );
+});
 
 export default function SolicitantePage() {
   const { data: session } = useSession();
@@ -54,23 +135,29 @@ export default function SolicitantePage() {
     }
   }, [tab, session?.user?.id]);
 
-  const filteredItems = items.filter(item =>
-    item.nome.toLowerCase().includes(search.toLowerCase()) ||
-    item.codigo.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredItems = useMemo(() => {
+    if (!search.trim()) return items;
+    const q = search.toLowerCase().trim();
+    return items.filter(item =>
+      item.nome.toLowerCase().includes(q) ||
+      item.codigo.toLowerCase().includes(q)
+    );
+  }, [items, search]);
 
-  const addToCart = (item, initialQty = 1) => {
+  const addToCart = useCallback((item, initialQty = 1) => {
     const qtyToAdd = Math.max(1, Math.min(parseInt(initialQty, 10) || 1, item.quantidade || 999999));
-    const existing = cart.find(c => c.itemId === item.id);
-    if (existing) {
-      setCart(cart.map(c => c.itemId === item.id ? { ...c, quantidade: Math.min(c.quantidade + qtyToAdd, c.maxQtd) } : c));
-    } else {
-      setCart([...cart, { itemId: item.id, nome: item.nome, codigo: item.codigo, unidade: item.unidade, quantidade: qtyToAdd, maxQtd: item.quantidade }]);
-    }
-  };
+    setCart(prevCart => {
+      const existing = prevCart.find(c => c.itemId === item.id);
+      if (existing) {
+        return prevCart.map(c => c.itemId === item.id ? { ...c, quantidade: Math.min(c.quantidade + qtyToAdd, c.maxQtd) } : c);
+      } else {
+        return [...prevCart, { itemId: item.id, nome: item.nome, codigo: item.codigo, unidade: item.unidade, quantidade: qtyToAdd, maxQtd: item.quantidade }];
+      }
+    });
+  }, []);
 
-  const updateCartQty = (itemId, delta) => {
-    setCart(cart.map(c => {
+  const updateCartQty = useCallback((itemId, delta) => {
+    setCart(prevCart => prevCart.map(c => {
       if (c.itemId === itemId) {
         const currentQty = parseInt(c.quantidade, 10) || 0;
         const newQty = Math.max(1, currentQty + delta);
@@ -78,10 +165,10 @@ export default function SolicitantePage() {
       }
       return c;
     }));
-  };
+  }, []);
 
-  const setCartQty = (itemId, val) => {
-    setCart(cart.map(c => {
+  const setCartQty = useCallback((itemId, val) => {
+    setCart(prevCart => prevCart.map(c => {
       if (c.itemId === itemId) {
         if (val === "" || val === null || val === undefined) {
           return { ...c, quantidade: "" };
@@ -94,10 +181,10 @@ export default function SolicitantePage() {
       }
       return c;
     }));
-  };
+  }, []);
 
-  const handleBlurCartQty = (itemId) => {
-    setCart(cart.map(c => {
+  const handleBlurCartQty = useCallback((itemId) => {
+    setCart(prevCart => prevCart.map(c => {
       if (c.itemId === itemId) {
         const num = parseInt(c.quantidade, 10);
         if (isNaN(num) || num <= 0) {
@@ -107,11 +194,23 @@ export default function SolicitantePage() {
       }
       return c;
     }));
-  };
+  }, []);
 
-  const removeFromCart = (itemId) => {
-    setCart(cart.filter(c => c.itemId !== itemId));
-  };
+  const removeFromCart = useCallback((itemId) => {
+    setCart(prevCart => prevCart.filter(c => c.itemId !== itemId));
+  }, []);
+
+  const handleItemInputChange = useCallback((itemId, val, maxQty) => {
+    if (val === "") {
+      setItemInputs(prev => ({ ...prev, [itemId]: "" }));
+    } else {
+      const num = parseInt(val, 10);
+      setItemInputs(prev => ({
+        ...prev,
+        [itemId]: isNaN(num) ? 1 : Math.max(1, Math.min(num, maxQty))
+      }));
+    }
+  }, []);
 
   const handleSubmit = async () => {
     if (cart.length === 0) return;
@@ -206,99 +305,18 @@ export default function SolicitantePage() {
               {filteredItems.map(item => {
                 const inCart = cart.find(c => c.itemId === item.id);
                 return (
-                  <motion.div
+                  <ItemRow
                     key={item.id}
-                    layout
-                    className="site-card flex items-center justify-between p-3 pl-4"
-                  >
-                    <div className="flex-1 min-w-0 mr-3">
-                      <p className="text-sm font-bold text-slate-800 truncate">{item.nome}</p>
-                      <p className="text-xs font-mono text-slate-400 mt-0.5">
-                        {item.codigo} · {item.quantidade} {item.unidade} disponível · <span className="text-slate-300">{item.localizacao}</span>
-                      </p>
-                    </div>
-                    {inCart ? (
-                      <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200">
-                        <button 
-                          onClick={() => updateCartQty(item.id, -1)} 
-                          className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-xs transition-colors"
-                          title="Diminuir 1"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <input
-                          type="number"
-                          min={1}
-                          max={item.quantidade}
-                          value={inCart.quantidade}
-                          onChange={e => setCartQty(item.id, e.target.value)}
-                          onBlur={() => handleBlurCartQty(item.id)}
-                          onFocus={e => e.target.select()}
-                          className="w-14 h-6 text-center font-mono font-black text-xs text-[#1B3A6B] bg-white border border-slate-200 focus:border-[#1B3A6B] rounded focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
-                          title={`No carrinho: ${inCart.quantidade} (Estoque: ${item.quantidade})`}
-                        />
-                        <button 
-                          onClick={() => updateCartQty(item.id, 1)} 
-                          className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-xs transition-colors"
-                          title="Aumentar 1"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </button>
-                        <button 
-                          onClick={() => removeFromCart(item.id)} 
-                          className="w-6 h-6 rounded flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors ml-0.5"
-                          title="Remover do carrinho"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5">
-                        <input
-                          type="number"
-                          min={1}
-                          max={item.quantidade}
-                          value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : 1}
-                          onChange={e => {
-                            const val = e.target.value;
-                            if (val === "") {
-                              setItemInputs(prev => ({ ...prev, [item.id]: "" }));
-                            } else {
-                              const num = parseInt(val, 10);
-                              setItemInputs(prev => ({
-                                ...prev,
-                                [item.id]: isNaN(num) ? 1 : Math.max(1, Math.min(num, item.quantidade))
-                              }));
-                            }
-                          }}
-                          onBlur={() => {
-                            const current = itemInputs[item.id];
-                            if (!current || parseInt(current, 10) <= 0) {
-                              setItemInputs(prev => ({ ...prev, [item.id]: 1 }));
-                            }
-                          }}
-                          onFocus={e => e.target.select()}
-                          disabled={item.quantidade === 0}
-                          className="w-14 h-8 text-center font-mono font-black text-xs text-slate-800 bg-slate-50 border border-slate-200 focus:border-[#1B3A6B] rounded-lg focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
-                          placeholder="1"
-                          title={`Digite a quantidade desejada (Disponível: ${item.quantidade} ${item.unidade})`}
-                        />
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => {
-                            const qty = parseInt(itemInputs[item.id], 10) || 1;
-                            addToCart(item, qty);
-                          }}
-                          disabled={item.quantidade === 0}
-                          className="btn-magnetic flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-lg text-white disabled:opacity-30 whitespace-nowrap shadow-sm"
-                          style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
-                        >
-                          <Plus className="w-3.5 h-3.5" /> Adicionar
-                        </motion.button>
-                      </div>
-                    )}
-                  </motion.div>
+                    item={item}
+                    inCart={inCart}
+                    itemInputVal={itemInputs[item.id]}
+                    onAddToCart={addToCart}
+                    onUpdateCartQty={updateCartQty}
+                    onSetCartQty={setCartQty}
+                    onBlurCartQty={handleBlurCartQty}
+                    onRemoveFromCart={removeFromCart}
+                    onItemInputChange={handleItemInputChange}
+                  />
                 );
               })}
             </div>

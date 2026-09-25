@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
   const session = await getServerSession(authOptions);
 
@@ -59,8 +61,9 @@ export async function PUT(request) {
         }
         
         // Salva as quantidades digitadas pelo almoxarife
+        const pedidoItemDelegate = tx.pedidoitem || tx.pedidoItem;
         for (const item of itensEnviados) {
-          await tx.pedidoItem.update({
+          await pedidoItemDelegate.update({
             where: { id: parseInt(item.id) },
             data: { quantidadeEnviada: parseInt(item.quantidadeEnviada) }
           });

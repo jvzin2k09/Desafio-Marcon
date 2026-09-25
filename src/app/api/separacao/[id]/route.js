@@ -86,7 +86,8 @@ export async function POST(request, { params }) {
         });
 
         // Atualizar o pedidoItem com o que realmente foi enviado
-        await tx.pedidoItem.update({
+        const pedidoItemDelegate = tx.pedidoitem || tx.pedidoItem;
+        await pedidoItemDelegate.update({
           where: { id: pedidoItem.id },
           data: { 
             separado: true,

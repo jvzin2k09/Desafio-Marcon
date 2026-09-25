@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]/route';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -14,7 +16,11 @@ export async function GET() {
       orderBy: { nome: 'asc' },
     });
 
-    return NextResponse.json(items);
+    return NextResponse.json(items, {
+      headers: {
+        'Cache-Control': 'private, max-age=10, stale-while-revalidate=30'
+      }
+    });
   } catch (error) {
     console.error('Erro ao buscar itens:', error);
     return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });

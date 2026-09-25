@@ -20,6 +20,7 @@ model estorno {
 
   @@index([itemId], map: "Estorno_itemId_fkey")
   @@index([pedidoId], map: "Estorno_pedidoId_fkey")
+  @@map("Estorno")
 }
 
 model item {
@@ -31,8 +32,10 @@ model item {
   localizacao String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @default(now())
-  estorno     estorno[]
+  estornos    estorno[]
   pedidoitem  pedidoitem[]
+
+  @@map("Item")
 }
 
 model pedido {
@@ -45,11 +48,15 @@ model pedido {
   observacao    String?      @db.Text
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @default(now())
-  estorno       estorno[]
+  estornos      estorno[]
   user          user         @relation(fields: [userId], references: [id], map: "Pedido_userId_fkey")
-  pedidoitem    pedidoitem[]
+  itens         pedidoitem[]
 
   @@index([userId], map: "Pedido_userId_fkey")
+  @@index([status])
+  @@index([status, updatedAt])
+  @@index([createdAt])
+  @@map("Pedido")
 }
 
 model pedidoitem {
@@ -64,6 +71,7 @@ model pedidoitem {
 
   @@index([itemId], map: "PedidoItem_itemId_fkey")
   @@index([pedidoId], map: "PedidoItem_pedidoId_fkey")
+  @@map("PedidoItem")
 }
 
 model user {
@@ -76,5 +84,8 @@ model user {
   setor     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
-  pedido    pedido[]
+  pedidos   pedido[]
+
+  @@map("User")
 }
+

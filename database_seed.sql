@@ -100,13 +100,11 @@ SET FOREIGN_KEY_CHECKS=1;
 -- DADOS INICIAIS (SEED)
 -- -----------------------------------------------------
 
--- Usuários (Senha padrão 123456 | PIN padrão 1234)
+-- Usuários (Senha padrão 123456 | PIN padrão 1234 ou 0000)
 INSERT INTO `User` (`nome`, `email`, `senha`, `pin`, `role`, `setor`) VALUES
-('Almoxarife Til Marcon', 'a  ', '123456', '0000', 'ALMOXARIFE', 'Almoxarifado'),
-('Almoxarife Til Marcon', 'admin@tilmarcon.com.br', '123456', '0000', 'ALMOXARIFE', 'Almoxarifado'),
-('Operador Geral', 'operador@tilmarcon.com.br', '123456', '1234', 'OPERADOR', 'Produção'),
-('Lucas Engenharia', 'lucas@tilmarcon.com.br', '123456', '1234', 'OPERADOR', 'Manutenção'),
-('Operador Logística', 'op1@tilmarcon.com.br', '123456', '5678', 'OPERADOR', 'Usinagem');
+('Administrador', 'admin@tilmarcon.com.br', '123456', '0000', 'ADMIN', 'Diretoria'),
+('Almoxarife Til Marcon', 'almoxarife@tilmarcon.com.br', '123456', '0000', 'ALMOXARIFE', 'Almoxarifado'),
+('Operador Geral', 'operador@tilmarcon.com.br', '123456', '1234', 'OPERADOR', 'Produção');
 
 -- Itens de Estoque
 INSERT INTO `Item` (`codigo`, `nome`, `unidade`, `quantidade`, `localizacao`) VALUES
