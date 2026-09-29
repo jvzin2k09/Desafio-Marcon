@@ -169,7 +169,7 @@ export default function HistoricoPage() {
         "Data e Hora",
         "Tipo Movimentacao",
         "Status",
-        "Solicitante (Operador)",
+        "Responsável / Solicitante",
         "Email Solicitante",
         "Setor",
         "Codigo da Peca (SKU)",
@@ -393,7 +393,7 @@ export default function HistoricoPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar por # pedido, item, operador ou setor..."
+              placeholder="Buscar por # pedido, item, responsável ou setor..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-9 pr-8 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1B3A6B] focus:bg-white transition-all"

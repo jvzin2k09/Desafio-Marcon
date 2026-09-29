@@ -26,6 +26,8 @@ export default function DashboardLayout({ children }) {
   }
   if (role === "ADMIN") {
     navItems.push({ href: "/admin", icon: BarChart3, label: "Dashboard" });
+    navItems.push({ href: "/solicitante", icon: Package, label: "Novo Pedido" });
+    navItems.push({ href: "/almoxarifado", icon: ClipboardList, label: "Fila de Pedidos" });
     navItems.push({ href: "/historico", icon: History, label: "Histórico" });
   }
 

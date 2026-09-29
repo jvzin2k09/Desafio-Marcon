@@ -31,23 +31,24 @@ model item {
   localizacao String?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @default(now())
-  estorno     estorno[]
-  pedidoitem  pedidoitem[]
+  estornos    estorno[]
+  itens       pedidoitem[]
 }
 
 model pedido {
-  id            Int          @id @default(autoincrement())
-  userId        Int
-  setor         String?
-  status        String       @default("AGUARDANDO_SEPARACAO")
-  pinValidadoEm DateTime?
-  entregueEm    DateTime?
-  observacao    String?      @db.Text
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @default(now())
-  estorno       estorno[]
-  user          user         @relation(fields: [userId], references: [id], map: "Pedido_userId_fkey")
-  pedidoitem    pedidoitem[]
+  id                  Int          @id @default(autoincrement())
+  userId              Int
+  setor               String?
+  operadorSolicitante String?      @db.VarChar(255)
+  status              String       @default("AGUARDANDO_SEPARACAO")
+  pinValidadoEm       DateTime?
+  entregueEm          DateTime?
+  observacao          String?      @db.Text
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @default(now())
+  estornos            estorno[]
+  user                user         @relation(fields: [userId], references: [id], map: "Pedido_userId_fkey")
+  itens               pedidoitem[]
 
   @@index([userId], map: "Pedido_userId_fkey")
 }
@@ -72,9 +73,9 @@ model user {
   email     String   @unique(map: "User_email_key")
   senha     String
   pin       String?
-  role      String   @default("OPERADOR")
+  role      String   @default("RESPONSAVEL")
   setor     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
-  pedido    pedido[]
+  pedidos   pedido[]
 }

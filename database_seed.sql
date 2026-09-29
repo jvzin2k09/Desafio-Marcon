@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `User` (
   `email` VARCHAR(191) NOT NULL,
   `senha` VARCHAR(191) NOT NULL,
   `pin` VARCHAR(191) NULL, -- Guarda o PIN numérico de 4 dígitos (hash ou texto)
-  `role` VARCHAR(191) NOT NULL DEFAULT 'OPERADOR', -- 'ADMIN', 'ALMOXARIFE', 'OPERADOR'
+  `role` VARCHAR(191) NOT NULL DEFAULT 'RESPONSAVEL', -- 'ADMIN', 'ALMOXARIFE', 'RESPONSAVEL'
   `setor` VARCHAR(191) NULL, -- Ex: 'Usinagem', 'Montagem', 'Manutenção'
   `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS `Pedido` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `userId` INT NOT NULL, -- ID do Solicitante
   `setor` VARCHAR(191) NULL,
+  `operadorSolicitante` VARCHAR(255) NULL,
   `status` VARCHAR(191) NOT NULL DEFAULT 'AGUARDANDO_SEPARACAO', 
   -- Status Kanban: 'AGUARDANDO_SEPARACAO', 'EM_SEPARACAO', 'PRONTO_RETIRADA', 'CONCLUIDO', 'ESTORNADO'
   `pinValidadoEm` DATETIME(3) NULL, -- Data/hora em que o PIN foi digitado no balcão
@@ -100,13 +101,12 @@ SET FOREIGN_KEY_CHECKS=1;
 -- DADOS INICIAIS (SEED)
 -- -----------------------------------------------------
 
--- Usuários (Senha padrão 123456 | PIN padrão 1234)
+-- Usuários (Senha padrão 123456 | PIN padrão 1234, primeiro acesso para responsaveis)
 INSERT INTO `User` (`nome`, `email`, `senha`, `pin`, `role`, `setor`) VALUES
-('Almoxarife Til Marcon', 'a  ', '123456', '0000', 'ALMOXARIFE', 'Almoxarifado'),
-('Almoxarife Til Marcon', 'admin@tilmarcon.com.br', '123456', '0000', 'ALMOXARIFE', 'Almoxarifado'),
-('Operador Geral', 'operador@tilmarcon.com.br', '123456', '1234', 'OPERADOR', 'Produção'),
-('Lucas Engenharia', 'lucas@tilmarcon.com.br', '123456', '1234', 'OPERADOR', 'Manutenção'),
-('Operador Logística', 'op1@tilmarcon.com.br', '123456', '5678', 'OPERADOR', 'Usinagem');
+('Administrador', 'admin@tilmarcon.com.br', '123456', '0000', 'ADMIN', 'TI'),
+('Almoxarife Til Marcon', 'almoxarife@tilmarcon.com.br', '123456', '0000', 'ALMOXARIFE', 'Almoxarifado'),
+('Responsável 1', 'responsavel1@tilmarcon.com.br', '123456', NULL, 'RESPONSAVEL', 'Manutenção'),
+('Responsável 2', 'responsavel2@tilmarcon.com.br', '123456', NULL, 'RESPONSAVEL', 'Usinagem');
 
 -- Itens de Estoque
 INSERT INTO `Item` (`codigo`, `nome`, `unidade`, `quantidade`, `localizacao`) VALUES
@@ -122,12 +122,12 @@ INSERT INTO `Item` (`codigo`, `nome`, `unidade`, `quantidade`, `localizacao`) VA
 ('TM-010', 'Disco de Corte Inox 4.1/2"', 'UN', 300, 'C-02-02');
 
 -- Pedidos com os novos status do Kanban
-INSERT INTO `Pedido` (`userId`, `setor`, `status`, `createdAt`, `pinValidadoEm`, `entregueEm`) VALUES
-(2, 'Manutenção', 'AGUARDANDO_SEPARACAO', NOW(), NULL, NULL), -- Pedido 1
-(3, 'Usinagem', 'EM_SEPARACAO', DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL, NULL), -- Pedido 2
-(2, 'Manutenção', 'PRONTO_RETIRADA', DATE_SUB(NOW(), INTERVAL 2 HOUR), NULL, NULL), -- Pedido 3 (Aguardando o solicitante ir ao balcão digitar o PIN)
-(3, 'Usinagem', 'CONCLUIDO', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR)), -- Pedido 4 (Entregue com PIN digitado)
-(2, 'Manutenção', 'AGUARDANDO_SEPARACAO', DATE_SUB(NOW(), INTERVAL 15 MINUTE), NULL, NULL); -- Pedido 5
+INSERT INTO `Pedido` (`userId`, `setor`, `operadorSolicitante`, `status`, `createdAt`, `pinValidadoEm`, `entregueEm`) VALUES
+(3, 'Manutenção', 'João Silva', 'AGUARDANDO_SEPARACAO', NOW(), NULL, NULL), -- Pedido 1
+(4, 'Usinagem', 'Carlos Souza', 'EM_SEPARACAO', DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL, NULL), -- Pedido 2
+(3, 'Manutenção', 'João Silva', 'PRONTO_RETIRADA', DATE_SUB(NOW(), INTERVAL 2 HOUR), NULL, NULL), -- Pedido 3
+(4, 'Usinagem', 'Carlos Souza', 'CONCLUIDO', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR)), -- Pedido 4
+(3, 'Manutenção', 'Maria Oliveira', 'AGUARDANDO_SEPARACAO', DATE_SUB(NOW(), INTERVAL 15 MINUTE), NULL, NULL); -- Pedido 5
 
 -- Itens do Pedido 1 (Aguardando Separação)
 INSERT INTO `PedidoItem` (`pedidoId`, `itemId`, `quantidade`, `quantidadeEnviada`, `separado`) VALUES

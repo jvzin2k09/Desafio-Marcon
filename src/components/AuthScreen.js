@@ -771,7 +771,7 @@ export default function AuthScreen() {
                         • <strong>Almoxarife:</strong> almoxarife@tilmarcon.com.br | Senha: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">123456</code> | PIN: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">0000</code>
                       </div>
                       <div>
-                        • <strong>Operador:</strong> lucas@tilmarcon.com.br | Senha: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">123456</code> | PIN: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">1234</code>
+                        • <strong>Responsável:</strong> responsavel1@tilmarcon.com.br | Senha: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">123456</code> | PIN: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">1234</code>
                       </div>
                     </div>
 

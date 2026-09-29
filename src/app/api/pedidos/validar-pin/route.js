@@ -8,8 +8,8 @@ export async function POST(request) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== 'ALMOXARIFE') {
-      return NextResponse.json({ error: 'Não autorizado. Apenas Almoxarifes podem validar entregas.' }, { status: 403 });
+    if (!session || !['ALMOXARIFE', 'ADMIN'].includes(session.user.role)) {
+      return NextResponse.json({ error: 'Não autorizado. Apenas Almoxarifes ou Admins podem validar entregas.' }, { status: 403 });
     }
 
     const { pedidoId, pin } = await request.json();
@@ -35,7 +35,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Este pedido já foi concluído.' }, { status: 400 });
     }
 
-    // Validar o PIN do Solicitante (Operador)
+    // Validar o PIN do Solicitante (Responsável)
     let isPinValid = false;
     if (pedido.user.pin === pin) {
       isPinValid = true;

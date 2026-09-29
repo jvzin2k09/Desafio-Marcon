@@ -14,7 +14,7 @@ export default function PinSetupModal() {
   const [loading, setLoading] = useState(false);
   const inputRef = useRef(null);
 
-  const isOperador = session?.user?.role === "OPERADOR";
+  const isOperador = session?.user?.role === "RESPONSAVEL";
   const hasPin = session?.user?.hasPin;
   const showModal = isOperador && hasPin === false;
 

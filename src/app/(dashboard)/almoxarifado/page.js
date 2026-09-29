@@ -122,7 +122,7 @@ function PinBalcaoModal({ pedido, onClose, onSuccess }) {
           <h2 className="text-xl font-display font-black text-slate-900 mb-1">Confirmar Entrega</h2>
           <p className="text-xs font-mono text-slate-400 mb-1">Pedido #{pedido.id.toString().padStart(4, '0')}</p>
           <p className="text-sm text-slate-500 text-center mb-6">
-            Solicite ao operador <span className="font-bold text-slate-700">{pedido.user?.nome}</span> que digite seu PIN de 4 dígitos.
+            Solicite ao responsável <span className="font-bold text-slate-700">{pedido.user?.nome}</span> que digite seu PIN de 4 dígitos.
           </p>
           <form onSubmit={handleSubmit} className="w-full flex flex-col items-center">
             <input
@@ -241,9 +241,14 @@ function KanbanCard({ pedido, column, onStatusChange, onQtyChange, updating, onP
 
         <div className="flex items-center mb-1">
           <UserIcon className="w-3.5 h-3.5 mr-1.5 shrink-0" style={{ color: column.accent }} />
-          <span className="text-sm font-bold text-slate-700 truncate">{pedido.user?.nome}</span>
+          <span className="text-sm font-bold text-slate-700 truncate">{pedido.operadorSolicitante || pedido.user?.nome}</span>
         </div>
-        {pedido.setor && <p className="text-[10px] font-bold text-slate-400 mb-2">Setor: {pedido.setor}</p>}
+        {pedido.setor && (
+          <div className="flex items-center gap-1.5 mb-2">
+            <span className="text-[10px] font-bold text-slate-400">Setor: {pedido.setor}</span>
+            <span className="text-[9px] font-medium text-slate-300">· Resp: {pedido.user?.nome}</span>
+          </div>
+        )}
 
         {column.id === 'EM_SEPARACAO' ? (
           <InputsSeparacao pedido={pedido} onQtyChange={onQtyChange} />

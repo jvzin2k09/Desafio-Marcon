@@ -16,12 +16,12 @@ export default withAuth(
     }
 
     // Acesso de Almoxarife
-    if (path.startsWith("/almoxarifado") && token.role !== "ALMOXARIFE") {
+    if (path.startsWith("/almoxarifado") && !["ALMOXARIFE", "ADMIN"].includes(token.role)) {
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
 
-    // Acesso de Operador
-    if (path.startsWith("/solicitante") && token.role !== "OPERADOR") {
+    // Acesso de Responsavel
+    if (path.startsWith("/solicitante") && !["RESPONSAVEL", "ADMIN"].includes(token.role)) {
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
 
