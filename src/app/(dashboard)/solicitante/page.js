@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, memo } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, Minus, ShoppingCart, Send, X, Clock, Package, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Search, Plus, Minus, ShoppingCart, Send, X, Clock, Package, Loader2, CheckCircle2, AlertCircle, User as UserIcon } from "lucide-react";
 
 const SPRING = { type: "spring", stiffness: 280, damping: 24 };
 
@@ -20,87 +20,6 @@ function getTempoEspera(ds) {
   return `${Math.floor(diff / 1440)}d`;
 }
 
-// Memoized ItemRow to eliminate unnecessary re-renders of the whole stock list on input
-const ItemRow = memo(function ItemRow({ item, inCart, itemInputVal, onAddToCart, onUpdateCartQty, onSetCartQty, onBlurCartQty, onRemoveFromCart, onItemInputChange }) {
-  return (
-    <motion.div
-      layout
-      className="site-card flex items-center justify-between p-3 pl-4"
-    >
-      <div className="flex-1 min-w-0 mr-3">
-        <p className="text-sm font-bold text-slate-800 truncate">{item.nome}</p>
-        <p className="text-xs font-mono text-slate-400 mt-0.5">
-          {item.codigo} · {item.quantidade} {item.unidade} disponível · <span className="text-slate-300">{item.localizacao}</span>
-        </p>
-      </div>
-      {inCart ? (
-        <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200">
-          <button 
-            onClick={() => onUpdateCartQty(item.id, -1)} 
-            className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-xs transition-colors"
-            title="Diminuir 1"
-          >
-            <Minus className="w-3 h-3" />
-          </button>
-          <input
-            type="number"
-            min={1}
-            max={item.quantidade}
-            value={inCart.quantidade}
-            onChange={e => onSetCartQty(item.id, e.target.value)}
-            onBlur={() => onBlurCartQty(item.id)}
-            onFocus={e => e.target.select()}
-            className="w-14 h-6 text-center font-mono font-black text-xs text-[#1B3A6B] bg-white border border-slate-200 focus:border-[#1B3A6B] rounded focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
-            title={`No carrinho: ${inCart.quantidade} (Estoque: ${item.quantidade})`}
-          />
-          <button 
-            onClick={() => onUpdateCartQty(item.id, 1)} 
-            className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-xs transition-colors"
-            title="Aumentar 1"
-          >
-            <Plus className="w-3 h-3" />
-          </button>
-          <button 
-            onClick={() => onRemoveFromCart(item.id)} 
-            className="w-6 h-6 rounded flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors ml-0.5"
-            title="Remover do carrinho"
-          >
-            <X className="w-3 h-3" />
-          </button>
-        </div>
-      ) : (
-        <div className="flex items-center gap-1.5">
-          <input
-            type="number"
-            min={1}
-            max={item.quantidade}
-            value={itemInputVal !== undefined ? itemInputVal : 1}
-            onChange={e => onItemInputChange(item.id, e.target.value, item.quantidade)}
-            onFocus={e => e.target.select()}
-            disabled={item.quantidade === 0}
-            className="w-14 h-8 text-center font-mono font-black text-xs text-slate-800 bg-slate-50 border border-slate-200 focus:border-[#1B3A6B] rounded-lg focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
-            placeholder="1"
-            title={`Digite a quantidade desejada (Disponível: ${item.quantidade} ${item.unidade})`}
-          />
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              const qty = parseInt(itemInputVal, 10) || 1;
-              onAddToCart(item, qty);
-            }}
-            disabled={item.quantidade === 0}
-            className="btn-magnetic flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-lg text-white disabled:opacity-30 whitespace-nowrap shadow-sm"
-            style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
-          >
-            <Plus className="w-3.5 h-3.5" /> Adicionar
-          </motion.button>
-        </div>
-      )}
-    </motion.div>
-  );
-});
-
 export default function SolicitantePage() {
   const { data: session } = useSession();
   const [tab, setTab] = useState("pedido"); // pedido | status
@@ -109,6 +28,7 @@ export default function SolicitantePage() {
   const [cart, setCart] = useState([]);
   const [itemInputs, setItemInputs] = useState({});
   const [setor, setSetor] = useState(session?.user?.setor || "");
+  const [operadorSolicitante, setOperadorSolicitante] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null); // null | success | error
   const [meusPedidos, setMeusPedidos] = useState([]);
@@ -135,29 +55,23 @@ export default function SolicitantePage() {
     }
   }, [tab, session?.user?.id]);
 
-  const filteredItems = useMemo(() => {
-    if (!search.trim()) return items;
-    const q = search.toLowerCase().trim();
-    return items.filter(item =>
-      item.nome.toLowerCase().includes(q) ||
-      item.codigo.toLowerCase().includes(q)
-    );
-  }, [items, search]);
+  const filteredItems = items.filter(item =>
+    item.nome.toLowerCase().includes(search.toLowerCase()) ||
+    item.codigo.toLowerCase().includes(search.toLowerCase())
+  );
 
-  const addToCart = useCallback((item, initialQty = 1) => {
+  const addToCart = (item, initialQty = 1) => {
     const qtyToAdd = Math.max(1, Math.min(parseInt(initialQty, 10) || 1, item.quantidade || 999999));
-    setCart(prevCart => {
-      const existing = prevCart.find(c => c.itemId === item.id);
-      if (existing) {
-        return prevCart.map(c => c.itemId === item.id ? { ...c, quantidade: Math.min(c.quantidade + qtyToAdd, c.maxQtd) } : c);
-      } else {
-        return [...prevCart, { itemId: item.id, nome: item.nome, codigo: item.codigo, unidade: item.unidade, quantidade: qtyToAdd, maxQtd: item.quantidade }];
-      }
-    });
-  }, []);
+    const existing = cart.find(c => c.itemId === item.id);
+    if (existing) {
+      setCart(cart.map(c => c.itemId === item.id ? { ...c, quantidade: Math.min(c.quantidade + qtyToAdd, c.maxQtd) } : c));
+    } else {
+      setCart([...cart, { itemId: item.id, nome: item.nome, codigo: item.codigo, unidade: item.unidade, quantidade: qtyToAdd, maxQtd: item.quantidade }]);
+    }
+  };
 
-  const updateCartQty = useCallback((itemId, delta) => {
-    setCart(prevCart => prevCart.map(c => {
+  const updateCartQty = (itemId, delta) => {
+    setCart(cart.map(c => {
       if (c.itemId === itemId) {
         const currentQty = parseInt(c.quantidade, 10) || 0;
         const newQty = Math.max(1, currentQty + delta);
@@ -165,10 +79,10 @@ export default function SolicitantePage() {
       }
       return c;
     }));
-  }, []);
+  };
 
-  const setCartQty = useCallback((itemId, val) => {
-    setCart(prevCart => prevCart.map(c => {
+  const setCartQty = (itemId, val) => {
+    setCart(cart.map(c => {
       if (c.itemId === itemId) {
         if (val === "" || val === null || val === undefined) {
           return { ...c, quantidade: "" };
@@ -181,10 +95,10 @@ export default function SolicitantePage() {
       }
       return c;
     }));
-  }, []);
+  };
 
-  const handleBlurCartQty = useCallback((itemId) => {
-    setCart(prevCart => prevCart.map(c => {
+  const handleBlurCartQty = (itemId) => {
+    setCart(cart.map(c => {
       if (c.itemId === itemId) {
         const num = parseInt(c.quantidade, 10);
         if (isNaN(num) || num <= 0) {
@@ -194,26 +108,27 @@ export default function SolicitantePage() {
       }
       return c;
     }));
-  }, []);
+  };
 
-  const removeFromCart = useCallback((itemId) => {
-    setCart(prevCart => prevCart.filter(c => c.itemId !== itemId));
-  }, []);
+  const removeFromCart = (itemId) => {
+    setCart(cart.filter(c => c.itemId !== itemId));
+  };
 
-  const handleItemInputChange = useCallback((itemId, val, maxQty) => {
-    if (val === "") {
-      setItemInputs(prev => ({ ...prev, [itemId]: "" }));
-    } else {
-      const num = parseInt(val, 10);
-      setItemInputs(prev => ({
-        ...prev,
-        [itemId]: isNaN(num) ? 1 : Math.max(1, Math.min(num, maxQty))
-      }));
-    }
-  }, []);
+  const [showOperatorModal, setShowOperatorModal] = useState(false);
 
-  const handleSubmit = async () => {
+  const handleOpenModal = () => {
     if (cart.length === 0) return;
+    setShowOperatorModal(true);
+  };
+
+  const handleConfirmSubmit = async () => {
+    if (cart.length === 0) return;
+    if (!operadorSolicitante.trim()) {
+      setSubmitStatus("error_operador");
+      setTimeout(() => setSubmitStatus(null), 3000);
+      document.getElementById("operadorSolicitante")?.focus();
+      return;
+    }
     setLoading(true);
     setSubmitStatus(null);
     try {
@@ -223,12 +138,17 @@ export default function SolicitantePage() {
         body: JSON.stringify({
           itens: cart.map(c => ({ itemId: c.itemId, quantidade: Math.max(1, parseInt(c.quantidade, 10) || 1) })),
           setor: setor || null,
+          operadorSolicitante: operadorSolicitante.trim(),
         }),
       });
       if (res.ok) {
         setSubmitStatus("success");
         setCart([]);
         setSearch("");
+        setOperadorSolicitante("");
+        setShowOperatorModal(false);
+        // Refresh items stock
+        fetch("/api/items").then(r => r.json()).then(setItems).catch(() => {});
         setTimeout(() => setSubmitStatus(null), 3000);
       } else {
         setSubmitStatus("error");
@@ -241,7 +161,7 @@ export default function SolicitantePage() {
   };
 
   return (
-    <div className="h-full flex flex-col space-y-6">
+    <div className="h-[calc(100vh-80px)] flex flex-col space-y-6">
       {/* Header */}
       <div>
         <h2 className="text-2xl font-display font-black text-slate-900 tracking-tight">Módulo Solicitante</h2>
@@ -268,11 +188,11 @@ export default function SolicitantePage() {
 
       {/* ─── Tab: Novo Pedido ─────────────────────────────────────── */}
       {tab === "pedido" && (
-        <div className="flex-1 flex flex-col lg:flex-row gap-6">
+        <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
           {/* Left: Search + Items */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-h-0">
             {/* Search */}
-            <div className="relative mb-4">
+            <div className="relative mb-4 shrink-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 type="text"
@@ -283,20 +203,34 @@ export default function SolicitantePage() {
               />
             </div>
 
-            {/* Setor */}
-            <div className="mb-4">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">Setor Solicitante</label>
-              <input
-                type="text"
-                placeholder="Ex: Usinagem, Manutenção..."
-                value={setor}
-                onChange={e => setSetor(e.target.value)}
-                className="site-input w-full py-2.5 px-4 rounded-lg text-sm"
-              />
+            {/* Setor Solicitante - Filtros */}
+            <div className="mb-4 shrink-0">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 block">Setor Solicitante (Filtro)</label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { value: "Usinagem", label: "Usinagem", color: "#0072BC" },
+                  { value: "Logística", label: "Logística", color: "#008C45" },
+                  { value: "Manutenção", label: "Manutenção", color: "#D32027" },
+                  { value: "Montagem", label: "Montagem", color: "#D4A017" },
+                ].map(linha => (
+                  <button
+                    key={linha.value}
+                    type="button"
+                    onClick={() => setSetor(setor === linha.value ? "" : linha.value)}
+                    className={`relative group rounded-xl px-2 py-3 overflow-hidden border-2 transition-all duration-200 flex items-center justify-center font-bold text-sm ${
+                      setor === linha.value
+                        ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-lg scale-[1.02]"
+                        : "border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:shadow-sm hover:bg-slate-50"
+                    }`}
+                  >
+                    {linha.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Items Grid */}
-            <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-1">
+            {/* Items Grid - com scroll fixo */}
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-2 custom-scrollbar pr-1">
               {filteredItems.length === 0 && (
                 <div className="text-center py-12 text-slate-400 text-sm font-medium">
                   {search ? "Nenhum item encontrado." : "Carregando itens..."}
@@ -304,26 +238,158 @@ export default function SolicitantePage() {
               )}
               {filteredItems.map(item => {
                 const inCart = cart.find(c => c.itemId === item.id);
+                // Mapear item à sua linha Marcon baseado no tipo de produto
+                const linhaMap = {
+                  'TM-001': 'Usinagem', 'TM-002': 'Usinagem', 'TM-003': 'Usinagem',
+                  'TM-004': 'Usinagem', 'TM-005': 'Usinagem',
+                  'TM-006': 'Montagem', 'TM-007': 'Montagem', 'TM-008': 'Montagem',
+                  'TM-009': 'Manutenção', 'TM-010': 'Manutenção',
+                };
+                
+                // Mapear setor para as logos das linhas
+                const logoMap = {
+                  'Usinagem': '/logomecanica.png',
+                  'Logística': '/logomovimento.png',
+                  'Manutenção': '/logohidraulica.png',
+                  'Montagem': '/logopratika.png'
+                };
+                
+                const linhaColors = {
+                  'Usinagem': { bg: '#EBF5FF', border: '#0072BC', dot: '#0072BC' },
+                  'Logística': { bg: '#E8F5E9', border: '#008C45', dot: '#008C45' },
+                  'Manutenção': { bg: '#FFEBEE', border: '#D32027', dot: '#D32027' },
+                  'Montagem': { bg: '#FFF8E1', border: '#D4A017', dot: '#D4A017' },
+                };
+                const itemLinha = linhaMap[item.codigo] || 'Logística'; // Logística como fallback
+                
+                // Ocultar se estivermos filtrando por um setor específico e este item não pertencer
+                if (setor && itemLinha !== setor) return null;
+
+                const linhaStyle = linhaColors[itemLinha];
+                const logoImg = logoMap[itemLinha];
+
                 return (
-                  <ItemRow
+                  <motion.div
                     key={item.id}
-                    item={item}
-                    inCart={inCart}
-                    itemInputVal={itemInputs[item.id]}
-                    onAddToCart={addToCart}
-                    onUpdateCartQty={updateCartQty}
-                    onSetCartQty={setCartQty}
-                    onBlurCartQty={handleBlurCartQty}
-                    onRemoveFromCart={removeFromCart}
-                    onItemInputChange={handleItemInputChange}
-                  />
+                    layout
+                    className="site-card flex items-center justify-between p-3 pl-4 relative overflow-hidden"
+                  >
+                    {/* Barra lateral colorida da linha */}
+                    {linhaStyle && (
+                      <div className="absolute top-0 left-0 w-1 h-full rounded-l-xl" style={{ background: linhaStyle.dot }} />
+                    )}
+                    <div className="flex-1 min-w-0 mr-3 pl-1">
+                      <div className="flex items-center gap-2.5">
+                        {logoImg && (
+                          <div className="flex-shrink-0 bg-[var(--surface-3)] p-1.5 rounded-lg border shadow-xs" style={{ borderColor: `${linhaStyle.border}30` }}>
+                            <img src={logoImg} alt={itemLinha} className="h-6 object-contain" />
+                          </div>
+                        )}
+                        <p className="text-sm font-bold text-slate-800 truncate">{item.nome}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-xs font-mono font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                          {item.codigo}
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-400">·</span>
+                        <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${item.quantidade > 0 ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50'}`}>
+                          {item.quantidade} {item.unidade} disp.
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-400">·</span>
+                        <span className="text-[11px] font-medium text-slate-400 truncate max-w-[80px]">
+                          {item.localizacao}
+                        </span>
+                      </div>
+                    </div>
+                    {inCart ? (
+                      <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200">
+                        <button 
+                          onClick={() => updateCartQty(item.id, -1)} 
+                          className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-xs transition-colors"
+                          title="Diminuir 1"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <input
+                          type="number"
+                          min={1}
+                          max={item.quantidade}
+                          value={inCart.quantidade}
+                          onChange={e => setCartQty(item.id, e.target.value)}
+                          onBlur={() => handleBlurCartQty(item.id)}
+                          onFocus={e => e.target.select()}
+                          className="w-14 h-6 text-center font-mono font-black text-xs text-[#1B3A6B] bg-white border border-slate-200 focus:border-[#1B3A6B] rounded focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
+                          title={`No carrinho: ${inCart.quantidade} (Estoque: ${item.quantidade})`}
+                        />
+                        <button 
+                          onClick={() => updateCartQty(item.id, 1)} 
+                          className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-xs transition-colors"
+                          title="Aumentar 1"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                        <button 
+                          onClick={() => removeFromCart(item.id)} 
+                          className="w-6 h-6 rounded flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors ml-0.5"
+                          title="Remover do carrinho"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="number"
+                          min={1}
+                          max={item.quantidade}
+                          value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : 1}
+                          onChange={e => {
+                            const val = e.target.value;
+                            if (val === "") {
+                              setItemInputs(prev => ({ ...prev, [item.id]: "" }));
+                            } else {
+                              const num = parseInt(val, 10);
+                              setItemInputs(prev => ({
+                                ...prev,
+                                [item.id]: isNaN(num) ? 1 : Math.max(1, Math.min(num, item.quantidade))
+                              }));
+                            }
+                          }}
+                          onBlur={() => {
+                            const current = itemInputs[item.id];
+                            if (!current || parseInt(current, 10) <= 0) {
+                              setItemInputs(prev => ({ ...prev, [item.id]: 1 }));
+                            }
+                          }}
+                          onFocus={e => e.target.select()}
+                          disabled={item.quantidade === 0}
+                          className="w-14 h-8 text-center font-mono font-black text-xs text-slate-800 bg-slate-50 border border-slate-200 focus:border-[#1B3A6B] rounded-lg focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
+                          placeholder="1"
+                          title={`Digite a quantidade desejada (Disponível: ${item.quantidade} ${item.unidade})`}
+                        />
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => {
+                            const qty = parseInt(itemInputs[item.id], 10) || 1;
+                            addToCart(item, qty);
+                          }}
+                          disabled={item.quantidade === 0}
+                          className="btn-magnetic flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-lg text-white disabled:opacity-30 whitespace-nowrap shadow-sm"
+                          style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Adicionar
+                        </motion.button>
+                      </div>
+                    )}
+                  </motion.div>
                 );
               })}
             </div>
           </div>
 
           {/* Right: Cart */}
-          <div className="lg:w-80">
+          <div className="lg:w-80 shrink-0">
             <div className="site-card p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-sm font-display font-black text-slate-700 uppercase tracking-wide">Carrinho</h3>
@@ -338,7 +404,7 @@ export default function SolicitantePage() {
                   Carrinho vazio
                 </div>
               ) : (
-                <div className="space-y-2 mb-4">
+                <div className="space-y-2 mb-4 max-h-[320px] overflow-y-auto custom-scrollbar pr-1">
                   <AnimatePresence>
                     {cart.map(c => (
                       <motion.div
@@ -396,7 +462,7 @@ export default function SolicitantePage() {
               <motion.button
                 whileHover={{ scale: 1.01, y: -1 }}
                 whileTap={{ scale: 0.99 }}
-                onClick={handleSubmit}
+                onClick={handleOpenModal}
                 disabled={cart.length === 0 || loading}
                 className="btn-magnetic w-full text-white font-black py-3.5 rounded-xl flex items-center justify-center gap-2 text-sm tracking-widest uppercase disabled:opacity-40 transition-all hover:shadow-primary-glow"
                 style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
@@ -413,6 +479,11 @@ export default function SolicitantePage() {
 
               {/* Feedback */}
               <AnimatePresence>
+                {submitStatus === "error_operador" && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-3 flex items-center gap-2 text-red-700 text-xs font-bold bg-red-50 px-4 py-2.5 rounded-lg border border-red-100">
+                    <AlertCircle className="w-4 h-4" /> Preencha o campo "Operador Solicitante".
+                  </motion.div>
+                )}
                 {submitStatus === "success" && (
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mt-3 flex items-center gap-2 text-green-700 text-xs font-bold bg-green-50 px-4 py-2.5 rounded-lg border border-green-100">
                     <CheckCircle2 className="w-4 h-4" /> Requisição enviada com sucesso!
@@ -490,6 +561,9 @@ export default function SolicitantePage() {
                           {pedido.setor && (
                             <p className="text-[10px] font-bold text-slate-400 mt-2">Setor: {pedido.setor}</p>
                           )}
+                          {pedido.operadorSolicitante && (
+                            <p className="text-[10px] font-bold text-orange-500 mt-0.5">Operador: {pedido.operadorSolicitante}</p>
+                          )}
                         </motion.div>
                       ))}
                       {pedidosCol.length === 0 && (
@@ -505,6 +579,75 @@ export default function SolicitantePage() {
           )}
         </div>
       )}
+
+      {/* ─── Modal do Operador Solicitante ───────────────────────────── */}
+      <AnimatePresence>
+        {showOperatorModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowOperatorModal(false)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={SPRING}
+              onClick={e => e.stopPropagation()}
+              className="site-card w-full max-w-md p-8 relative overflow-hidden bg-white rounded-2xl shadow-2xl"
+            >
+              <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full mix-blend-multiply filter blur-3xl opacity-20" style={{ background: "var(--primary)" }} />
+              
+              <div className="relative z-10 flex flex-col items-center">
+                <div className="mb-4">
+                  <img 
+                    src="/funcionarioMARCONI.png" 
+                    alt="Funcionário Marconi" 
+                    className="w-24 h-24 object-contain shadow-sm"
+                  />
+                </div>
+                
+                <h2 className="text-xl font-display font-black text-slate-900 mb-2 text-center">Identificação do Operador</h2>
+                <p className="text-sm text-slate-500 text-center mb-6">
+                  Informe o nome ou matrícula do operador do chão de fábrica que solicitou esta peça.
+                </p>
+
+                <div className="w-full mb-6">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">Operador Solicitante *</label>
+                  <input
+                    id="operadorSolicitante"
+                    type="text"
+                    required
+                    placeholder="Ex: João Silva / Matrícula 123"
+                    value={operadorSolicitante}
+                    onChange={e => setOperadorSolicitante(e.target.value)}
+                    className={`site-input w-full py-3 px-4 rounded-xl text-sm border-2 transition-all ${submitStatus === "error_operador" ? "border-red-500 ring-4 ring-red-50" : "border-slate-200 focus:border-[var(--primary)]"}`}
+                    autoFocus
+                  />
+                  {submitStatus === "error_operador" && (
+                    <p className="text-red-500 text-xs font-bold mt-2 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5" /> Este campo é obrigatório.
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex gap-3 w-full">
+                  <button type="button" onClick={() => setShowOperatorModal(false)} className="flex-1 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all border border-slate-200">
+                    Cancelar
+                  </button>
+                  <motion.button
+                    type="button"
+                    onClick={handleConfirmSubmit}
+                    disabled={loading}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className="flex-1 py-3 rounded-xl text-sm font-black text-white disabled:opacity-40 transition-all flex items-center justify-center gap-2 shadow-primary-glow"
+                    style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
+                  >
+                    {loading ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white" /> : <><Send className="w-4 h-4" /> Confirmar</>}
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

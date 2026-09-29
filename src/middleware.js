@@ -10,34 +10,27 @@ export default withAuth(
       return NextResponse.redirect(new URL("/", req.url));
     }
 
-    const role = token.role;
-
-    // ADMIN: acesso irrestrito a todos os módulos
-    if (role === "ADMIN") {
-      return NextResponse.next();
-    }
-
-    // ALMOXARIFE: acesso exclusivo à fila de atendimento e histórico
-    if (role === "ALMOXARIFE") {
-      if (
-        path.startsWith("/almoxarifado") ||
-        path.startsWith("/historico")
-      ) {
-        return NextResponse.next();
-      }
+    // Acesso de Admin
+    if (path.startsWith("/admin") && token.role !== "ADMIN") {
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
 
-    // OPERADOR: acesso exclusivo ao painel de requisições
-    if (role === "OPERADOR") {
-      if (path.startsWith("/solicitante")) {
-        return NextResponse.next();
-      }
+    // Acesso de Almoxarife
+    if (path.startsWith("/almoxarifado") && !["ALMOXARIFE", "ADMIN"].includes(token.role)) {
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
 
-    // Qualquer outro role desconhecido
-    return NextResponse.redirect(new URL("/unauthorized", req.url));
+    // Acesso de Responsavel
+    if (path.startsWith("/solicitante") && !["RESPONSAVEL", "ADMIN"].includes(token.role)) {
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
+
+    // Histórico (Admin e Almoxarife)
+    if (path.startsWith("/historico") && !["ADMIN", "ALMOXARIFE"].includes(token.role)) {
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
+
+    return NextResponse.next();
   },
   {
     callbacks: {
@@ -47,10 +40,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: [
-    "/admin/:path*",
-    "/almoxarifado/:path*",
-    "/solicitante/:path*",
-    "/historico/:path*",
-  ],
+  matcher: ["/admin/:path*", "/almoxarifado/:path*", "/solicitante/:path*", "/historico/:path*"],
 };

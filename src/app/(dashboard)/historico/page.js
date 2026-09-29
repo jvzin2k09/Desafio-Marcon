@@ -169,7 +169,7 @@ export default function HistoricoPage() {
         "Data e Hora",
         "Tipo Movimentacao",
         "Status",
-        "Solicitante (Operador)",
+        "Responsável / Solicitante",
         "Email Solicitante",
         "Setor",
         "Codigo da Peca (SKU)",
@@ -245,18 +245,18 @@ export default function HistoricoPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 max-w-7xl mx-auto pb-12 technical-grid rounded-xl p-4 md:p-6" style={{ backgroundColor: "rgba(255, 255, 255, 0.4)" }}>
       {/* ─── Topo: Título e Ação de Exportar ─────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-white rounded-xl shadow-sm border border-slate-200 text-[#1B3A6B]">
+          <div className="p-3 bg-[var(--primary)] rounded-xl shadow-lg border-2 border-white text-white">
             <History className="w-7 h-7" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-display font-black text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-display font-black text-[var(--primary)] tracking-tight">
               Histórico de Movimentações & Estornos
             </h1>
-            <p className="text-slate-500 text-sm mt-0.5 font-medium">
+            <p className="text-slate-600 text-sm mt-0.5 font-medium">
               Auditoria e rastreamento completo de saídas, entregas no balcão e devoluções.
             </p>
           </div>
@@ -312,45 +312,49 @@ export default function HistoricoPage() {
 
       {/* ─── Cards de Métricas (KPIs) ─────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="site-card p-5 bg-white">
-          <div className="flex justify-between items-center text-slate-400 mb-2">
+        <div className="site-card p-5 bg-[var(--primary)] text-white shadow-md border-transparent relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-5 rounded-full -mr-12 -mt-12" />
+          <div className="flex justify-between items-center text-slate-300 mb-2 relative z-10">
             <span className="text-[11px] font-black uppercase tracking-wider">Movimentações</span>
-            <Layers className="w-4 h-4 text-slate-400" />
+            <Layers className="w-4 h-4 text-slate-300" />
           </div>
-          <div className="text-2xl font-mono font-black text-slate-900">{kpis.total}</div>
-          <span className="text-[11px] text-slate-400 font-medium">Registros no período</span>
+          <div className="text-2xl font-mono font-black text-white relative z-10">{kpis.total}</div>
+          <span className="text-[11px] text-slate-300 font-medium relative z-10">Registros no período</span>
         </div>
 
-        <div className="site-card p-5 bg-white">
-          <div className="flex justify-between items-center text-slate-400 mb-2">
-            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-700">Entregas / Saídas</span>
-            <PackageCheck className="w-4 h-4 text-emerald-600" />
+        <div className="site-card p-5 bg-gradient-to-br from-slate-800 to-slate-900 border-transparent shadow-md relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500 opacity-10 rounded-full -mr-12 -mt-12" />
+          <div className="flex justify-between items-center mb-2 relative z-10">
+            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400">Entregas / Saídas</span>
+            <PackageCheck className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl font-mono font-black text-emerald-700">{kpis.saidas}</div>
-          <span className="text-[11px] text-slate-400 font-medium">Pedidos concluídos</span>
+          <div className="text-2xl font-mono font-black text-white relative z-10">{kpis.saidas}</div>
+          <span className="text-[11px] text-slate-400 font-medium relative z-10">Pedidos concluídos</span>
         </div>
 
-        <div className="site-card p-5 bg-white">
-          <div className="flex justify-between items-center text-slate-400 mb-2">
-            <span className="text-[11px] font-black uppercase tracking-wider text-red-600">Estornos / Cancelados</span>
-            <Undo2 className="w-4 h-4 text-red-500" />
+        <div className="site-card p-5 bg-gradient-to-br from-slate-800 to-slate-900 border-transparent shadow-md relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-red-500 opacity-10 rounded-full -mr-12 -mt-12" />
+          <div className="flex justify-between items-center mb-2 relative z-10">
+            <span className="text-[11px] font-black uppercase tracking-wider text-red-400">Estornos / Cancelados</span>
+            <Undo2 className="w-4 h-4 text-red-400" />
           </div>
-          <div className="text-2xl font-mono font-black text-red-600">{kpis.estornos}</div>
-          <span className="text-[11px] text-slate-400 font-medium">Devoluções ao estoque</span>
+          <div className="text-2xl font-mono font-black text-white relative z-10">{kpis.estornos}</div>
+          <span className="text-[11px] text-slate-400 font-medium relative z-10">Devoluções ao estoque</span>
         </div>
 
-        <div className="site-card p-5 bg-white">
-          <div className="flex justify-between items-center text-slate-400 mb-2">
-            <span className="text-[11px] font-black uppercase tracking-wider text-[#1B3A6B]">Volume de Peças</span>
-            <Tag className="w-4 h-4 text-[#1B3A6B]" />
+        <div className="site-card p-5 bg-[var(--highlight)] text-white shadow-md border-transparent relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full -mr-12 -mt-12" />
+          <div className="flex justify-between items-center text-orange-100 mb-2 relative z-10">
+            <span className="text-[11px] font-black uppercase tracking-wider">Volume de Peças</span>
+            <Tag className="w-4 h-4 text-orange-100" />
           </div>
-          <div className="text-2xl font-mono font-black text-[#1B3A6B]">{kpis.totalPecas}</div>
-          <span className="text-[11px] text-slate-400 font-medium">Unidades movimentadas</span>
+          <div className="text-2xl font-mono font-black text-white relative z-10">{kpis.totalPecas}</div>
+          <span className="text-[11px] text-orange-100 font-medium relative z-10">Unidades movimentadas</span>
         </div>
       </div>
 
       {/* ─── Barra de Filtros e Busca ─────────────────────────────────────── */}
-      <div className="site-card p-5 bg-white space-y-4">
+      <div className="site-card p-5 bg-white/90 backdrop-blur-md shadow-sm space-y-4">
         <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
           {/* Abas de Tipo */}
           <div className="flex gap-1.5 p-1 rounded-xl bg-slate-100 self-start">
@@ -393,7 +397,7 @@ export default function HistoricoPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Buscar por # pedido, item, operador ou setor..."
+              placeholder="Buscar por # pedido, item, responsável ou setor..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-9 pr-8 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1B3A6B] focus:bg-white transition-all"

@@ -20,7 +20,6 @@ model estorno {
 
   @@index([itemId], map: "Estorno_itemId_fkey")
   @@index([pedidoId], map: "Estorno_pedidoId_fkey")
-  @@map("Estorno")
 }
 
 model item {
@@ -33,30 +32,25 @@ model item {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @default(now())
   estornos    estorno[]
-  pedidoitem  pedidoitem[]
-
-  @@map("Item")
+  itens       pedidoitem[]
 }
 
 model pedido {
-  id            Int          @id @default(autoincrement())
-  userId        Int
-  setor         String?
-  status        String       @default("AGUARDANDO_SEPARACAO")
-  pinValidadoEm DateTime?
-  entregueEm    DateTime?
-  observacao    String?      @db.Text
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @default(now())
-  estornos      estorno[]
-  user          user         @relation(fields: [userId], references: [id], map: "Pedido_userId_fkey")
-  itens         pedidoitem[]
+  id                  Int          @id @default(autoincrement())
+  userId              Int
+  setor               String?
+  operadorSolicitante String?      @db.VarChar(255)
+  status              String       @default("AGUARDANDO_SEPARACAO")
+  pinValidadoEm       DateTime?
+  entregueEm          DateTime?
+  observacao          String?      @db.Text
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @default(now())
+  estornos            estorno[]
+  user                user         @relation(fields: [userId], references: [id], map: "Pedido_userId_fkey")
+  itens               pedidoitem[]
 
   @@index([userId], map: "Pedido_userId_fkey")
-  @@index([status])
-  @@index([status, updatedAt])
-  @@index([createdAt])
-  @@map("Pedido")
 }
 
 model pedidoitem {
@@ -71,7 +65,6 @@ model pedidoitem {
 
   @@index([itemId], map: "PedidoItem_itemId_fkey")
   @@index([pedidoId], map: "PedidoItem_pedidoId_fkey")
-  @@map("PedidoItem")
 }
 
 model user {
@@ -80,12 +73,9 @@ model user {
   email     String   @unique(map: "User_email_key")
   senha     String
   pin       String?
-  role      String   @default("OPERADOR")
+  role      String   @default("RESPONSAVEL")
   setor     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
   pedidos   pedido[]
-
-  @@map("User")
 }
-
