@@ -147,6 +147,8 @@ export default function SolicitantePage() {
         setSearch("");
         setOperadorSolicitante("");
         setShowOperatorModal(false);
+        // Refresh items stock
+        fetch("/api/items").then(r => r.json()).then(setItems).catch(() => {});
         setTimeout(() => setSubmitStatus(null), 3000);
       } else {
         setSubmitStatus("error");
@@ -201,32 +203,27 @@ export default function SolicitantePage() {
               />
             </div>
 
-            {/* Setor Solicitante - Cards Visuais */}
+            {/* Setor Solicitante - Filtros */}
             <div className="mb-4 shrink-0">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 block">Setor Solicitante</label>
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 block">Setor Solicitante (Filtro)</label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {[
-                  { value: "Mecânica", label: "Mecânica", img: "/linha-mecanica.png", color: "#0072BC" },
-                  { value: "Movimento", label: "Movimento", img: "/linha-movimento.png", color: "#008C45" },
-                  { value: "Hidráulica", label: "Hidráulica", img: "/linha-hidraulica.png", color: "#D32027" },
-                  { value: "Prática", label: "Prátika", img: "/linha-pratika.png", color: "#D4A017" },
+                  { value: "Usinagem", label: "Usinagem", color: "#0072BC" },
+                  { value: "Logística", label: "Logística", color: "#008C45" },
+                  { value: "Manutenção", label: "Manutenção", color: "#D32027" },
+                  { value: "Montagem", label: "Montagem", color: "#D4A017" },
                 ].map(linha => (
                   <button
                     key={linha.value}
                     type="button"
                     onClick={() => setSetor(setor === linha.value ? "" : linha.value)}
-                    className={`relative group rounded-xl overflow-hidden border-2 transition-all duration-200 ${
+                    className={`relative group rounded-xl px-2 py-3 overflow-hidden border-2 transition-all duration-200 flex items-center justify-center font-bold text-sm ${
                       setor === linha.value
-                        ? "border-[var(--primary)] shadow-lg scale-[1.02]"
-                        : "border-slate-200 hover:border-slate-300 hover:shadow-sm"
+                        ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-lg scale-[1.02]"
+                        : "border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:shadow-sm hover:bg-slate-50"
                     }`}
                   >
-                    <img src={linha.img} alt={linha.label} className="w-full h-14 object-cover" />
-                    {setor === linha.value && (
-                      <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-[var(--primary)] text-white flex items-center justify-center shadow-md">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                      </div>
-                    )}
+                    {linha.label}
                   </button>
                 ))}
               </div>
@@ -243,19 +240,33 @@ export default function SolicitantePage() {
                 const inCart = cart.find(c => c.itemId === item.id);
                 // Mapear item à sua linha Marcon baseado no tipo de produto
                 const linhaMap = {
-                  'TM-001': 'Mecânica', 'TM-002': 'Mecânica', 'TM-003': 'Mecânica',
-                  'TM-004': 'Mecânica', 'TM-005': 'Mecânica',
-                  'TM-006': 'Prática', 'TM-007': 'Prática', 'TM-008': 'Prática',
-                  'TM-009': 'Hidráulica', 'TM-010': 'Hidráulica',
+                  'TM-001': 'Usinagem', 'TM-002': 'Usinagem', 'TM-003': 'Usinagem',
+                  'TM-004': 'Usinagem', 'TM-005': 'Usinagem',
+                  'TM-006': 'Montagem', 'TM-007': 'Montagem', 'TM-008': 'Montagem',
+                  'TM-009': 'Manutenção', 'TM-010': 'Manutenção',
                 };
+                
+                // Mapear setor para as logos das linhas
+                const logoMap = {
+                  'Usinagem': '/logomecanica.png',
+                  'Logística': '/logomovimento.png',
+                  'Manutenção': '/logohidraulica.png',
+                  'Montagem': '/logopratika.png'
+                };
+                
                 const linhaColors = {
-                  'Mecânica': { bg: '#EBF5FF', border: '#0072BC', dot: '#0072BC' },
-                  'Movimento': { bg: '#E8F5E9', border: '#008C45', dot: '#008C45' },
-                  'Hidráulica': { bg: '#FFEBEE', border: '#D32027', dot: '#D32027' },
-                  'Prática': { bg: '#FFF8E1', border: '#D4A017', dot: '#D4A017' },
+                  'Usinagem': { bg: '#EBF5FF', border: '#0072BC', dot: '#0072BC' },
+                  'Logística': { bg: '#E8F5E9', border: '#008C45', dot: '#008C45' },
+                  'Manutenção': { bg: '#FFEBEE', border: '#D32027', dot: '#D32027' },
+                  'Montagem': { bg: '#FFF8E1', border: '#D4A017', dot: '#D4A017' },
                 };
-                const itemLinha = linhaMap[item.codigo] || null;
-                const linhaStyle = itemLinha ? linhaColors[itemLinha] : null;
+                const itemLinha = linhaMap[item.codigo] || 'Logística'; // Logística como fallback
+                
+                // Ocultar se estivermos filtrando por um setor específico e este item não pertencer
+                if (setor && itemLinha !== setor) return null;
+
+                const linhaStyle = linhaColors[itemLinha];
+                const logoImg = logoMap[itemLinha];
 
                 return (
                   <motion.div
@@ -268,16 +279,26 @@ export default function SolicitantePage() {
                       <div className="absolute top-0 left-0 w-1 h-full rounded-l-xl" style={{ background: linhaStyle.dot }} />
                     )}
                     <div className="flex-1 min-w-0 mr-3 pl-1">
-                      <p className="text-sm font-bold text-slate-800 truncate">{item.nome}</p>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="text-xs font-mono text-slate-400">
-                          {item.codigo} · {item.quantidade} {item.unidade} disponível · <span className="text-slate-300">{item.localizacao}</span>
-                        </span>
-                        {itemLinha && (
-                          <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ background: linhaStyle.bg, color: linhaStyle.dot, border: `1px solid ${linhaStyle.border}20` }}>
-                            {itemLinha}
-                          </span>
+                      <div className="flex items-center gap-2.5">
+                        {logoImg && (
+                          <div className="flex-shrink-0 bg-[var(--surface-3)] p-1.5 rounded-lg border shadow-xs" style={{ borderColor: `${linhaStyle.border}30` }}>
+                            <img src={logoImg} alt={itemLinha} className="h-6 object-contain" />
+                          </div>
                         )}
+                        <p className="text-sm font-bold text-slate-800 truncate">{item.nome}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-xs font-mono font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                          {item.codigo}
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-400">·</span>
+                        <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${item.quantidade > 0 ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50'}`}>
+                          {item.quantidade} {item.unidade} disp.
+                        </span>
+                        <span className="text-[11px] font-bold text-slate-400">·</span>
+                        <span className="text-[11px] font-medium text-slate-400 truncate max-w-[80px]">
+                          {item.localizacao}
+                        </span>
                       </div>
                     </div>
                     {inCart ? (
@@ -574,8 +595,12 @@ export default function SolicitantePage() {
               <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full mix-blend-multiply filter blur-3xl opacity-20" style={{ background: "var(--primary)" }} />
               
               <div className="relative z-10 flex flex-col items-center">
-                <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4 bg-orange-50 text-orange-500">
-                  <UserIcon className="w-8 h-8" />
+                <div className="mb-4">
+                  <img 
+                    src="/funcionarioMARCONI.png" 
+                    alt="Funcionário Marconi" 
+                    className="w-24 h-24 object-contain shadow-sm"
+                  />
                 </div>
                 
                 <h2 className="text-xl font-display font-black text-slate-900 mb-2 text-center">Identificação do Operador</h2>
