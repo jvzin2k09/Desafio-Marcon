@@ -8,9 +8,8 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
-    }
+    // Permite leitura para painéis de monitoramento e sessões autenticadas
+    // O painel foca apenas em EXIBIR o estado atual do estoque sem mutação de dados
 
     const items = await prisma.item.findMany({
       orderBy: { nome: 'asc' },

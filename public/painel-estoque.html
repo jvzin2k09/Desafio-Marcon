@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Controle de Estoque - Almoxarifado Marcon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CDN Supabase e Firebase opcionais para escuta em tempo real -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    :root {
+      --bg-body: #0b1120;
+      --bg-surface: #131d32;
+      --bg-surface-elevated: #1a2744;
+      --bg-surface-card: rgba(22, 33, 56, 0.85);
+      --border-subtle: #24355a;
+      --border-focus: #3b82f6;
+      
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-light: rgba(37, 99, 235, 0.15);
+      
+      --accent-cyan: #06b6d4;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.12);
+      --success-border: rgba(16, 185, 129, 0.3);
+      
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.12);
+      --warning-border: rgba(245, 158, 11, 0.3);
+      
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.12);
+      --danger-border: rgba(239, 68, 68, 0.35);
+      --danger-pulse: rgba(239, 68, 68, 0.25);
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.35), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+      --shadow-glow-red: 0 0 20px rgba(239, 68, 68, 0.2);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.08) 0px, transparent 50%);
+      background-attachment: fixed;
+      padding-bottom: 50px;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 24px 32px;
+    }
+
+    /* Top Navigation / Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: var(--bg-surface-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-logo-badge {
+      width: 46px;
+      height: 46px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #1e3a8a, #2563eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .brand-titles h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-titles p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* Status live indicator */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid var(--success-border);
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulseGreen 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseGreen {
+      0%, 100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+      50% { transform: scale(1.1); opacity: 0.8; box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      outline: none;
+    }
+
+    .btn-notification {
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+      border-color: var(--border-subtle);
+    }
+
+    .btn-notification:hover {
+      background: #24355a;
+      border-color: #3b82f6;
+    }
+
+    .btn-notification.granted {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--success-border);
+      color: #34d399;
+    }
+
+    .btn-sim {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-sim:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+
+    /* CRITICAL ALERT BANNER (REQUISITO 2.b) */
+    .alert-banner {
+      display: none; /* dinâmico quando houver alerta */
+      background: linear-gradient(90deg, rgba(239, 68, 68, 0.2) 0%, rgba(185, 28, 28, 0.1) 100%);
+      border: 1px solid var(--danger-border);
+      border-left: 6px solid var(--danger);
+      border-radius: var(--radius-lg);
+      padding: 18px 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-glow-red);
+      animation: alertPulse 3s infinite ease-in-out;
+    }
+
+    @keyframes alertPulse {
+      0%, 100% { border-color: rgba(239, 68, 68, 0.4); box-shadow: 0 0 15px rgba(239, 68, 68, 0.15); }
+      50% { border-color: rgba(239, 68, 68, 0.8); box-shadow: 0 0 25px rgba(239, 68, 68, 0.35); }
+    }
+
+    .alert-banner-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .alert-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .alert-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: rgba(239, 68, 68, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f87171;
+      font-size: 18px;
+    }
+
+    .alert-title-wrap h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fca5a5;
+    }
+
+    .alert-title-wrap span.alert-count-pill {
+      background: #ef4444;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      letter-spacing: 0.05em;
+    }
+
+    .alert-banner-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .alert-chip {
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: #fee2e2;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .alert-chip:hover {
+      background: rgba(239, 68, 68, 0.35);
+      border-color: #ef4444;
+      transform: translateY(-1px);
+    }
+
+    .alert-chip strong {
+      color: #fff;
+    }
+
+    .alert-chip .badge-diff {
+      color: #f87171;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+    }
+
+    /* KPI METRICS CARDS */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--bg-surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: #3b82f6;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+
+    .kpi-card.blue::before { background: #3b82f6; }
+    .kpi-card.green::before { background: var(--success); }
+    .kpi-card.amber::before { background: var(--warning); }
+    .kpi-card.red::before { background: var(--danger); }
+
+    .kpi-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .kpi-header span {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .kpi-icon {
+      font-size: 18px;
+      opacity: 0.85;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .kpi-footer {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* TOOLBAR: SEARCH & FILTERS */
+    .toolbar {
+      background: var(--bg-surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 280px;
+      max-width: 500px;
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 14px 10px 42px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--border-focus);
+      background: #1e2c4d;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab-btn:hover {
+      background: var(--bg-surface-elevated);
+      color: #fff;
+    }
+
+    .tab-btn.active {
+      background: var(--primary-light);
+      border-color: #3b82f6;
+      color: #60a5fa;
+    }
+
+    .tab-badge {
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.1);
+      color: inherit;
+    }
+
+    /* DATA TABLE */
+    .table-container {
+      background: var(--bg-surface-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+      max-height: calc(100vh - 430px);
+      min-height: 380px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13.5px;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+      background: #111a2e;
+      z-index: 10;
+      border-bottom: 2px solid var(--border-subtle);
+    }
+
+    th {
+      padding: 14px 18px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-size: 11.5px;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    tbody tr:hover {
+      background-color: rgba(30, 41, 59, 0.6);
+    }
+
+    td {
+      padding: 14px 18px;
+      vertical-align: middle;
+      color: var(--text-main);
+    }
+
+    /* DESTAQUE DE ESTOQUE BAIXO / CRÍTICO (REQUISITO 2.a) */
+    tbody tr.stock-critical {
+      background-color: rgba(239, 68, 68, 0.1) !important;
+      border-left: 4px solid var(--danger);
+    }
+
+    tbody tr.stock-critical:hover {
+      background-color: rgba(239, 68, 68, 0.18) !important;
+    }
+
+    tbody tr.stock-empty {
+      background-color: rgba(147, 51, 234, 0.1) !important;
+      border-left: 4px solid #a855f7;
+    }
+
+    .item-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 12px;
+      color: #93c5fd;
+      background: rgba(37, 99, 235, 0.15);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      display: inline-block;
+    }
+
+    .item-name-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .item-name {
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .item-category {
+      font-size: 11.5px;
+      color: var(--text-dim);
+    }
+
+    .item-qty-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .item-limit-cell {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* Barra de progresso visual de estoque */
+    .stock-bar-wrap {
+      width: 110px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stock-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: #1e293b;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .stock-bar-fill {
+      height: 100%;
+      border-radius: 9999px;
+      transition: width 0.4s ease, background-color 0.4s ease;
+    }
+
+    .stock-bar-fill.normal { background: var(--success); }
+    .stock-bar-fill.low { background: var(--danger); }
+    .stock-bar-fill.empty { background: #a855f7; }
+
+    /* BADGES DE STATUS (REQUISITO 3) */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .status-badge.ok {
+      background: var(--success-bg);
+      color: #34d399;
+      border: 1px solid var(--success-border);
+    }
+
+    .status-badge.low {
+      background: var(--danger-bg);
+      color: #f87171;
+      border: 1px solid var(--danger-border);
+      animation: badgeBlink 2.5s infinite;
+    }
+
+    .status-badge.empty {
+      background: rgba(147, 51, 234, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(147, 51, 234, 0.35);
+    }
+
+    @keyframes badgeBlink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .location-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      background: #1c273e;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* Modal de Configuração em tempo real */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-card {
+      background: #131d32;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 540px;
+      padding: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-card h3 {
+      font-size: 18px;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .modal-card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .form-control:focus {
+      border-color: var(--border-focus);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    /* Toast notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: #1e293b;
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--primary);
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      animation: slideInRight 0.3s ease;
+    }
+
+    .toast.toast-danger {
+      border-left-color: var(--danger);
+      background: #2a151b;
+    }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Empty state */
+    .empty-state {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 12px;
+      color: var(--text-dim);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .container { padding: 16px; }
+      .header-actions { width: 100%; justify-content: space-between; }
+      .toolbar { flex-direction: column; align-items: stretch; }
+      .search-box { max-width: 100%; }
+      .table-responsive { max-height: calc(100vh - 490px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- HEADER -->
+    <header>
+      <div class="brand-section">
+        <div class="brand-logo-badge">M</div>
+        <div class="brand-titles">
+          <h1>
+            Almoxarifado Marcon
+            <span class="live-badge">
+              <span class="live-dot"></span>
+              Sincronização em Tempo Real
+            </span>
+          </h1>
+          <p>Painel de Controle e Monitoramento de Estoque Contínuo</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Notificações do Navegador -->
+        <button id="btnToggleNotification" class="btn btn-notification" onclick="requestNotificationPermission()">
+          <span id="notifIcon">🔔</span>
+          <span id="notifStatusText">Ativar Notificações</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- CARD/BANNER DE ALERTA DE ESTOQUE BAIXO (REQUISITO 2.b) -->
+    <div id="alertBanner" class="alert-banner">
+      <div class="alert-banner-header">
+        <div class="alert-title-wrap">
+          <div class="alert-icon-box">⚠️</div>
+          <div>
+            <h3>ATENÇÃO: Peças em Nível Crítico de Estoque</h3>
+            <p style="font-size: 12.5px; color: #fecaca; margin-top: 2px;">
+              Os itens listados abaixo atingiram ou estão abaixo do limite mínimo de segurança e necessitam de reposição imediata.
+            </p>
+          </div>
+        </div>
+        <span id="alertCountBadge" class="alert-count-pill">0 ITENS CRÍTICOS</span>
+      </div>
+
+      <!-- Lista de chips com as peças em risco -->
+      <div id="alertBannerItems" class="alert-banner-items">
+        <!-- Injetado via JS -->
+      </div>
+    </div>
+
+    <!-- CARDS DE MÉTRICAS (KPIs) -->
+    <div class="kpi-grid">
+      <div class="kpi-card blue">
+        <div class="kpi-header">
+          <span>Total de Itens</span>
+          <span class="kpi-icon">📦</span>
+        </div>
+        <div id="kpiTotalItems" class="kpi-value">0</div>
+        <div class="kpi-footer">Peças cadastradas no estoque</div>
+      </div>
+
+      <div class="kpi-card green">
+        <div class="kpi-header">
+          <span>Em Dia (Seguro)</span>
+          <span class="kpi-icon">✅</span>
+        </div>
+        <div id="kpiOkItems" class="kpi-value" style="color: #34d399;">0</div>
+        <div class="kpi-footer">Acima do limite de segurança</div>
+      </div>
+
+      <div class="kpi-card red">
+        <div class="kpi-header">
+          <span>Estoque Baixo (Crítico)</span>
+          <span class="kpi-icon">⚠️</span>
+        </div>
+        <div id="kpiLowItems" class="kpi-value" style="color: #f87171;">0</div>
+        <div class="kpi-footer">Necessitam de reposição urgente</div>
+      </div>
+
+      <div class="kpi-card amber">
+        <div class="kpi-header">
+          <span>Esgotados</span>
+          <span class="kpi-icon">🚫</span>
+        </div>
+        <div id="kpiEmptyItems" class="kpi-value" style="color: #c084fc;">0</div>
+        <div class="kpi-footer">Estoque zerado (0 unidades)</div>
+      </div>
+    </div>
+
+    <!-- TOOLBAR (BUSCA E FILTROS) -->
+    <div class="toolbar">
+      <!-- Busca em tempo real (Requisito 3) -->
+      <div class="search-box">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input 
+          type="text" 
+          id="searchInput" 
+          class="search-input" 
+          placeholder="Buscar peça por código, nome, categoria ou localização..."
+          oninput="handleSearch(this.value)"
+        >
+      </div>
+
+      <!-- Filtros por status -->
+      <div class="filter-tabs">
+        <button class="tab-btn active" data-filter="all" onclick="setFilter('all')">
+          Todos <span id="tabCountAll" class="tab-badge">0</span>
+        </button>
+        <button class="tab-btn" data-filter="low" onclick="setFilter('low')">
+          ⚠️ Estoque Baixo <span id="tabCountLow" class="tab-badge" style="background: rgba(239, 68, 68, 0.3); color: #fca5a5;">0</span>
+        </button>
+        <button class="tab-btn" data-filter="empty" onclick="setFilter('empty')">
+          🚫 Esgotados <span id="tabCountEmpty" class="tab-badge">0</span>
+        </button>
+        <button class="tab-btn" data-filter="ok" onclick="setFilter('ok')">
+          ✅ Em Dia <span id="tabCountOk" class="tab-badge">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TABELA DE ESTOQUE (REQUISITOS 1, 2.a, 3) -->
+    <div class="table-container">
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Peça / Descrição</th>
+              <th>Localização</th>
+              <th>Disponível</th>
+              <th>Limite Mínimo</th>
+              <th>Nível de Estoque</th>
+              <th>Status</th>
+              <th>Última Alteração</th>
+            </tr>
+          </thead>
+          <tbody id="stockTableBody">
+            <!-- Linhas geradas via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TOASTS DE NOTIFICAÇÃO -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- MODAL DE CONFIGURAÇÃO DE TEMPO REAL (SUPABASE / FIREBASE / BACKEND POLLING) -->
+  <div id="configModal" class="modal-overlay">
+    <div class="modal-card">
+      <h3>Configuração da Conexão em Tempo Real</h3>
+      <p>
+        O painel pode escutar alterações diretamente do <strong>Supabase Realtime</strong>, <strong>Firebase Firestore</strong>, ou monitorar a API local do servidor. Escolha o seu modo de sincronização:
+      </p>
+
+      <div class="form-group">
+        <label>Modo de Conexão:</label>
+        <select id="connMode" class="form-control" onchange="toggleConnFields()">
+          <option value="api-polling">API Local com Polling / SSE (Padrão Projeto)</option>
+          <option value="supabase">Supabase Realtime (PostgreSQL)</option>
+          <option value="firebase">Firebase Firestore (onSnapshot)</option>
+          <option value="simulated">Demonstração / Simulador Interativo Local</option>
+        </select>
+      </div>
+
+      <div id="supabaseFields" style="display: none;">
+        <div class="form-group">
+          <label>Supabase URL:</label>
+          <input type="text" id="supabaseUrl" class="form-control" placeholder="https://seu-projeto.supabase.co">
+        </div>
+        <div class="form-group">
+          <label>Supabase Anon Key:</label>
+          <input type="password" id="supabaseKey" class="form-control" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+        </div>
+        <div class="form-group">
+          <label>Nome da Tabela:</label>
+          <input type="text" id="supabaseTable" class="form-control" value="Item">
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-notification" onclick="closeConfigModal()">Cancelar</button>
+        <button class="btn btn-sim" onclick="saveConnectionSettings()">Salvar e Conectar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT: LÓGICA COMPLETA DE SINCRONIZAÇÃO E ALERTAS -->
+  <script>
+    /**
+     * ESTRUTURA INICIAL DE DADOS DO ALMOXARIFADO (Baseado no database_seed.sql)
+     * Cada item contém:
+     * - id, codigo, nome, unidade, quantidade (unidades disponíveis), limiteMinimo, localizacao, categoria
+     */
+    let stockItems = [
+      { id: 1, codigo: "TM-001", nome: "Parafuso Sextavado M8x20mm", categoria: "Fixadores", unidade: "UN", quantidade: 500, limiteMinimo: 150, localizacao: "A-01-01", updatedAt: new Date() },
+      { id: 2, codigo: "TM-002", nome: "Porca Sextavada M8", categoria: "Fixadores", unidade: "UN", quantidade: 80, limiteMinimo: 100, localizacao: "A-01-02", updatedAt: new Date() },
+      { id: 3, codigo: "TM-003", nome: "Arruela Lisa M8 Zinco", categoria: "Fixadores", unidade: "UN", quantidade: 45, limiteMinimo: 100, localizacao: "A-01-03", updatedAt: new Date() },
+      { id: 4, codigo: "TM-004", nome: "Chapa de Aço Carbono 2mm 1x2m", categoria: "Matéria-Prima", unidade: "UN", quantidade: 50, limiteMinimo: 15, localizacao: "B-02-01", updatedAt: new Date() },
+      { id: 5, codigo: "TM-005", nome: "Tubo Redondo 1 Polegada x 6m", categoria: "Matéria-Prima", unidade: "UN", quantidade: 8, limiteMinimo: 12, localizacao: "B-02-02", updatedAt: new Date() },
+      { id: 6, codigo: "TM-006", nome: "Fita Crepe Industrial 50mm", categoria: "Suprimentos", unidade: "UN", quantidade: 18, limiteMinimo: 20, localizacao: "C-01-01", updatedAt: new Date() },
+      { id: 7, codigo: "TM-007", nome: "Luva de Proteção CA 123 P", categoria: "EPIs", unidade: "PAR", quantidade: 0, limiteMinimo: 25, localizacao: "EPI-01", updatedAt: new Date() },
+      { id: 8, codigo: "TM-008", nome: "Óculos de Proteção Ampla Visão", categoria: "EPIs", unidade: "UN", quantidade: 12, limiteMinimo: 15, localizacao: "EPI-02", updatedAt: new Date() },
+      { id: 9, codigo: "TM-009", nome: "Eletrodo AWS E6013 2.5mm", categoria: "Solda", unidade: "KG", quantidade: 120, limiteMinimo: 30, localizacao: "D-03-01", updatedAt: new Date() },
+      { id: 10, codigo: "TM-010", nome: "Disco de Corte Fino 4.1/2", categoria: "Abrasivos", unidade: "UN", quantidade: 5, limiteMinimo: 25, localizacao: "D-01-04", updatedAt: new Date() }
+    ];
+
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let notificationPermission = Notification.permission;
+    let audioCtx = null;
+    let notifiedItemsTracker = new Set(); // Evita spam contínuo da mesma peça se já notificada
+
+    // Inicialização
+    document.addEventListener("DOMContentLoaded", () => {
+      updateNotificationButtonState();
+      renderDashboard();
+      startRealtimeListener();
+    });
+
+    /**
+     * 1. REQUISITO: NOTIFICATION API DO NAVEGADOR
+     */
+    function updateNotificationButtonState() {
+      const btn = document.getElementById("btnToggleNotification");
+      const icon = document.getElementById("notifIcon");
+      const text = document.getElementById("notifStatusText");
+
+      if (Notification.permission === "granted") {
+        btn.classList.add("granted");
+        icon.textContent = "🔔";
+        text.textContent = "Notificações Ativas";
+      } else if (Notification.permission === "denied") {
+        btn.classList.remove("granted");
+        icon.textContent = "🔕";
+        text.textContent = "Notificações Bloqueadas";
+      } else {
+        btn.classList.remove("granted");
+        icon.textContent = "🔔";
+        text.textContent = "Ativar Notificações";
+      }
+    }
+
+    async function requestNotificationPermission() {
+      if (!("Notification" in window)) {
+        showToast("Seu navegador não suporta notificações nativas.", "danger");
+        return;
+      }
+
+      try {
+        const permission = await Notification.requestPermission();
+        notificationPermission = permission;
+        updateNotificationButtonState();
+
+        if (permission === "granted") {
+          showToast("Notificações no navegador ativadas com sucesso!");
+          playAlertSound(false);
+          new Notification("Almoxarifado Marcon", {
+            body: "O sistema de alerta em tempo real está conectado e ativo.",
+            icon: "/public/Logo.png"
+          });
+        } else {
+          showToast("Permissão para notificações não foi concedida.", "danger");
+        }
+      } catch (err) {
+        console.error("Erro ao solicitar notificação:", err);
+      }
+    }
+
+    // Alerta Sonoro Sintetizado (Web Audio API)
+    function playAlertSound(critical = true) {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = critical ? "sawtooth" : "sine";
+        osc.frequency.setValueAtTime(critical ? 600 : 880, audioCtx.currentTime);
+        if (critical) {
+          osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.35);
+        }
+
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch (e) {
+        // Ignora caso contexto de áudio esteja bloqueado
+      }
+    }
+
+    // Disparar Notificação Nativa (Requisito 2.c)
+    function triggerSystemNotification(item) {
+      if (Notification.permission === "granted") {
+        const isZero = item.quantidade === 0;
+        const title = isZero 
+          ? `🚫 ESTOQUE ESGOTADO: ${item.codigo}` 
+          : `⚠️ ALERTA ESTOQUE BAIXO: ${item.codigo}`;
+
+        const body = `Peça "${item.nome}" atingiu nível crítico: apenas ${item.quantidade} ${item.unidade} disponível (Mínimo: ${item.limiteMinimo}). Local: ${item.localizacao}`;
+
+        const notif = new Notification(title, {
+          body: body,
+          tag: `stock-${item.id}`,
+          requireInteraction: false
+        });
+
+        notif.onclick = () => {
+          window.focus();
+          highlightRow(item.id);
+        };
+      }
+
+      playAlertSound(true);
+      showToast(`Alerta de Estoque: ${item.nome} (${item.quantidade} disp.)`, "danger");
+    }
+
+    /**
+     * 2. RENDERIZAÇÃO DO DASHBOARD (TABELA, BANNER DE ALERTA, KPIS)
+     */
+    function renderDashboard() {
+      // 1. Filtragem
+      let filtered = stockItems.filter(item => {
+        const matchesSearch = 
+          item.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.codigo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (item.categoria && item.categoria.toLowerCase().includes(searchQuery.toLowerCase())) ||
+          (item.localizacao && item.localizacao.toLowerCase().includes(searchQuery.toLowerCase()));
+
+        if (!matchesSearch) return false;
+
+        const isLow = item.quantidade <= item.limiteMinimo && item.quantidade > 0;
+        const isEmpty = item.quantidade === 0;
+
+        if (currentFilter === 'low') return isLow;
+        if (currentFilter === 'empty') return isEmpty;
+        if (currentFilter === 'ok') return (!isLow && !isEmpty);
+
+        return true;
+      });
+
+      // 2. Contadores e KPIs
+      const totalCount = stockItems.length;
+      const emptyItems = stockItems.filter(i => i.quantidade === 0);
+      const lowItems = stockItems.filter(i => i.quantidade > 0 && i.quantidade <= i.limiteMinimo);
+      const okItems = stockItems.filter(i => i.quantidade > i.limiteMinimo);
+      const criticalTotal = emptyItems.length + lowItems.length;
+
+      document.getElementById("kpiTotalItems").textContent = totalCount;
+      document.getElementById("kpiOkItems").textContent = okItems.length;
+      document.getElementById("kpiLowItems").textContent = lowItems.length;
+      document.getElementById("kpiEmptyItems").textContent = emptyItems.length;
+
+      document.getElementById("tabCountAll").textContent = totalCount;
+      document.getElementById("tabCountLow").textContent = lowItems.length;
+      document.getElementById("tabCountEmpty").textContent = emptyItems.length;
+      document.getElementById("tabCountOk").textContent = okItems.length;
+
+      // 3. Renderizar Banner de Alerta Crítico (Requisito 2.b)
+      renderAlertBanner(lowItems, emptyItems);
+
+      // 4. Renderizar Tabela
+      const tbody = document.getElementById("stockTableBody");
+      tbody.innerHTML = "";
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8">
+              <div class="empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p>Nenhuma peça encontrada para os filtros selecionados.</p>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const isCritical = item.quantidade <= item.limiteMinimo;
+        const isEmpty = item.quantidade === 0;
+        const rowClass = isEmpty ? 'stock-empty' : (isCritical ? 'stock-critical' : '');
+
+        // Cálculo da barra de progresso (comparado com 2x o limite mínimo como escala normal)
+        const targetScale = Math.max(item.limiteMinimo * 2, item.quantidade);
+        const percent = Math.min(100, Math.round((item.quantidade / targetScale) * 100));
+
+        let barClass = 'normal';
+        let badgeHtml = '';
+
+        if (isEmpty) {
+          barClass = 'empty';
+          badgeHtml = `<span class="status-badge empty">🚫 Esgotado</span>`;
+        } else if (isCritical) {
+          barClass = 'low';
+          badgeHtml = `<span class="status-badge low">⚠️ Estoque Baixo</span>`;
+        } else {
+          barClass = 'normal';
+          badgeHtml = `<span class="status-badge ok">✅ Em Dia</span>`;
+        }
+
+        const dateStr = item.updatedAt ? new Date(item.updatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '--:--';
+
+        const tr = document.createElement("tr");
+        tr.id = `row-${item.id}`;
+        if (rowClass) tr.className = rowClass;
+
+        tr.innerHTML = `
+          <td>
+            <span class="item-code">${item.codigo}</span>
+          </td>
+          <td>
+            <div class="item-name-cell">
+              <span class="item-name">${item.nome}</span>
+              <span class="item-category">${item.categoria || 'Geral'}</span>
+            </div>
+          </td>
+          <td>
+            <span class="location-badge">📍 ${item.localizacao || 'Almoxarifado'}</span>
+          </td>
+          <td class="item-qty-cell">
+            <span style="${isCritical ? 'color: #f87171;' : 'color: #fff;'}">
+              ${item.quantidade}
+            </span>
+            <span style="font-size: 11px; color: var(--text-dim); font-weight: normal; margin-left: 2px;">
+              ${item.unidade}
+            </span>
+          </td>
+          <td class="item-limit-cell">
+            ${item.limiteMinimo} ${item.unidade}
+          </td>
+          <td>
+            <div class="stock-bar-wrap">
+              <div class="stock-bar-bg">
+                <div class="stock-bar-fill ${barClass}" style="width: ${percent}%;"></div>
+              </div>
+              <span style="font-size: 10px; color: var(--text-dim); font-family: 'JetBrains Mono';">
+                ${percent}% capacidade
+              </span>
+            </div>
+          </td>
+          <td>
+            ${badgeHtml}
+          </td>
+          <td style="font-size: 12px; color: var(--text-dim); font-family: 'JetBrains Mono';">
+            ${dateStr}
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    /**
+     * Renderização do Card/Banner de Alerta (Requisito 2.b)
+     */
+    function renderAlertBanner(lowItems, emptyItems) {
+      const banner = document.getElementById("alertBanner");
+      const itemsContainer = document.getElementById("alertBannerItems");
+      const badge = document.getElementById("alertCountBadge");
+
+      const allCritical = [...emptyItems, ...lowItems];
+
+      if (allCritical.length === 0) {
+        banner.style.display = "none";
+        return;
+      }
+
+      banner.style.display = "block";
+      badge.textContent = `${allCritical.length} ${allCritical.length === 1 ? 'ITEM CRÍTICO' : 'ITENS CRÍTICOS'}`;
+
+      itemsContainer.innerHTML = "";
+
+      allCritical.forEach(item => {
+        const isZero = item.quantidade === 0;
+        const chip = document.createElement("div");
+        chip.className = "alert-chip";
+        chip.title = `Clique para localizar o item ${item.codigo} na tabela`;
+        chip.onclick = () => {
+          setFilter('all');
+          document.getElementById("searchInput").value = item.codigo;
+          handleSearch(item.codigo);
+          highlightRow(item.id);
+        };
+
+        chip.innerHTML = `
+          <span>${isZero ? '🚫' : '⚠️'}</span>
+          <strong>${item.codigo}</strong> - ${item.nome}
+          <span class="badge-diff">(${item.quantidade}/${item.limiteMinimo} ${item.unidade})</span>
+        `;
+
+        itemsContainer.appendChild(chip);
+      });
+    }
+
+    function highlightRow(itemId) {
+      setTimeout(() => {
+        const row = document.getElementById(`row-${itemId}`);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          row.style.outline = "2px solid #3b82f6";
+          setTimeout(() => { row.style.outline = "none"; }, 2500);
+        }
+      }, 100);
+    }
+
+    /**
+     * 3. BUSCA E FILTROS EM TEMPO REAL
+     */
+    function handleSearch(val) {
+      searchQuery = val;
+      renderDashboard();
+    }
+
+    function setFilter(filterType) {
+      currentFilter = filterType;
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        if (btn.getAttribute("data-filter") === filterType) {
+          btn.classList.add("active");
+        } else {
+          btn.classList.remove("active");
+        }
+      });
+      renderDashboard();
+    }
+
+    /**
+     * 4. SINCRONIZAÇÃO EM TEMPO REAL (REQUISITO 1 & 3)
+     * Monitora alterações e atualiza sem recarregar a página
+     */
+    function startRealtimeListener() {
+      const mode = localStorage.getItem("marcon_realtime_mode") || "api-polling";
+
+      if (mode === "supabase") {
+        connectSupabaseRealtime();
+      } else {
+        // Polling inteligente contra o backend local (/api/items)
+        pollLocalApi();
+      }
+    }
+
+    // Polling local com comparação de estado
+    let pollInterval = null;
+    function pollLocalApi() {
+      if (pollInterval) clearInterval(pollInterval);
+
+      async function fetchItems() {
+        try {
+          const res = await fetch('/api/items');
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+              applyIncomingStockUpdate(data);
+            }
+          }
+        } catch (e) {
+          // Servidor local ou rodando standalone via arquivo
+        }
+      }
+
+      fetchItems();
+      pollInterval = setInterval(fetchItems, 3000); // Consulta leve a cada 3s
+    }
+
+    /**
+     * Aplica uma atualização vinda do banco de dados (Supabase, Firebase ou API Local)
+     */
+    function applyIncomingStockUpdate(newItems) {
+      let hasChanges = false;
+
+      newItems.forEach(newItem => {
+        // Normalização de campos com o banco
+        const id = newItem.id;
+        const currentItem = stockItems.find(i => i.id === id);
+
+        const newQty = newItem.quantidade !== undefined ? Number(newItem.quantidade) : 0;
+        const minLimit = newItem.limiteMinimo !== undefined ? Number(newItem.limiteMinimo) : (currentItem ? currentItem.limiteMinimo : 10);
+
+        if (currentItem) {
+          // Se a quantidade mudou
+          if (currentItem.quantidade !== newQty) {
+            const oldQty = currentItem.quantidade;
+            currentItem.quantidade = newQty;
+            currentItem.limiteMinimo = minLimit;
+            currentItem.updatedAt = new Date();
+            hasChanges = true;
+
+            // Se caiu para o limite mínimo ou abaixo, dispara notificação (Requisito 2.c)
+            if (newQty <= minLimit && oldQty > minLimit) {
+              triggerSystemNotification(currentItem);
+            }
+          }
+        } else {
+          // Item novo adicionado ao banco
+          stockItems.push({
+            id: newItem.id,
+            codigo: newItem.codigo || `TM-00${newItem.id}`,
+            nome: newItem.nome,
+            categoria: newItem.categoria || 'Geral',
+            unidade: newItem.unidade || 'UN',
+            quantidade: newQty,
+            limiteMinimo: minLimit,
+            localizacao: newItem.localizacao || 'Almoxarifado',
+            updatedAt: new Date()
+          });
+          hasChanges = true;
+        }
+      });
+
+      if (hasChanges) {
+        renderDashboard();
+      }
+    }
+
+    /**
+     * SIMULADOR DE ALTERAÇÃO EM TEMPO REAL (Para teste instantâneo)
+     */
+    function simulateStockChange() {
+      // Escolhe um item aleatório para diminuir o estoque
+      const randomIndex = Math.floor(Math.random() * stockItems.length);
+      const target = stockItems[randomIndex];
+
+      const oldQty = target.quantidade;
+      // Reduz drasticamente para atingir o limite ou esgotar
+      const deduction = Math.max(5, Math.floor(target.quantidade * 0.4) + 1);
+      target.quantidade = Math.max(0, target.quantidade - deduction);
+      target.updatedAt = new Date();
+
+      showToast(`Alteração no Banco: "${target.nome}" de ${oldQty} para ${target.quantidade} ${target.unidade}`);
+
+      // Verifica se entrou em estado crítico
+      if (target.quantidade <= target.limiteMinimo) {
+        triggerSystemNotification(target);
+      }
+
+      renderDashboard();
+      highlightRow(target.id);
+    }
+
+    /**
+     * SUPABASE REALTIME (Código integrado conforme Requisito 3)
+     */
+    let supabaseClient = null;
+    function connectSupabaseRealtime() {
+      const url = localStorage.getItem("marcon_sb_url");
+      const key = localStorage.getItem("marcon_sb_key");
+      const table = localStorage.getItem("marcon_sb_table") || "Item";
+
+      if (!url || !key || !window.supabase) {
+        console.log("Supabase não configurado. Utilizando modo padrão.");
+        return;
+      }
+
+      try {
+        supabaseClient = window.supabase.createClient(url, key);
+
+        // Subscrição em tempo real no canal postgres_changes
+        supabaseClient
+          .channel('marcon-estoque-realtime')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: table },
+            (payload) => {
+              console.log('⚡ Alteração detectada no banco via Supabase Realtime:', payload);
+              if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+                applyIncomingStockUpdate([payload.new]);
+              }
+            }
+          )
+          .subscribe((status) => {
+            console.log('Status da Conexão Supabase:', status);
+            if (status === 'SUBSCRIBED') {
+              showToast("Conectado ao Supabase Realtime com sucesso!");
+            }
+          });
+      } catch (err) {
+        console.error("Falha ao inicializar Supabase Realtime:", err);
+      }
+    }
+
+    /**
+     * MODAL DE CONFIGURAÇÃO E TOAST
+     */
+    function openConfigModal() {
+      document.getElementById("configModal").style.display = "flex";
+      document.getElementById("connMode").value = localStorage.getItem("marcon_realtime_mode") || "api-polling";
+      document.getElementById("supabaseUrl").value = localStorage.getItem("marcon_sb_url") || "";
+      document.getElementById("supabaseKey").value = localStorage.getItem("marcon_sb_key") || "";
+      document.getElementById("supabaseTable").value = localStorage.getItem("marcon_sb_table") || "Item";
+      toggleConnFields();
+    }
+
+    function closeConfigModal() {
+      document.getElementById("configModal").style.display = "none";
+    }
+
+    function toggleConnFields() {
+      const mode = document.getElementById("connMode").value;
+      document.getElementById("supabaseFields").style.display = (mode === "supabase") ? "block" : "none";
+    }
+
+    function saveConnectionSettings() {
+      const mode = document.getElementById("connMode").value;
+      localStorage.setItem("marcon_realtime_mode", mode);
+
+      if (mode === "supabase") {
+        localStorage.setItem("marcon_sb_url", document.getElementById("supabaseUrl").value);
+        localStorage.setItem("marcon_sb_key", document.getElementById("supabaseKey").value);
+        localStorage.setItem("marcon_sb_table", document.getElementById("supabaseTable").value);
+        connectSupabaseRealtime();
+      } else {
+        pollLocalApi();
+      }
+
+      closeConfigModal();
+      showToast("Configuração de conexão salva com sucesso!");
+    }
+
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      toast.className = `toast ${type === "danger" ? "toast-danger" : ""}`;
+      toast.innerHTML = `
+        <span>${type === "danger" ? "⚠️" : "ℹ️"}</span>
+        <span>${message}</span>
+      `;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateX(100%)";
+        toast.style.transition = "all 0.3s ease";
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+  </script>
+</body>
+</html>
