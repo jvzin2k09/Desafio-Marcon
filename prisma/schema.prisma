@@ -2,15 +2,68 @@ generator client {
   provider = "prisma-client-js"
 }
 
-enum Armazem {
-  ALMOXARIFADO
-  PRODUCAO
-  AGUARDANDO_QUALIDADE
-}
-
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model item {
+  id          Int          @id @default(autoincrement())
+  codigo      String       @unique(map: "Item_codigo_key")
+  nome        String
+  unidade     String       @default("UN") @db.VarChar(20)
+  quantidade  Int          @default(0)
+  localizacao String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now())
+  estorno     estorno[]
+  itens       pedidoitem[]
+}
+
+model pedido {
+  id                  Int          @id @default(autoincrement())
+  userId              Int
+  setor               String?
+  operadorSolicitante String?      @db.VarChar(255)
+  status              String       @default("AGUARDANDO_SEPARACAO")
+  pinValidadoEm       DateTime?
+  entregueEm          DateTime?
+  recebedor           String?      @db.VarChar(255)
+  observacao          String?      @db.Text
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @default(now())
+  estorno             estorno[]
+  user                user         @relation(fields: [userId], references: [id], onDelete: NoAction, map: "Pedido_userId_fkey")
+  itens               pedidoitem[]
+
+  @@index([userId], map: "Pedido_userId_fkey")
+}
+
+model pedidoitem {
+  id                Int     @id @default(autoincrement())
+  pedidoId          Int
+  itemId            Int
+  quantidade        Int
+  quantidadeEnviada Int?
+  separado          Boolean @default(false)
+  item              item    @relation(fields: [itemId], references: [id], onDelete: NoAction, map: "PedidoItem_itemId_fkey")
+  pedido            pedido  @relation(fields: [pedidoId], references: [id], onDelete: Cascade, map: "PedidoItem_pedidoId_fkey")
+
+  @@index([itemId], map: "PedidoItem_itemId_fkey")
+  @@index([pedidoId], map: "PedidoItem_pedidoId_fkey")
+}
+
+model user {
+  id        Int      @id @default(autoincrement())
+  nome      String
+  email     String   @unique(map: "User_email_key")
+  senha     String
+  pin       String?
+  role      String   @default("RESPONSAVEL")
+  setor     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  pedidos   pedido[]
 }
 
 model estorno {
@@ -21,77 +74,9 @@ model estorno {
   motivo              String   @db.VarChar(255)
   realizadoPorUserId  Int
   createdAt           DateTime @default(now())
-  item                item     @relation(fields: [itemId], references: [id], map: "Estorno_itemId_fkey")
+  item                item     @relation(fields: [itemId], references: [id], onDelete: NoAction, map: "Estorno_itemId_fkey")
   pedido              pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade, map: "Estorno_pedidoId_fkey")
 
   @@index([itemId], map: "Estorno_itemId_fkey")
   @@index([pedidoId], map: "Estorno_pedidoId_fkey")
-}
-
-model item {
-  id          Int          @id @default(autoincrement())
-  codigo      String       @unique(map: "Item_codigo_key")
-  nome        String
-  unidade     String       @default("UN") @db.VarChar(20)
-  quantidade  Int          @default(0)
-  localizacao String?
-  armazem     Armazem      @default(ALMOXARIFADO)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @default(now())
-  estornos    estorno[]
-  itens       pedidoitem[]
-}
-
-model pedido {
-  id                  Int          @id @default(autoincrement())
-  userId              Int
-  setor               String?
-  operadorSolicitante String?      @db.VarChar(255)
-  status              String       @default("AGUARDANDO_SEPARACAO")
-  entregueEm          DateTime?
-  observacao          String?      @db.Text
-  ordem_producao      String?      @db.VarChar(100)
-  centro_custo        String?      @db.VarChar(100)
-  integrado_totvs     Boolean      @default(false)
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @default(now())
-  estornos            estorno[]
-  user                user         @relation(fields: [userId], references: [id], map: "Pedido_userId_fkey")
-  itens               pedidoitem[]
-
-  @@index([userId], map: "Pedido_userId_fkey")
-}
-
-model pedidoitem {
-  id                Int       @id @default(autoincrement())
-  pedidoId          Int
-  itemId            Int
-  quantidade        Int
-  quantidadeEnviada Int?
-  quantidade_separada Int?
-  separado          Boolean   @default(false)
-  observacao_baixa  String?   @db.Text
-  tipo_baixa        String?   @default("QR_CODE") @db.VarChar(50)
-  almoxarife_id     Int?
-  data_hora_baixa   DateTime?
-  item              item      @relation(fields: [itemId], references: [id], map: "PedidoItem_itemId_fkey")
-  pedido            pedido    @relation(fields: [pedidoId], references: [id], onDelete: Cascade, map: "PedidoItem_pedidoId_fkey")
-  almoxarife        user?     @relation("AlmoxarifeBaixa", fields: [almoxarife_id], references: [id], map: "PedidoItem_almoxarifeId_fkey")
-
-  @@index([itemId], map: "PedidoItem_itemId_fkey")
-  @@index([pedidoId], map: "PedidoItem_pedidoId_fkey")
-  @@index([almoxarife_id], map: "PedidoItem_almoxarifeId_fkey")
-}
-
-model user {
-  id               Int          @id @default(autoincrement())
-  nome             String
-  email            String       @unique(map: "User_email_key")
-  senha            String
-  role             String       @default("RESPONSAVEL")
-  setor            String?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @default(now())
-  pedidos          pedido[]
-  baixasRealizadas pedidoitem[] @relation("AlmoxarifeBaixa")
 }

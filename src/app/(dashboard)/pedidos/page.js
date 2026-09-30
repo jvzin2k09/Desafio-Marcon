@@ -7,7 +7,7 @@ import Link from "next/link";
 // ─── Constantes ───────────────────────────────────────────────────────────────
 const COLUMNS = [
   {
-    id: "PENDENTE", title: "Novos Pedidos",
+    id: "PENDENTE", title: "  s Pedidos",
     accent: "#2563eb", accentBg: "#EFF6FF", accentBorder: "#BFDBFE",
     dotClass: "bg-blue-500", textClass: "text-blue-700",
   },
@@ -342,7 +342,11 @@ export default function PedidosKanban() {
       </div>
 
       {/* Board */}
-      <div className="flex-1 overflow-x-auto pb-6">
+      <div className="flex items-center gap-2 mb-3 text-slate-400">
+        <ArrowRight className="w-4 h-4" />
+        <span className="text-xs font-bold uppercase tracking-widest">Deslize para o lado para ver mais colunas</span>
+      </div>
+      <div className="flex-1 overflow-x-auto pb-6 custom-scrollbar">
         <div className="flex gap-5 min-w-max items-start h-full">
           {COLUMNS.map((column, colIdx) => {
             const columnPedidos = filteredPedidos.filter(p => p.status === column.id);

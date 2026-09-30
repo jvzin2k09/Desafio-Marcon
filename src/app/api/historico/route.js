@@ -5,11 +5,23 @@ import { authOptions } from "../auth/[...nextauth]/route";
 
 export const dynamic = 'force-dynamic';
 
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-mobile-app',
+    },
+  });
+}
+
 export async function GET(request) {
   const session = await getServerSession(authOptions);
+  const isMobile = request.headers.get('x-mobile-app') === 'true';
 
-  if (!session) {
-    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+  if (!session && !isMobile) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401, headers: { 'Access-Control-Allow-Origin': '*' } });
   }
 
   try {
@@ -40,7 +52,7 @@ export async function GET(request) {
             item: true
           }
         },
-        estornos: {
+        estorno: {
           include: {
             item: true
           }
@@ -56,16 +68,16 @@ export async function GET(request) {
       const isEstorno = p.status === 'ESTORNADO';
       const tipoMovimentacao = isEstorno ? 'ESTORNO' : 'SAIDA';
       const dataMovimentacao = isEstorno 
-        ? (p.estornos[0]?.createdAt || p.updatedAt)
+        ? (p.estorno[0]?.createdAt || p.updatedAt)
         : (p.entregueEm || p.updatedAt);
 
       // Descobre quem realizou o estorno se houver
-      const responsavelEstornoId = p.estornos[0]?.realizadoPorUserId;
+      const responsavelEstornoId = p.estorno[0]?.realizadoPorUserId;
       const responsavelNome = responsavelEstornoId && usersMap[responsavelEstornoId] 
         ? usersMap[responsavelEstornoId].nome 
         : 'Almoxarifado Central';
 
-      const motivoEstorno = p.estornos[0]?.motivo || p.observacao || null;
+      const motivoEstorno = p.estorno[0]?.motivo || p.observacao || null;
 
       const itens = p.itens.map(pi => {
         const qtdEfetiva = pi.quantidadeEnviada !== null && pi.quantidadeEnviada !== undefined 
@@ -147,9 +159,13 @@ export async function GET(request) {
       });
     }
 
-    return NextResponse.json(movimentacoes);
+    return NextResponse.json(movimentacoes, {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      }
+    });
   } catch (error) {
     console.error('Erro na rota de histórico:', error);
-    return NextResponse.json({ error: 'Erro ao carregar histórico' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro ao carregar histórico' }, { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
   }
 }
