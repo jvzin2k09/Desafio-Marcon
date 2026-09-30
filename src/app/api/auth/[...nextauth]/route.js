@@ -52,14 +52,13 @@ export const authOptions = {
             throw new Error("Senha incorreta");
           }
 
-          console.log("[AUTH] Login com sucesso! Role:", user.role, "| hasPin:", !!user.pin);
+          console.log("[AUTH] Login com sucesso! Role:", user.role);
 
           return {
             id: user.id.toString(),
             name: user.nome,
             email: user.email,
-            role: user.role,
-            hasPin: !!user.pin
+            role: user.role
           };
         } catch (error) {
           console.log("[AUTH] Erro auth:", error.message);
@@ -69,14 +68,10 @@ export const authOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
-        token.hasPin = user.hasPin;
-      }
-      if (trigger === "update" && session?.hasPin !== undefined) {
-        token.hasPin = session.hasPin;
       }
       return token;
     },
@@ -84,7 +79,6 @@ export const authOptions = {
       if (token) {
         session.user.id = token.id;
         session.user.role = token.role;
-        session.user.hasPin = token.hasPin;
       }
       return session;
     }

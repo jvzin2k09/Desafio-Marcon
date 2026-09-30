@@ -10,29 +10,22 @@ import {
   XCircle, 
   Layers, 
   MapPin, 
-  ShieldAlert 
+  ShieldAlert,
+  MinusCircle,
+  Package
 } from "lucide-react";
 
 export default function PainelEstoquePage() {
-  const [items, setItems] = useState([
-    { id: 1, codigo: "TM-001", nome: "Parafuso Sextavado M8x20mm", categoria: "Fixadores", unidade: "UN", quantidade: 500, limiteMinimo: 150, localizacao: "A-01-01", updatedAt: new Date() },
-    { id: 2, codigo: "TM-002", nome: "Porca Sextavada M8", categoria: "Fixadores", unidade: "UN", quantidade: 80, limiteMinimo: 100, localizacao: "A-01-02", updatedAt: new Date() },
-    { id: 3, codigo: "TM-003", nome: "Arruela Lisa M8 Zinco", categoria: "Fixadores", unidade: "UN", quantidade: 45, limiteMinimo: 100, localizacao: "A-01-03", updatedAt: new Date() },
-    { id: 4, codigo: "TM-004", nome: "Chapa de Aço Carbono 2mm 1x2m", categoria: "Matéria-Prima", unidade: "UN", quantidade: 50, limiteMinimo: 15, localizacao: "B-02-01", updatedAt: new Date() },
-    { id: 5, codigo: "TM-005", nome: "Tubo Redondo 1 Polegada x 6m", categoria: "Matéria-Prima", unidade: "UN", quantidade: 8, limiteMinimo: 12, localizacao: "B-02-02", updatedAt: new Date() },
-    { id: 6, codigo: "TM-006", nome: "Fita Crepe Industrial 50mm", categoria: "Suprimentos", unidade: "UN", quantidade: 18, limiteMinimo: 20, localizacao: "C-01-01", updatedAt: new Date() },
-    { id: 7, codigo: "TM-007", nome: "Luva de Proteção CA 123 P", categoria: "EPIs", unidade: "PAR", quantidade: 0, limiteMinimo: 25, localizacao: "EPI-01", updatedAt: new Date() },
-    { id: 8, codigo: "TM-008", nome: "Óculos de Proteção Ampla Visão", categoria: "EPIs", unidade: "UN", quantidade: 12, limiteMinimo: 15, localizacao: "EPI-02", updatedAt: new Date() },
-    { id: 9, codigo: "TM-009", nome: "Eletrodo AWS E6013 2.5mm", categoria: "Solda", unidade: "KG", quantidade: 120, limiteMinimo: 30, localizacao: "D-03-01", updatedAt: new Date() },
-    { id: 10, codigo: "TM-010", nome: "Disco de Corte Fino 4.1/2", categoria: "Abrasivos", unidade: "UN", quantidade: 5, limiteMinimo: 25, localizacao: "D-01-04", updatedAt: new Date() }
-  ]);
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [notifPerm, setNotifPerm] = useState("default");
-  const [lastSync, setLastSync] = useState(new Date());
+  const [lastSync, setLastSync] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const audioCtxRef = useRef(null);
+  const prevItemsRef = useRef([]);
 
   // Inicializa permissão de notificações
   useEffect(() => {
@@ -41,49 +34,41 @@ export default function PainelEstoquePage() {
     }
   }, []);
 
-  // Sincronização periódica inteligente em tempo real (escuta de dados do backend)
-  useEffect(() => {
-    let isMounted = true;
+  // Busca dados reais da API
+  async function fetchItems(silent = false) {
+    try {
+      const res = await fetch("/api/items");
+      if (!res.ok) return;
+      const apiItems = await res.json();
+      if (!Array.isArray(apiItems)) return;
 
-    async function fetchLatestData() {
-      try {
-        const res = await fetch("/api/items");
-        if (res.ok) {
-          const apiItems = await res.json();
-          if (Array.isArray(apiItems) && apiItems.length > 0 && isMounted) {
-            setItems(prevItems => {
-              let changed = false;
-              const updated = prevItems.map(item => {
-                const found = apiItems.find(ai => ai.id === item.id);
-                if (found && found.quantidade !== item.quantidade) {
-                  changed = true;
-                  // Se caiu para o limite ou abaixo, dispara notificação
-                  if (found.quantidade <= item.limiteMinimo && item.quantidade > item.limiteMinimo) {
-                    triggerAlert({ ...item, quantidade: found.quantidade });
-                  }
-                  return { ...item, quantidade: found.quantidade, updatedAt: new Date() };
-                }
-                return item;
-              });
-
-              if (changed) {
-                setLastSync(new Date());
-                return updated;
-              }
-              return prevItems;
-            });
+      // Verifica se algum item cruzou o limite mínimo desde a última fetch
+      const prev = prevItemsRef.current;
+      if (prev.length > 0) {
+        apiItems.forEach(newItem => {
+          const oldItem = prev.find(o => o.id === newItem.id);
+          if (oldItem && newItem.quantidade <= newItem.quantidade /* sempre false, guard */ ) return;
+          if (oldItem && newItem.quantidade <= (newItem.limiteMinimo ?? 0) && oldItem.quantidade > (newItem.limiteMinimo ?? 0)) {
+            triggerAlert(newItem);
           }
-        }
-      } catch (err) {
-        // Ignora silenciosamente para fallback contínuo
+        });
       }
-    }
 
-    const interval = setInterval(fetchLatestData, 3000); // Consulta leve a cada 3s
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
+      prevItemsRef.current = apiItems;
+      setItems(apiItems);
+      setLastSync(new Date());
+      if (!silent) setLoading(false);
+    } catch {
+      if (!silent) setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchItems(false);
+    // Polling silencioso a cada 30s — sem re-render total, só atualiza se mudou
+    const interval = setInterval(() => fetchItems(true), 30000);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Alerta sonoro sintetizado
@@ -142,10 +127,11 @@ export default function PainelEstoquePage() {
 
 
 
-  // Contagens e KPIs
+  // Contagens e KPIs — limiteMinimo padrão = 10 quando não existir no banco
+  const getMin = (item) => item.limiteMinimo ?? 10;
   const emptyItems = items.filter(i => i.quantidade === 0);
-  const lowItems = items.filter(i => i.quantidade > 0 && i.quantidade <= i.limiteMinimo);
-  const okItems = items.filter(i => i.quantidade > i.limiteMinimo);
+  const lowItems = items.filter(i => i.quantidade > 0 && i.quantidade <= getMin(i));
+  const okItems = items.filter(i => i.quantidade > getMin(i));
   const allCritical = [...emptyItems, ...lowItems];
 
   // Itens filtrados
@@ -154,16 +140,27 @@ export default function PainelEstoquePage() {
     const matchesSearch = 
       item.nome.toLowerCase().includes(q) ||
       item.codigo.toLowerCase().includes(q) ||
-      (item.categoria && item.categoria.toLowerCase().includes(q)) ||
       (item.localizacao && item.localizacao.toLowerCase().includes(q));
 
     if (!matchesSearch) return false;
 
-    if (filter === "low") return item.quantidade > 0 && item.quantidade <= item.limiteMinimo;
+    if (filter === "low") return item.quantidade > 0 && item.quantidade <= getMin(item);
     if (filter === "empty") return item.quantidade === 0;
-    if (filter === "ok") return item.quantidade > item.limiteMinimo;
+    if (filter === "ok") return item.quantidade > getMin(item);
     return true;
   });
+
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin w-10 h-10 border-4 border-[#1B3A6B] border-t-transparent rounded-full mx-auto mb-3" />
+          <p className="text-sm font-bold text-slate-500">Carregando estoque...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -233,11 +230,13 @@ export default function PainelEstoquePage() {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-100/80 hover:bg-red-200 border border-red-300 text-xs font-medium text-red-900 transition-all hover:scale-105"
                 title="Filtrar esta peça na tabela"
               >
-                <span>{item.quantidade === 0 ? "🚫" : "⚠️"}</span>
+                {item.quantidade === 0 
+                  ? <XCircle className="w-3.5 h-3.5 shrink-0 text-red-700" />
+                  : <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-600" />}
                 <span className="font-mono font-bold">{item.codigo}</span>
                 <span className="truncate max-w-[160px]">{item.nome}</span>
                 <span className="font-mono font-bold text-red-700 bg-white/70 px-1.5 py-0.5 rounded">
-                  {item.quantidade}/{item.limiteMinimo} {item.unidade}
+                  {item.quantidade}/{getMin(item)} {item.unidade}
                 </span>
               </button>
             ))}
@@ -312,7 +311,7 @@ export default function PainelEstoquePage() {
               filter === "low" ? "bg-amber-500 text-white" : "bg-amber-50 text-amber-700 hover:bg-amber-100"
             }`}
           >
-            ⚠️ Estoque Baixo ({lowItems.length})
+            <AlertTriangle className="w-3.5 h-3.5" /> Estoque Baixo ({lowItems.length})
           </button>
           <button
             onClick={() => setFilter("empty")}
@@ -320,7 +319,7 @@ export default function PainelEstoquePage() {
               filter === "empty" ? "bg-red-600 text-white" : "bg-red-50 text-red-700 hover:bg-red-100"
             }`}
           >
-            🚫 Esgotados ({emptyItems.length})
+            <XCircle className="w-3.5 h-3.5" /> Esgotados ({emptyItems.length})
           </button>
           <button
             onClick={() => setFilter("ok")}
@@ -328,16 +327,17 @@ export default function PainelEstoquePage() {
               filter === "ok" ? "bg-emerald-600 text-white" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
             }`}
           >
-            ✅ Em Dia ({okItems.length})
+            <CheckCircle2 className="w-3.5 h-3.5" /> Em Dia ({okItems.length})
           </button>
         </div>
       </div>
 
-      {/* REQUISITO 1 & 2.a: TABELA DE ESTOQUE COM DESTAQUE AVERMELHADO/ALERTA */}
+      {/* TABELA DE ESTOQUE COM SCROLL E DESTAQUE DE ALERTAS */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
+          <div className="max-h-[520px] overflow-y-auto">
           <table className="w-full text-left border-collapse">
-            <thead>
+            <thead className="sticky top-0 z-10">
               <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                 <th className="py-3.5 px-4">Código</th>
                 <th className="py-3.5 px-4">Peça / Descrição</th>
@@ -359,8 +359,8 @@ export default function PainelEstoquePage() {
               ) : (
                 filteredItems.map((item) => {
                   const isZero = item.quantidade === 0;
-                  const isLow = item.quantidade > 0 && item.quantidade <= item.limiteMinimo;
-                  const maxCap = Math.max(item.limiteMinimo * 2, item.quantidade);
+                  const isLow = item.quantidade > 0 && item.quantidade <= getMin(item);
+                  const maxCap = Math.max(getMin(item) * 2, item.quantidade, 1);
                   const percent = Math.min(100, Math.round((item.quantidade / maxCap) * 100));
 
                   return (
@@ -381,10 +381,10 @@ export default function PainelEstoquePage() {
                         </span>
                       </td>
 
-                      {/* NOME / CATEGORIA */}
+                      {/* NOME / UNIDADE */}
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-slate-900">{item.nome}</div>
-                        <span className="text-[11px] text-slate-400">{item.categoria}</span>
+                        <span className="text-[11px] text-slate-400">{item.unidade}</span>
                       </td>
 
                       {/* LOCALIZAÇÃO */}
@@ -407,7 +407,7 @@ export default function PainelEstoquePage() {
 
                       {/* LIMITE MÍNIMO */}
                       <td className="py-3.5 px-4 font-mono text-xs text-slate-500">
-                        {item.limiteMinimo} {item.unidade}
+                        {getMin(item)} {item.unidade}
                       </td>
 
                       {/* BARRA VISUAL DE NÍVEL */}
@@ -434,16 +434,16 @@ export default function PainelEstoquePage() {
                       {/* BADGES DE STATUS */}
                       <td className="py-3.5 px-4">
                         {isZero ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200 animate-pulse">
-                            🚫 Esgotado
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200 animate-pulse">
+                            <XCircle className="w-3.5 h-3.5" /> Esgotado
                           </span>
                         ) : isLow ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                            ⚠️ Estoque Baixo
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                            <AlertTriangle className="w-3.5 h-3.5" /> Estoque Baixo
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                            ✅ Em Dia
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Em Dia
                           </span>
                         )}
                       </td>
@@ -458,6 +458,7 @@ export default function PainelEstoquePage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 

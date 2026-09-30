@@ -15,8 +15,6 @@ export const metadata = {
   description: "Sistema ágil e sustentável de almoxarifado",
 };
 
-import PinSetupModal from "@/components/PinSetupModal";
-
 export default function RootLayout({ children }) {
   return (
     <html lang="pt-BR" className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}>
@@ -37,7 +35,6 @@ export default function RootLayout({ children }) {
         </div>
 
         <Providers>
-          <PinSetupModal />
           {children}
         </Providers>
       </body>

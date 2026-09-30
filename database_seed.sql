@@ -101,12 +101,12 @@ SET FOREIGN_KEY_CHECKS=1;
 -- DADOS INICIAIS (SEED)
 -- -----------------------------------------------------
 
--- Usuários (Senha padrão 123456 | PIN padrão 1234, primeiro acesso para responsaveis)
-INSERT INTO `User` (`nome`, `email`, `senha`, `pin`, `role`, `setor`) VALUES
-('Administrador', 'admin@tilmarcon.com.br', '123456', '0000', 'ADMIN', 'TI'),
-('Almoxarife Til Marcon', 'almoxarife@tilmarcon.com.br', '123456', '0000', 'ALMOXARIFE', 'Almoxarifado'),
-('Responsável 1', 'responsavel1@tilmarcon.com.br', '123456', '1234', 'RESPONSAVEL', 'Manutenção'),
-('Responsável 2', 'responsavel2@tilmarcon.com.br', '123456', '1234', 'RESPONSAVEL', 'Usinagem');
+-- Usuários (Senha padrão 123456, primeiro acesso para responsaveis)
+INSERT INTO `User` (`nome`, `email`, `senha`, `role`, `setor`) VALUES
+('Administrador', 'admin@tilmarcon.com.br', '123456', 'ADMIN', 'TI'),
+('Almoxarife Til Marcon', 'almoxarife@tilmarcon.com.br', '123456', 'ALMOXARIFE', 'Almoxarifado'),
+('Responsável 1', 'responsavel1@tilmarcon.com.br', '123456', 'RESPONSAVEL', 'Manutenção'),
+('Responsável 2', 'responsavel2@tilmarcon.com.br', '123456', 'RESPONSAVEL', 'Usinagem');
 
 -- Itens de Estoque
 INSERT INTO `Item` (`codigo`, `nome`, `unidade`, `quantidade`, `localizacao`) VALUES
@@ -124,12 +124,12 @@ INSERT INTO `Item` (`codigo`, `nome`, `unidade`, `quantidade`, `localizacao`) VA
 ('TM-012', 'Fita Adesiva Transparente 45mm x 50m', 'ROLO', 150, 'D-01-02');
 
 -- Pedidos com os novos status do Kanban
-INSERT INTO `Pedido` (`userId`, `setor`, `operadorSolicitante`, `status`, `createdAt`, `pinValidadoEm`, `entregueEm`) VALUES
-(3, 'Manutenção', 'João Silva', 'AGUARDANDO_SEPARACAO', NOW(), NULL, NULL), -- Pedido 1
-(4, 'Usinagem', 'Carlos Souza', 'EM_SEPARACAO', DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL, NULL), -- Pedido 2
-(3, 'Manutenção', 'João Silva', 'PRONTO_RETIRADA', DATE_SUB(NOW(), INTERVAL 2 HOUR), NULL, NULL), -- Pedido 3
-(4, 'Usinagem', 'Carlos Souza', 'CONCLUIDO', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR)), -- Pedido 4
-(3, 'Manutenção', 'Maria Oliveira', 'AGUARDANDO_SEPARACAO', DATE_SUB(NOW(), INTERVAL 15 MINUTE), NULL, NULL); -- Pedido 5
+INSERT INTO `Pedido` (`userId`, `setor`, `operadorSolicitante`, `status`, `createdAt`, `entregueEm`) VALUES
+(3, 'Manutenção', 'João Silva', 'AGUARDANDO_SEPARACAO', NOW(), NULL), -- Pedido 1
+(4, 'Usinagem', 'Carlos Souza', 'EM_SEPARACAO', DATE_SUB(NOW(), INTERVAL 30 MINUTE), NULL), -- Pedido 2
+(3, 'Manutenção', 'João Silva', 'PRONTO_RETIRADA', DATE_SUB(NOW(), INTERVAL 2 HOUR), NULL), -- Pedido 3
+(4, 'Usinagem', 'Carlos Souza', 'CONCLUIDO', DATE_SUB(NOW(), INTERVAL 1 DAY), DATE_SUB(NOW(), INTERVAL 2 HOUR)), -- Pedido 4
+(3, 'Manutenção', 'Maria Oliveira', 'AGUARDANDO_SEPARACAO', DATE_SUB(NOW(), INTERVAL 15 MINUTE), NULL); -- Pedido 5
 
 -- Itens do Pedido 1 (Aguardando Separação)
 INSERT INTO `PedidoItem` (`pedidoId`, `itemId`, `quantidade`, `quantidadeEnviada`, `separado`) VALUES

@@ -41,7 +41,6 @@ model pedido {
   setor               String?
   operadorSolicitante String?      @db.VarChar(255)
   status              String       @default("AGUARDANDO_SEPARACAO")
-  pinValidadoEm       DateTime?
   entregueEm          DateTime?
   observacao          String?      @db.Text
   createdAt           DateTime     @default(now())
@@ -54,28 +53,34 @@ model pedido {
 }
 
 model pedidoitem {
-  id                Int     @id @default(autoincrement())
+  id                Int       @id @default(autoincrement())
   pedidoId          Int
   itemId            Int
   quantidade        Int
   quantidadeEnviada Int?
-  separado          Boolean @default(false)
-  item              item    @relation(fields: [itemId], references: [id], map: "PedidoItem_itemId_fkey")
-  pedido            pedido  @relation(fields: [pedidoId], references: [id], onDelete: Cascade, map: "PedidoItem_pedidoId_fkey")
+  separado          Boolean   @default(false)
+  observacao_baixa  String?   @db.Text
+  tipo_baixa        String?   @default("QR_CODE") @db.VarChar(50)
+  almoxarife_id     Int?
+  data_hora_baixa   DateTime?
+  item              item      @relation(fields: [itemId], references: [id], map: "PedidoItem_itemId_fkey")
+  pedido            pedido    @relation(fields: [pedidoId], references: [id], onDelete: Cascade, map: "PedidoItem_pedidoId_fkey")
+  almoxarife        user?     @relation("AlmoxarifeBaixa", fields: [almoxarife_id], references: [id], map: "PedidoItem_almoxarifeId_fkey")
 
   @@index([itemId], map: "PedidoItem_itemId_fkey")
   @@index([pedidoId], map: "PedidoItem_pedidoId_fkey")
+  @@index([almoxarife_id], map: "PedidoItem_almoxarifeId_fkey")
 }
 
 model user {
-  id        Int      @id @default(autoincrement())
-  nome      String
-  email     String   @unique(map: "User_email_key")
-  senha     String
-  pin       String?
-  role      String   @default("RESPONSAVEL")
-  setor     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
-  pedidos   pedido[]
+  id               Int          @id @default(autoincrement())
+  nome             String
+  email            String       @unique(map: "User_email_key")
+  senha            String
+  role             String       @default("RESPONSAVEL")
+  setor            String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @default(now())
+  pedidos          pedido[]
+  baixasRealizadas pedidoitem[] @relation("AlmoxarifeBaixa")
 }

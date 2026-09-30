@@ -245,7 +245,7 @@ export default function HistoricoPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12 technical-grid rounded-xl p-4 md:p-6" style={{ backgroundColor: "rgba(255, 255, 255, 0.4)" }}>
+    <div className="space-y-6 max-w-7xl mx-auto pb-12 p-4 md:p-6">
       {/* ─── Topo: Título e Ação de Exportar ─────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -654,25 +654,58 @@ export default function HistoricoPage() {
                                   {m.itens.map((item) => (
                                     <div
                                       key={item.id}
-                                      className="p-3 rounded-lg bg-white border border-slate-200 shadow-2xs flex justify-between items-center"
+                                      className="p-3 rounded-lg bg-white border border-slate-200 shadow-2xs flex flex-col justify-between"
                                     >
-                                      <div className="min-w-0 pr-2">
-                                        <p className="font-bold text-slate-800 text-xs truncate">{item.nome}</p>
-                                        <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400 font-mono">
-                                          <span>Cód: {item.codigo}</span>
-                                          <span>•</span>
-                                          <span className="flex items-center gap-0.5">
-                                            <MapPin className="w-2.5 h-2.5" />
-                                            {item.localizacao}
-                                          </span>
+                                      <div className="flex justify-between items-start mb-2">
+                                        <div className="min-w-0 pr-2">
+                                          <p className="font-bold text-slate-800 text-xs truncate">{item.nome}</p>
+                                          <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400 font-mono">
+                                            <span>Cód: {item.codigo}</span>
+                                            <span>•</span>
+                                            <span className="flex items-center gap-0.5">
+                                              <MapPin className="w-2.5 h-2.5" />
+                                              {item.localizacao}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                          <p className="text-[9px] font-black uppercase text-slate-400">Qtd</p>
+                                          <p className={`font-mono font-black text-sm ${isEstorno ? "text-red-600" : "text-[#1B3A6B]"}`}>
+                                            {item.quantidadeEfetiva} <span className="text-[10px] font-normal text-slate-500">{item.unidade}</span>
+                                          </p>
                                         </div>
                                       </div>
-                                      <div className="text-right shrink-0">
-                                        <p className="text-[9px] font-black uppercase text-slate-400">Qtd</p>
-                                        <p className={`font-mono font-black text-sm ${isEstorno ? "text-red-600" : "text-[#1B3A6B]"}`}>
-                                          {item.quantidadeEfetiva} <span className="text-[10px] font-normal text-slate-500">{item.unidade}</span>
-                                        </p>
-                                      </div>
+
+                                      {/* Detalhes da Baixa (QR Code) */}
+                                      {!isEstorno && (
+                                        <div className="mt-2 pt-2 border-t border-slate-100 flex flex-col gap-1.5">
+                                          <div className="flex justify-between items-center text-[10px]">
+                                            <span className="font-bold text-slate-500 uppercase flex items-center gap-1">
+                                              <Tag className="w-3 h-3 text-indigo-500" /> Baixa:
+                                            </span>
+                                            <span className={`px-1.5 py-0.5 rounded font-black ${item.tipo_baixa === 'QR_CODE' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 text-slate-600'}`}>
+                                              {item.tipo_baixa === 'QR_CODE' ? 'QR Code' : 'Manual'}
+                                            </span>
+                                          </div>
+                                          {item.data_hora_baixa && (
+                                            <div className="text-[10px] text-slate-500 flex justify-between">
+                                              <span className="font-medium">Data:</span>
+                                              <span>{new Date(item.data_hora_baixa).toLocaleString('pt-BR')}</span>
+                                            </div>
+                                          )}
+                                          {item.almoxarifeNome && (
+                                            <div className="text-[10px] text-slate-500 flex justify-between">
+                                              <span className="font-medium">Almoxarife:</span>
+                                              <span>{item.almoxarifeNome}</span>
+                                            </div>
+                                          )}
+                                          {item.observacao_baixa && (
+                                            <div className="text-[10px] text-slate-600 bg-amber-50 p-1.5 rounded border border-amber-100 mt-1">
+                                              <strong className="text-amber-800">Obs:</strong> {item.observacao_baixa}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
                                     </div>
                                   ))}
                                 </div>

@@ -198,10 +198,6 @@ export default function AuthScreen() {
       setForgotError("Informe seu e-mail corporativo.");
       return;
     }
-    if (!forgotPin || forgotPin.trim().length !== 4) {
-      setForgotError("O PIN de segurança deve conter exatamente 4 dígitos.");
-      return;
-    }
     if (newPassword.length < 6) {
       setForgotError("A nova senha deve ter no mínimo 6 caracteres.");
       return;
@@ -219,7 +215,6 @@ export default function AuthScreen() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: forgotEmail,
-          pin: forgotPin,
           novaSenha: newPassword,
         }),
       });
@@ -378,7 +373,6 @@ export default function AuthScreen() {
                     type="button"
                     onClick={() => {
                       setForgotEmail(email);
-                      setForgotPin("");
                       setNewPassword("");
                       setConfirmPassword("");
                       setForgotError("");
@@ -579,7 +573,7 @@ export default function AuthScreen() {
                         : "text-white/80 hover:text-white hover:bg-white/10"
                     }`}
                   >
-                    Redefinir com PIN
+                    Redefinir Senha
                   </button>
                   <button
                     type="button"
@@ -649,30 +643,7 @@ export default function AuthScreen() {
                         </div>
                       </div>
 
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
-                            PIN de Segurança (4 dígitos)
-                          </label>
-                          <span className="text-[11px] text-slate-400">Padrão: 0000 ou 1234</span>
-                        </div>
-                        <div className="relative">
-                          <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                          <input
-                            type="password"
-                            inputMode="numeric"
-                            maxLength={4}
-                            required
-                            value={forgotPin}
-                            onChange={e => setForgotPin(e.target.value.replace(/\D/g, ""))}
-                            placeholder="••••"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-9 pr-3 text-sm font-mono tracking-widest text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#1B3A6B] focus:bg-white transition-all"
-                          />
-                        </div>
-                        <p className="text-[11px] text-slate-400 mt-1">
-                          O mesmo PIN numérico utilizado para retirada de materiais no balcão.
-                        </p>
-                      </div>
+
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
@@ -768,10 +739,10 @@ export default function AuthScreen() {
                         🔑 Contas de Demonstração / Testes Internos:
                       </div>
                       <div>
-                        • <strong>Almoxarife:</strong> almoxarife@tilmarcon.com.br | Senha: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">123456</code> | PIN: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">0000</code>
+                        • <strong>Almoxarife:</strong> almoxarife@tilmarcon.com.br | Senha: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">123456</code>
                       </div>
                       <div>
-                        • <strong>Responsável:</strong> responsavel1@tilmarcon.com.br | Senha: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">123456</code> | PIN: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">1234</code>
+                        • <strong>Responsável:</strong> responsavel1@tilmarcon.com.br | Senha: <code className="bg-white px-1 py-0.5 rounded border border-blue-200 font-mono">123456</code>
                       </div>
                     </div>
 
@@ -780,7 +751,7 @@ export default function AuthScreen() {
                       onClick={() => setForgotTab("reset")}
                       className="w-full py-2.5 rounded-lg border border-[#1B3A6B] text-[#1B3A6B] font-bold text-xs uppercase tracking-wider hover:bg-blue-50/50 transition-colors"
                     >
-                      Voltar para Redefinição com PIN
+                      Voltar para Redefinição
                     </button>
                   </div>
                 )}

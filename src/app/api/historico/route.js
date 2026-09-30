@@ -57,7 +57,7 @@ export async function GET(request) {
       const tipoMovimentacao = isEstorno ? 'ESTORNO' : 'SAIDA';
       const dataMovimentacao = isEstorno 
         ? (p.estornos[0]?.createdAt || p.updatedAt)
-        : (p.entregueEm || p.pinValidadoEm || p.updatedAt);
+        : (p.entregueEm || p.updatedAt);
 
       // Descobre quem realizou o estorno se houver
       const responsavelEstornoId = p.estornos[0]?.realizadoPorUserId;
@@ -72,6 +72,10 @@ export async function GET(request) {
           ? pi.quantidadeEnviada 
           : pi.quantidade;
 
+        const almoxarifeNome = pi.almoxarife_id && usersMap[pi.almoxarife_id] 
+          ? usersMap[pi.almoxarife_id].nome 
+          : null;
+
         return {
           id: pi.id,
           itemId: pi.itemId,
@@ -80,7 +84,11 @@ export async function GET(request) {
           unidade: pi.item.unidade,
           quantidadeSolicitada: pi.quantidade,
           quantidadeEfetiva: qtdEfetiva,
-          localizacao: pi.item.localizacao || 'Almoxarifado'
+          localizacao: pi.item.localizacao || 'Almoxarifado',
+          tipo_baixa: pi.tipo_baixa || 'MANUAL',
+          observacao_baixa: pi.observacao_baixa,
+          data_hora_baixa: pi.data_hora_baixa,
+          almoxarifeNome
         };
       });
 

@@ -41,25 +41,9 @@ export async function POST(request) {
         }
       });
 
-      // 2. Descontar o estoque de cada item
-      for (const reqItem of itens) {
-        const itemAtual = await tx.item.findUnique({
-          where: { id: parseInt(reqItem.itemId) }
-        });
+      // Não descontamos mais o estoque na criação. O desconto ocorre fisicamente 
+      // quando o almoxarife bipar o QR Code na baixa (baixa-qr/route.js)
 
-        if (!itemAtual || itemAtual.quantidade < parseInt(reqItem.quantidade)) {
-          throw new Error(`Estoque insuficiente para o item ${itemAtual?.nome || reqItem.itemId}`);
-        }
-
-        await tx.item.update({
-          where: { id: parseInt(reqItem.itemId) },
-          data: {
-            quantidade: {
-              decrement: parseInt(reqItem.quantidade)
-            }
-          }
-        });
-      }
 
       return novoPedido;
     });
