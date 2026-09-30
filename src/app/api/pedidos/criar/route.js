@@ -13,7 +13,7 @@ export async function POST(request) {
   }
 
   try {
-    const { itens, setor, observacao, operadorSolicitante } = await request.json();
+    const { itens, setor, observacao, operadorSolicitante, ordem_producao } = await request.json();
 
     if (!itens || !Array.isArray(itens) || itens.length === 0) {
       return NextResponse.json({ error: 'Nenhum item informado' }, { status: 400 });
@@ -27,6 +27,7 @@ export async function POST(request) {
           setor: setor || null,
           observacao: observacao || null,
           operadorSolicitante: operadorSolicitante || null,
+          ordem_producao: ordem_producao || null,
           status: 'AGUARDANDO_SEPARACAO',
           itens: {
             create: itens.map(item => ({

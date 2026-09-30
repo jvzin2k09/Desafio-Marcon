@@ -15,6 +15,7 @@ const COLUMNS = [
   { id: "AGUARDANDO_SEPARACAO", title: "Aguardando",        accent: "#2563eb", bg: "#EFF6FF", border: "#BFDBFE", dot: "bg-blue-500"   },
   { id: "EM_SEPARACAO",         title: "Em Separação",      accent: "#d97706", bg: "#FFFBEB", border: "#FDE68A", dot: "bg-amber-500"  },
   { id: "PRONTO_RETIRADA",      title: "Pronto p/ Retirada",accent: "#7c3aed", bg: "#F5F3FF", border: "#DDD6FE", dot: "bg-violet-500" },
+  { id: "ATENDIDO_PARCIALMENTE",title: "Parcial",           accent: "#ea580c", bg: "#FFF7ED", border: "#FED7AA", dot: "bg-orange-500" },
   { id: "CONCLUIDO",            title: "Entregue",          accent: "#16a34a", bg: "#F0FDF4", border: "#BBF7D0", dot: "bg-green-500"  },
 ];
 
@@ -273,10 +274,9 @@ function EntregaModal({ pedido, onClose, onSuccess }) {
           </div>
         </div>
 
-        {/* Lista de itens */}
         <div className="mb-5">
           <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Itens a Entregar</p>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 max-h-[30vh] overflow-y-auto custom-scrollbar pr-2">
             {pedido.itens?.map(pi => (
               <div key={pi.id} className="flex items-center justify-between text-sm bg-white border border-slate-100 rounded-lg px-3 py-2">
                 <span className="font-medium text-slate-700 truncate pr-2">{pi.item?.nome}</span>
@@ -343,8 +343,8 @@ const PedidoCardMobile = memo(function PedidoCardMobile({ pedido, onStatusChange
           <p className="text-xs font-bold text-slate-400">Setor: {pedido.setor || "N/A"}</p>
         </div>
 
-        <div className="space-y-3">
-          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100 pb-1">Itens do Pedido</h4>
+        <div className="space-y-3 max-h-[350px] overflow-y-auto custom-scrollbar pr-2">
+          <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100 pb-1 sticky top-0 bg-white z-10 pt-1">Itens do Pedido</h4>
           {pedido.itens?.map(pi => {
             const isBaixado = !!pi.data_hora_baixa;
             return (
@@ -487,16 +487,16 @@ export default function AlmoxarifadoPage() {
   }
 
   return (
-    <div className="min-h-full flex flex-col max-w-5xl mx-auto pb-20 md:pb-6">
+    <div className="h-[calc(100vh-80px)] flex flex-col max-w-5xl mx-auto pb-4 md:pb-0">
       
       {/* Header Mobile-Friendly */}
-      <div className="mb-6 px-4 md:px-0">
+      <div className="mb-6 px-4 md:px-0 shrink-0">
         <h2 className="text-2xl md:text-3xl font-display font-black text-slate-900 tracking-tight">Painel do Almoxarife</h2>
         <p className="text-slate-500 text-sm mt-1 font-medium">Controle de requisições e baixas por QR Code</p>
       </div>
 
       {/* Tabs (Scrollable on Mobile) */}
-      <div className="overflow-x-auto custom-scrollbar px-4 md:px-0 mb-6">
+      <div className="overflow-x-auto custom-scrollbar px-4 md:px-0 mb-6 shrink-0">
         <div className="flex gap-2 min-w-max pb-2">
           {COLUMNS.map(col => {
             const count = filtered.filter(p => p.status === col.id).length;
@@ -523,7 +523,7 @@ export default function AlmoxarifadoPage() {
       </div>
 
       {/* Listagem de Pedidos da Tab Ativa */}
-      <div className="px-4 md:px-0 flex-1">
+      <div className="px-4 md:px-0 flex-1 overflow-y-auto custom-scrollbar pb-10">
         <AnimatePresence mode="popLayout">
           {currentPedidos.length === 0 ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-20 flex flex-col items-center justify-center text-slate-300">

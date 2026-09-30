@@ -11,6 +11,7 @@ const STATUS_MAP = {
   AGUARDANDO_SEPARACAO: { label: "Aguardando", accent: "#2563eb", bg: "#EFF6FF", border: "#BFDBFE", dot: "bg-blue-500" },
   EM_SEPARACAO:         { label: "Em Separação", accent: "#d97706", bg: "#FFFBEB", border: "#FDE68A", dot: "bg-amber-500" },
   PRONTO_RETIRADA:      { label: "Pronto p/ Retirada", accent: "#16a34a", bg: "#F0FDF4", border: "#BBF7D0", dot: "bg-green-500" },
+  ATENDIDO_PARCIALMENTE:{ label: "Parcial", accent: "#ea580c", bg: "#FFF7ED", border: "#FED7AA", dot: "bg-orange-500" },
 };
 
 function getTempoEspera(ds) {
@@ -29,6 +30,7 @@ export default function SolicitantePage() {
   const [itemInputs, setItemInputs] = useState({});
   const [setor, setSetor] = useState(session?.user?.setor || "");
   const [operadorSolicitante, setOperadorSolicitante] = useState("");
+  const [ordemProducao, setOrdemProducao] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null); // null | success | error
   const [meusPedidos, setMeusPedidos] = useState([]);
@@ -139,6 +141,7 @@ export default function SolicitantePage() {
           itens: cart.map(c => ({ itemId: c.itemId, quantidade: Math.max(1, parseInt(c.quantidade, 10) || 1) })),
           setor: setor || null,
           operadorSolicitante: operadorSolicitante.trim(),
+          ordem_producao: ordemProducao.trim() || null,
         }),
       });
       if (res.ok) {
@@ -156,6 +159,7 @@ export default function SolicitantePage() {
         setCart([]);
         setSearch("");
         setOperadorSolicitante("");
+        setOrdemProducao("");
         setShowOperatorModal(false);
         // Refresh items stock ignorando cache
         fetch("/api/items", { cache: "no-store" }).then(r => r.json()).then(setItems).catch(() => {});
@@ -171,52 +175,52 @@ export default function SolicitantePage() {
   };
 
   return (
-    <div className="h-[calc(100vh-80px)] flex flex-col space-y-6">
+    <div className="h-[calc(100vh-80px)] flex flex-col space-y-2 md:space-y-6 overflow-hidden">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-display font-black text-slate-900 tracking-tight">Módulo Solicitante</h2>
-        <p className="text-slate-500 text-sm mt-1">Faça suas requisições de materiais de forma digital.</p>
+      <div className="shrink-0">
+        <h2 className="text-lg md:text-2xl font-display font-black text-slate-900 tracking-tight">Módulo Solicitante</h2>
+        <p className="text-slate-500 text-sm mt-1 hidden md:block">Faça suas requisições de materiais de forma digital.</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-xl" style={{ background: "var(--surface-3)" }}>
+      <div className="flex gap-1 p-1 rounded-xl shrink-0" style={{ background: "var(--surface-3)" }}>
         <button
           onClick={() => setTab("pedido")}
-          className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${tab === "pedido" ? "bg-white text-slate-900 shadow-card" : "text-slate-500 hover:text-slate-700"}`}
+          className={`flex-1 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-lg transition-all ${tab === "pedido" ? "bg-white text-slate-900 shadow-card" : "text-slate-500 hover:text-slate-700"}`}
         >
-          <ShoppingCart className="w-4 h-4 inline mr-2 -mt-0.5" />
+          <ShoppingCart className="w-4 h-4 inline mr-1.5 -mt-0.5" />
           Novo Pedido
         </button>
         <button
           onClick={() => setTab("status")}
-          className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all ${tab === "status" ? "bg-white text-slate-900 shadow-card" : "text-slate-500 hover:text-slate-700"}`}
+          className={`flex-1 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-lg transition-all ${tab === "status" ? "bg-white text-slate-900 shadow-card" : "text-slate-500 hover:text-slate-700"}`}
         >
-          <Clock className="w-4 h-4 inline mr-2 -mt-0.5" />
+          <Clock className="w-4 h-4 inline mr-1.5 -mt-0.5" />
           Meus Pedidos
         </button>
       </div>
 
       {/* ─── Tab: Novo Pedido ─────────────────────────────────────── */}
       {tab === "pedido" && (
-        <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
+        <div className="flex-1 flex flex-col lg:flex-row gap-4 md:gap-6 min-h-0 overflow-y-auto lg:overflow-hidden custom-scrollbar">
           {/* Left: Search + Items */}
-          <div className="flex-1 flex flex-col min-h-0">
-            {/* Search */}
-            <div className="relative mb-4 shrink-0">
+          <div className="flex-1 flex flex-col min-h-0 lg:overflow-hidden">
+            {/* Search + Setor em linha no mobile */}
+            <div className="relative mb-2 md:mb-4 shrink-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 type="text"
                 placeholder="Buscar item por nome ou código..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="site-input w-full py-3 pl-11 pr-4 rounded-xl text-sm font-medium"
+                className="site-input w-full py-2.5 md:py-3 pl-11 pr-4 rounded-xl text-sm font-medium"
               />
             </div>
 
             {/* Setor Solicitante - Filtros */}
-            <div className="mb-4 shrink-0">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 block">Setor Solicitante (Filtro)</label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="mb-2 md:mb-4 shrink-0">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5 block">Setor Solicitante (Filtro)</label>
+              <div className="flex flex-wrap gap-1.5 md:grid md:grid-cols-4 md:gap-2">
                 {[
                   { value: "Usinagem", label: "Usinagem", color: "#0072BC" },
                   { value: "Logística", label: "Logística", color: "#008C45" },
@@ -227,7 +231,7 @@ export default function SolicitantePage() {
                     key={linha.value}
                     type="button"
                     onClick={() => setSetor(setor === linha.value ? "" : linha.value)}
-                    className={`relative group rounded-xl px-2 py-3 overflow-hidden border-2 transition-all duration-200 flex items-center justify-center font-bold text-sm ${
+                    className={`rounded-lg px-3 py-1.5 md:rounded-xl md:px-2 md:py-3 border-2 transition-all duration-200 flex items-center justify-center font-bold text-xs md:text-sm ${
                       setor === linha.value
                         ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-lg scale-[1.02]"
                         : "border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:shadow-sm hover:bg-slate-50"
@@ -400,8 +404,8 @@ export default function SolicitantePage() {
 
           {/* Right: Cart */}
           <div className="lg:w-80 shrink-0">
-            <div className="site-card p-5">
-              <div className="flex items-center justify-between mb-4">
+            <div className="site-card p-5 flex flex-col max-h-[250px] lg:max-h-[calc(100vh-200px)]">
+              <div className="flex items-center justify-between mb-4 shrink-0">
                 <h3 className="text-sm font-display font-black text-slate-700 uppercase tracking-wide">Carrinho</h3>
                 <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full" style={{ background: "var(--surface-3)", color: "var(--primary)" }}>
                   {cart.length}
@@ -414,7 +418,7 @@ export default function SolicitantePage() {
                   Carrinho vazio
                 </div>
               ) : (
-                <div className="space-y-2 mb-4 max-h-[320px] overflow-y-auto custom-scrollbar pr-1">
+                <div className="space-y-2 mb-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-1">
                   <AnimatePresence>
                     {cart.map(c => (
                       <motion.div
@@ -474,7 +478,7 @@ export default function SolicitantePage() {
                 whileTap={{ scale: 0.99 }}
                 onClick={handleOpenModal}
                 disabled={cart.length === 0 || loading}
-                className="btn-magnetic w-full text-white font-black py-3.5 rounded-xl flex items-center justify-center gap-2 text-sm tracking-widest uppercase disabled:opacity-40 transition-all hover:shadow-primary-glow"
+                className="btn-magnetic w-full text-white font-black py-3.5 rounded-xl flex items-center justify-center gap-2 text-sm tracking-widest uppercase disabled:opacity-40 transition-all hover:shadow-primary-glow shrink-0"
                 style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
               >
                 {loading ? (
@@ -618,23 +622,35 @@ export default function SolicitantePage() {
                   Informe o nome ou matrícula do operador do chão de fábrica que solicitou esta peça.
                 </p>
 
-                <div className="w-full mb-6">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">Operador Solicitante *</label>
-                  <input
-                    id="operadorSolicitante"
-                    type="text"
-                    required
-                    placeholder="Ex: João Silva / Matrícula 123"
-                    value={operadorSolicitante}
-                    onChange={e => setOperadorSolicitante(e.target.value)}
-                    className={`site-input w-full py-3 px-4 rounded-xl text-sm border-2 transition-all ${submitStatus === "error_operador" ? "border-red-500 ring-4 ring-red-50" : "border-slate-200 focus:border-[var(--primary)]"}`}
-                    autoFocus
-                  />
-                  {submitStatus === "error_operador" && (
-                    <p className="text-red-500 text-xs font-bold mt-2 flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" /> Este campo é obrigatório.
-                    </p>
-                  )}
+                <div className="w-full mb-6 space-y-4">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">Operador Solicitante *</label>
+                    <input
+                      id="operadorSolicitante"
+                      type="text"
+                      required
+                      placeholder="Ex: João Silva / Matrícula 123"
+                      value={operadorSolicitante}
+                      onChange={e => setOperadorSolicitante(e.target.value)}
+                      className={`site-input w-full py-3 px-4 rounded-xl text-sm border-2 transition-all ${submitStatus === "error_operador" ? "border-red-500 ring-4 ring-red-50" : "border-slate-200 focus:border-[var(--primary)]"}`}
+                      autoFocus
+                    />
+                    {submitStatus === "error_operador" && (
+                      <p className="text-red-500 text-xs font-bold mt-2 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" /> Este campo é obrigatório.
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1 block">Ordem de Produção (OP) / Centro de Custo (Opcional)</label>
+                    <input
+                      type="text"
+                      placeholder="Ex: OP-2023 / CC-405"
+                      value={ordemProducao}
+                      onChange={e => setOrdemProducao(e.target.value)}
+                      className="site-input w-full py-3 px-4 rounded-xl text-sm border-2 border-slate-200 focus:border-[var(--primary)] transition-all"
+                    />
+                  </div>
                 </div>
 
                 <div className="flex gap-3 w-full">

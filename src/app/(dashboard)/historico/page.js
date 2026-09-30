@@ -245,9 +245,9 @@ export default function HistoricoPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12 p-4 md:p-6">
+    <div className="h-[calc(100vh-80px)] flex flex-col space-y-6 max-w-7xl mx-auto pb-4 p-4 md:p-6">
       {/* ─── Topo: Título e Ação de Exportar ─────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-[var(--primary)] rounded-xl shadow-lg border-2 border-white text-white">
             <History className="w-7 h-7" />
@@ -297,7 +297,7 @@ export default function HistoricoPage() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-bold flex items-center justify-between shadow-sm"
+            className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm font-bold flex items-center justify-between shadow-sm shrink-0"
           >
             <div className="flex items-center gap-2">
               <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
@@ -311,7 +311,7 @@ export default function HistoricoPage() {
       </AnimatePresence>
 
       {/* ─── Cards de Métricas (KPIs) ─────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
         <div className="site-card p-5 bg-[var(--primary)] text-white shadow-md border-transparent relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-5 rounded-full -mr-12 -mt-12" />
           <div className="flex justify-between items-center text-slate-300 mb-2 relative z-10">
@@ -354,7 +354,7 @@ export default function HistoricoPage() {
       </div>
 
       {/* ─── Barra de Filtros e Busca ─────────────────────────────────────── */}
-      <div className="site-card p-5 bg-white/90 backdrop-blur-md shadow-sm space-y-4">
+      <div className="site-card p-5 bg-white/90 backdrop-blur-md shadow-sm space-y-4 shrink-0">
         <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
           {/* Abas de Tipo */}
           <div className="flex gap-1.5 p-1 rounded-xl bg-slate-100 self-start">
@@ -483,9 +483,9 @@ export default function HistoricoPage() {
       </div>
 
       {/* ─── Tabela de Movimentações ─────────────────────────────────────── */}
-      <div className="site-card bg-white overflow-hidden shadow-sm">
+      <div className="site-card flex-1 bg-white flex flex-col overflow-hidden shadow-sm min-h-0">
         {loading ? (
-          <div className="flex flex-col items-center justify-center p-20 text-slate-400">
+          <div className="flex flex-col items-center justify-center flex-1 text-slate-400">
             <RefreshCw className="w-8 h-8 animate-spin text-[#1B3A6B] mb-3" />
             <p className="text-sm font-bold">Carregando histórico de movimentações...</p>
           </div>
@@ -524,7 +524,7 @@ export default function HistoricoPage() {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="flex-1 overflow-y-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-black uppercase tracking-wider text-slate-500">

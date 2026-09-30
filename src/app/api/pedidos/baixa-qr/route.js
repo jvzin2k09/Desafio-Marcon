@@ -37,6 +37,7 @@ export async function POST(request) {
         where: { id: pedidoItem.id },
         data: {
           quantidadeEnviada: parseInt(quantidadeBaixa),
+          quantidade_separada: parseInt(quantidadeBaixa),
           observacao_baixa: observacao_baixa || null,
           tipo_baixa: 'QR_CODE',
           almoxarife_id: parseInt(session.user.id),
@@ -56,12 +57,13 @@ export async function POST(request) {
       });
 
       const allDelivered = allItens.every(i => i.data_hora_baixa !== null);
+      const isAnyPartial = allItens.some(i => i.quantidade_separada !== null && i.quantidade_separada < i.quantidade);
 
       if (allDelivered) {
         await tx.pedido.update({
           where: { id: parseInt(pedidoId) },
           data: {
-            status: 'CONCLUIDO',
+            status: isAnyPartial ? 'ATENDIDO_PARCIALMENTE' : 'CONCLUIDO',
             entregueEm: new Date()
           }
         });

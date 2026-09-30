@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Package, ClipboardList, History, BarChart3, Undo2, Boxes } from "lucide-react";
+import { LogOut, Package, ClipboardList, History, BarChart3, Undo2, Boxes, Menu, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 
@@ -45,19 +45,30 @@ export default function DashboardLayout({ children }) {
   return (
     <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "var(--background)" }}>
       {/* Mobile Topbar */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white border-b" style={{ borderColor: "var(--border)" }}>
+      <div className="md:hidden flex items-center justify-between p-4 bg-white border-b sticky top-0 z-30 shadow-sm" style={{ borderColor: "var(--border)" }}>
         <Image src="/Logo.png" alt="Til Marcon" width={120} height={36} className="h-8 w-auto object-contain" priority />
         <button 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 rounded-lg bg-slate-50 text-slate-600 border border-slate-200"
+          className="p-2 rounded-lg bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors"
         >
-          {isMobileMenuOpen ? <LogOut className="w-5 h-5 rotate-180" /> : <ClipboardList className="w-5 h-5" />}
+          {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
+      {/* Sidebar Overlay (Mobile) */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside 
-        className={`${isMobileMenuOpen ? "flex" : "hidden"} md:flex w-full md:w-64 bg-white border-r md:border-b-0 flex-col z-40 transition-all md:min-h-screen`} 
+        className={`
+          fixed md:static inset-y-0 left-0 z-50 w-64 bg-white border-r flex flex-col transition-transform duration-300 md:translate-x-0
+          ${isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:shadow-none"}
+        `} 
         style={{ borderColor: "var(--border)" }}
       >
         {/* Logo - Hide on mobile since it's in topbar */}
