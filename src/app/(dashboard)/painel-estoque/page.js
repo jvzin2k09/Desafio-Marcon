@@ -163,10 +163,10 @@ export default function PainelEstoquePage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="min-h-[calc(100vh-80px)] lg:h-[calc(100vh-80px)] overflow-y-auto lg:overflow-hidden custom-scrollbar flex flex-col p-4 md:p-6 max-w-7xl mx-auto space-y-4 md:space-y-6">
       
       {/* CABEÇALHO */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm shrink-0">
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-black tracking-tight text-slate-900">
@@ -245,58 +245,58 @@ export default function PainelEstoquePage() {
       )}
 
       {/* CARDS DE MÉTRICAS (KPIs) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-600">
+      <div className="flex overflow-x-auto gap-3 snap-x snap-mandatory custom-scrollbar pb-2 shrink-0 lg:grid lg:grid-cols-4 lg:snap-none lg:overflow-visible">
+        <div className="min-w-[220px] lg:min-w-0 snap-start bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-600 shrink-0">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Total de Itens</span>
+            <span className="text-[11px] lg:text-xs font-bold uppercase tracking-wider">Total de Itens</span>
             <Layers className="w-5 h-5 text-blue-600" />
           </div>
           <div className="text-3xl font-black font-mono text-slate-900">{items.length}</div>
-          <span className="text-xs text-slate-400 mt-1 block">Peças monitoradas</span>
+          <span className="text-[10px] lg:text-xs text-slate-400 mt-1 block">Peças monitoradas</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+        <div className="min-w-[220px] lg:min-w-0 snap-start bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500 shrink-0">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Em Nível Seguro</span>
+            <span className="text-[11px] lg:text-xs font-bold uppercase tracking-wider">Em Nível Seguro</span>
             <CheckCircle2 className="w-5 h-5 text-emerald-600" />
           </div>
           <div className="text-3xl font-black font-mono text-emerald-600">{okItems.length}</div>
-          <span className="text-xs text-slate-400 mt-1 block">Acima do estoque mínimo</span>
+          <span className="text-[10px] lg:text-xs text-slate-400 mt-1 block">Acima do estoque mínimo</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-amber-500">
+        <div className="min-w-[220px] lg:min-w-0 snap-start bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-amber-500 shrink-0">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Estoque Baixo</span>
+            <span className="text-[11px] lg:text-xs font-bold uppercase tracking-wider">Estoque Baixo</span>
             <AlertTriangle className="w-5 h-5 text-amber-500" />
           </div>
           <div className="text-3xl font-black font-mono text-amber-600">{lowItems.length}</div>
-          <span className="text-xs text-slate-400 mt-1 block">Abaixo do limite de segurança</span>
+          <span className="text-[10px] lg:text-xs text-slate-400 mt-1 block">Abaixo do limite de segurança</span>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-red-600">
+        <div className="min-w-[220px] lg:min-w-0 snap-start bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-red-600 shrink-0">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider">Esgotados</span>
+            <span className="text-[11px] lg:text-xs font-bold uppercase tracking-wider">Esgotados</span>
             <XCircle className="w-5 h-5 text-red-600" />
           </div>
           <div className="text-3xl font-black font-mono text-red-600">{emptyItems.length}</div>
-          <span className="text-xs text-slate-400 mt-1 block">Saldo zerado (0 un)</span>
+          <span className="text-[10px] lg:text-xs text-slate-400 mt-1 block">Saldo zerado (0 un)</span>
         </div>
       </div>
 
       {/* REQUISITO 3: BARRA DE FERRAMENTAS COM BUSCA EM TEMPO REAL E FILTROS */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 shrink-0">
         <div className="relative w-full md:max-w-md">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar peça por código, nome, categoria ou localização..."
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            placeholder="Buscar peça por código, nome..."
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 flex-wrap w-full md:w-auto">
+        <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto w-full md:w-auto custom-scrollbar pb-1 md:pb-0 shrink-0">
           <button
             onClick={() => setFilter("all")}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
@@ -333,9 +333,63 @@ export default function PainelEstoquePage() {
       </div>
 
       {/* TABELA DE ESTOQUE COM SCROLL E DESTAQUE DE ALERTAS */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <div className="max-h-[520px] overflow-y-auto">
+      <div className="flex-1 lg:bg-white lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm flex flex-col min-h-0 lg:overflow-hidden">
+        
+        {/* Visão Mobile (Cards) */}
+        <div className="block lg:hidden max-h-[calc(100vh-420px)] overflow-y-auto custom-scrollbar space-y-3 pb-6">
+          {filteredItems.length === 0 ? (
+             <div className="py-12 text-center text-slate-400 font-medium bg-white rounded-xl">
+               Nenhuma peça encontrada com os critérios informados.
+             </div>
+          ) : (
+            filteredItems.map((item) => {
+              const isZero = item.quantidade === 0;
+              const isLow = item.quantidade > 0 && item.quantidade <= getMin(item);
+              
+              return (
+                <div key={item.id} className={`p-4 bg-white rounded-[20px] shadow-sm border-l-4 relative overflow-hidden ${
+                  isZero ? "border-l-red-600 border-t border-r border-b border-red-100" 
+                  : isLow ? "border-l-amber-500 border-t border-r border-b border-amber-100" 
+                  : "border-l-emerald-500 border-t border-r border-b border-slate-100"
+                }`}>
+                  <div className="flex justify-between items-start gap-2 mb-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-slate-900 text-sm truncate">{item.nome}</h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="font-mono text-[10px] text-blue-800 font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">{item.codigo}</span>
+                        <span className="flex items-center gap-0.5 text-[10px] text-slate-500"><MapPin className="w-3 h-3" /> {item.localizacao}</span>
+                      </div>
+                    </div>
+                    {isZero ? (
+                      <span className="shrink-0 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide animate-pulse">Esgotado</span>
+                    ) : isLow ? (
+                      <span className="shrink-0 bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">Est. Baixo</span>
+                    ) : (
+                      <span className="shrink-0 bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">Em Dia</span>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-end justify-between border-t border-slate-100 pt-3">
+                    <div>
+                       <p className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Mín: {getMin(item)}</p>
+                       <div className="text-xl font-black font-mono leading-none">
+                         <span className={isZero ? "text-red-600" : isLow ? "text-amber-600" : "text-emerald-600"}>{item.quantidade}</span>
+                         <span className="text-[10px] font-medium text-slate-500 ml-1">{item.unidade}</span>
+                       </div>
+                    </div>
+                    <div className="text-right">
+                       <p className="text-[9px] text-slate-400 font-medium">Últ. Atualização</p>
+                       <p className="text-[10px] text-slate-600 font-bold">{new Date(item.ultimaAtualizacao).toLocaleDateString('pt-BR')} {new Date(item.ultimaAtualizacao).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Visão Desktop (Tabela original) */}
+        <div className="hidden lg:block flex-1 overflow-y-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 z-10">
               <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -458,7 +512,6 @@ export default function PainelEstoquePage() {
               )}
             </tbody>
           </table>
-          </div>
         </div>
       </div>
 

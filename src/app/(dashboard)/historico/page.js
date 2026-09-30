@@ -21,7 +21,8 @@ import {
   MapPin,
   Clock,
   User as UserIcon,
-  Tag
+  Tag,
+  ScrollText
 } from "lucide-react";
 
 export default function HistoricoPage() {
@@ -245,32 +246,42 @@ export default function HistoricoPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-80px)] flex flex-col space-y-6 max-w-7xl mx-auto pb-4 p-4 md:p-6">
+    <div className="min-h-[calc(100vh-80px)] lg:h-[calc(100vh-80px)] overflow-y-auto lg:overflow-hidden custom-scrollbar flex flex-col space-y-4 md:space-y-6 max-w-7xl mx-auto pb-4 p-4 md:p-6">
       {/* ─── Topo: Título e Ação de Exportar ─────────────────────────────── */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
+      <div className="flex flex-row md:items-center justify-between gap-2 md:gap-4 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[var(--primary)] rounded-xl shadow-lg border-2 border-white text-white">
-            <History className="w-7 h-7" />
+          <div className="p-2 md:p-3 bg-[var(--primary)] rounded-xl shadow-lg border-2 border-white text-white shrink-0 hidden sm:block">
+            <History className="w-5 h-5 md:w-7 md:h-7" />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-display font-black text-[var(--primary)] tracking-tight">
-              Histórico de Movimentações & Estornos
+            <h1 className="text-xl md:text-2xl sm:text-3xl font-display font-black text-slate-900 tracking-tight leading-tight">
+              Histórico de <span className="text-orange-500">Ferramentas</span>
             </h1>
-            <p className="text-slate-600 text-sm mt-0.5 font-medium">
-              Auditoria e rastreamento completo de saídas, entregas no balcão e devoluções.
+            <p className="text-slate-500 text-[11px] md:text-sm mt-0.5 font-medium">
+              Suas movimentações passadas
             </p>
           </div>
         </div>
+        
+        {/* Ícone de pergaminho da imagem para desktop e mobile (substituindo ou acompanhando ações) */}
+        <div className="hidden lg:flex items-center justify-center p-3 rounded-2xl bg-white border border-slate-200 shadow-sm shrink-0">
+          <ScrollText className="w-7 h-7 text-orange-300" />
+        </div>
 
         {/* Botão Exportar Excel */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
+          {/* ScrollText para mobile, ao lado do botão exportar */}
+          <div className="lg:hidden flex items-center justify-center p-2 rounded-xl bg-white border border-slate-200 shadow-sm shrink-0 mr-1">
+            <ScrollText className="w-5 h-5 text-orange-300" />
+          </div>
+
           <button
             onClick={carregarHistorico}
             disabled={loading}
-            className="p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-all shadow-sm disabled:opacity-50"
+            className="p-2.5 md:p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-all shadow-sm disabled:opacity-50"
             title="Atualizar dados"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-[#1B3A6B]" : ""}`} />
+            <RefreshCw className={`w-4 h-4 md:w-4 md:h-4 ${loading ? "animate-spin text-[#1B3A6B]" : ""}`} />
           </button>
 
           <motion.button
@@ -278,12 +289,13 @@ export default function HistoricoPage() {
             whileTap={{ scale: 0.98 }}
             onClick={exportarParaExcel}
             disabled={loading || movimentacoesFiltradas.length === 0 || exporting}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl text-white font-bold text-sm tracking-wide shadow-md transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1.5 md:gap-2 px-3 py-2.5 md:px-5 md:py-3 rounded-xl text-white font-bold text-[11px] md:text-sm tracking-wide shadow-md transition-all disabled:opacity-50 cursor-pointer"
             style={{ background: "linear-gradient(135deg, #107C41 0%, #0d6334 100%)" }}
           >
-            <FileSpreadsheet className="w-5 h-5 text-white" />
-            <span>{exporting ? "Gerando..." : "Exportar para Excel"}</span>
-            <span className="ml-1 px-2 py-0.5 text-xs rounded-full bg-white/20 font-mono">
+            <FileSpreadsheet className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            <span className="hidden sm:inline">{exporting ? "Gerando..." : "Exportar Excel"}</span>
+            <span className="sm:hidden">{exporting ? "..." : "Exportar"}</span>
+            <span className="ml-0.5 md:ml-1 px-1.5 md:px-2 py-0.5 text-[9px] md:text-xs rounded-full bg-white/20 font-mono">
               {movimentacoesFiltradas.length}
             </span>
           </motion.button>
@@ -311,8 +323,8 @@ export default function HistoricoPage() {
       </AnimatePresence>
 
       {/* ─── Cards de Métricas (KPIs) ─────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 shrink-0">
-        <div className="site-card p-5 bg-[var(--primary)] text-white shadow-md border-transparent relative overflow-hidden">
+      <div className="flex overflow-x-auto gap-3 snap-x snap-mandatory custom-scrollbar pb-2 shrink-0 lg:grid lg:grid-cols-4 lg:snap-none lg:overflow-visible">
+        <div className="min-w-[220px] lg:min-w-0 snap-start p-5 rounded-2xl bg-[var(--primary)] text-white shadow-md border border-transparent relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-5 rounded-full -mr-12 -mt-12" />
           <div className="flex justify-between items-center text-slate-300 mb-2 relative z-10">
             <span className="text-[11px] font-black uppercase tracking-wider">Movimentações</span>
@@ -322,7 +334,7 @@ export default function HistoricoPage() {
           <span className="text-[11px] text-slate-300 font-medium relative z-10">Registros no período</span>
         </div>
 
-        <div className="site-card p-5 bg-gradient-to-br from-slate-800 to-slate-900 border-transparent shadow-md relative overflow-hidden">
+        <div className="min-w-[220px] lg:min-w-0 snap-start p-5 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-transparent shadow-md relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500 opacity-10 rounded-full -mr-12 -mt-12" />
           <div className="flex justify-between items-center mb-2 relative z-10">
             <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400">Entregas / Saídas</span>
@@ -332,7 +344,7 @@ export default function HistoricoPage() {
           <span className="text-[11px] text-slate-400 font-medium relative z-10">Pedidos concluídos</span>
         </div>
 
-        <div className="site-card p-5 bg-gradient-to-br from-slate-800 to-slate-900 border-transparent shadow-md relative overflow-hidden">
+        <div className="min-w-[220px] lg:min-w-0 snap-start p-5 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-transparent shadow-md relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 w-24 h-24 bg-red-500 opacity-10 rounded-full -mr-12 -mt-12" />
           <div className="flex justify-between items-center mb-2 relative z-10">
             <span className="text-[11px] font-black uppercase tracking-wider text-red-400">Estornos / Cancelados</span>
@@ -342,7 +354,7 @@ export default function HistoricoPage() {
           <span className="text-[11px] text-slate-400 font-medium relative z-10">Devoluções ao estoque</span>
         </div>
 
-        <div className="site-card p-5 bg-[var(--highlight)] text-white shadow-md border-transparent relative overflow-hidden">
+        <div className="min-w-[220px] lg:min-w-0 snap-start p-5 rounded-2xl bg-[var(--highlight)] text-white shadow-md border border-transparent relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full -mr-12 -mt-12" />
           <div className="flex justify-between items-center text-orange-100 mb-2 relative z-10">
             <span className="text-[11px] font-black uppercase tracking-wider">Volume de Peças</span>
@@ -354,13 +366,13 @@ export default function HistoricoPage() {
       </div>
 
       {/* ─── Barra de Filtros e Busca ─────────────────────────────────────── */}
-      <div className="site-card p-5 bg-white/90 backdrop-blur-md shadow-sm space-y-4 shrink-0">
-        <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+      <div className="p-4 rounded-2xl bg-white border border-slate-100 shadow-sm space-y-4 shrink-0">
+        <div className="flex flex-col lg:flex-row gap-3 justify-between items-stretch lg:items-center">
           {/* Abas de Tipo */}
-          <div className="flex gap-1.5 p-1 rounded-xl bg-slate-100 self-start">
+          <div className="flex overflow-x-auto gap-1.5 p-1 rounded-xl bg-slate-100 self-start shrink-0 custom-scrollbar max-w-full">
             <button
               onClick={() => { setTipoFiltro("TODOS"); setCurrentPage(1); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
                 tipoFiltro === "TODOS"
                   ? "bg-white text-slate-900 shadow-sm"
                   : "text-slate-600 hover:text-slate-900"
@@ -370,7 +382,7 @@ export default function HistoricoPage() {
             </button>
             <button
               onClick={() => { setTipoFiltro("SAIDA"); setCurrentPage(1); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                 tipoFiltro === "SAIDA"
                   ? "bg-emerald-600 text-white shadow-sm"
                   : "text-emerald-700 hover:bg-emerald-50"
@@ -381,7 +393,7 @@ export default function HistoricoPage() {
             </button>
             <button
               onClick={() => { setTipoFiltro("ESTORNO"); setCurrentPage(1); }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                 tipoFiltro === "ESTORNO"
                   ? "bg-red-600 text-white shadow-sm"
                   : "text-red-700 hover:bg-red-50"
@@ -482,8 +494,8 @@ export default function HistoricoPage() {
         </div>
       </div>
 
-      {/* ─── Tabela de Movimentações ─────────────────────────────────────── */}
-      <div className="site-card flex-1 bg-white flex flex-col overflow-hidden shadow-sm min-h-0">
+      {/* ─── Tabela de Movimentações / Lista de Cards ─────────────────────────────────────── */}
+      <div className="lg:site-card flex-1 flex flex-col lg:overflow-hidden lg:shadow-sm lg:min-h-0">
         {loading ? (
           <div className="flex flex-col items-center justify-center flex-1 text-slate-400">
             <RefreshCw className="w-8 h-8 animate-spin text-[#1B3A6B] mb-3" />
@@ -524,8 +536,47 @@ export default function HistoricoPage() {
             )}
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse">
+          <div className="flex-1 lg:overflow-y-auto custom-scrollbar">
+            {/* ─── Visão Mobile (Cards como na imagem) ─── */}
+            <div className="block lg:hidden space-y-4 p-2 pb-6">
+              {paginatedItems.map(m => (
+                m.itens.map(item => (
+                  <div key={`${m.id}-${item.id}`} className="bg-white rounded-[24px] p-5 shadow-sm border border-slate-100 flex flex-col relative overflow-hidden">
+                    <div className="flex gap-4 items-center">
+                      <div className="w-[48px] h-[48px] bg-[#FFF2E8] rounded-2xl flex items-center justify-center shrink-0">
+                        <RefreshCw className="w-5 h-5 text-[#3B82F6]" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-black text-slate-900 text-[13px] uppercase leading-tight truncate">{item.nome}</h3>
+                        <p className="text-[11px] text-slate-500 mt-1">Código: <span className="font-bold text-slate-800">{item.codigo}</span></p>
+                      </div>
+                    </div>
+                    
+                    <hr className="my-4 border-dashed border-slate-200" />
+                    
+                    <div className="text-[11px] text-slate-500 space-y-1.5">
+                      <div className="flex justify-between">
+                        <span>Retirada:</span>
+                        <span className="font-bold text-slate-800">{new Date(m.data).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Status:</span>
+                        <span className="font-bold text-orange-500">
+                          {m.tipo === "ESTORNO" ? "Estornado" : "Em Uso"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between mt-2 pt-2 border-t border-slate-100/50">
+                        <span>Pedido:</span>
+                        <span className="font-bold text-slate-800">#{m.id.toString().padStart(4, "0")} ({item.quantidadeEfetiva} {item.unidade})</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ))}
+            </div>
+
+            {/* ─── Visão Desktop (Tabela original) ─── */}
+            <table className="hidden lg:table w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50/80 text-[10px] font-black uppercase tracking-wider text-slate-500">
                   <th className="py-3 px-5">Pedido</th>

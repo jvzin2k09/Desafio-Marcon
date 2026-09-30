@@ -399,9 +399,10 @@ const PedidoCardMobile = memo(function PedidoCardMobile({ pedido, onStatusChange
           {pedido.status === 'PRONTO_RETIRADA' && (
             <button
               onClick={() => onEntregaModal(pedido)}
-              className="w-full py-3.5 bg-emerald-600 text-white font-black text-sm uppercase rounded-xl flex items-center justify-center gap-2 shadow-md hover:bg-emerald-700 active:scale-95 transition-all"
+              className="w-full py-3 px-2 bg-emerald-600 text-white font-black text-xs sm:text-sm uppercase rounded-xl flex items-center justify-center gap-2 shadow-md hover:bg-emerald-700 active:scale-95 transition-all"
             >
-              <UserCheck className="w-5 h-5" /> Confirmar Entrega ao Funcionário
+              <UserCheck className="w-5 h-5 shrink-0" /> 
+              <span className="text-center leading-tight">Confirmar Entrega ao Funcionário</span>
             </button>
           )}
 
