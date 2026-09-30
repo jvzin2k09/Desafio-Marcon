@@ -53,7 +53,7 @@ const theme = {
 };
 
 const { width, height } = Dimensions.get('window');
-const POINTS_COUNT = 35; 
+const POINTS_COUNT = 85; 
 
 // --- Componentes Reutilizáveis com Microinterações (design-spells) ---
 
