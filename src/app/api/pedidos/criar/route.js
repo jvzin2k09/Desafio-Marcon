@@ -65,6 +65,6 @@ export async function POST(request) {
     return NextResponse.json(pedido, { status: 201 });
   } catch (error) {
     console.error('Erro ao criar pedido:', error);
-    return NextResponse.json({ error: 'Erro ao criar pedido' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Erro ao criar pedido' }, { status: 400 });
   }
 }

@@ -105,8 +105,8 @@ SET FOREIGN_KEY_CHECKS=1;
 INSERT INTO `User` (`nome`, `email`, `senha`, `pin`, `role`, `setor`) VALUES
 ('Administrador', 'admin@tilmarcon.com.br', '123456', '0000', 'ADMIN', 'TI'),
 ('Almoxarife Til Marcon', 'almoxarife@tilmarcon.com.br', '123456', '0000', 'ALMOXARIFE', 'Almoxarifado'),
-('Responsável 1', 'responsavel1@tilmarcon.com.br', '123456', NULL, 'RESPONSAVEL', 'Manutenção'),
-('Responsável 2', 'responsavel2@tilmarcon.com.br', '123456', NULL, 'RESPONSAVEL', 'Usinagem');
+('Responsável 1', 'responsavel1@tilmarcon.com.br', '123456', '1234', 'RESPONSAVEL', 'Manutenção'),
+('Responsável 2', 'responsavel2@tilmarcon.com.br', '123456', '1234', 'RESPONSAVEL', 'Usinagem');
 
 -- Itens de Estoque
 INSERT INTO `Item` (`codigo`, `nome`, `unidade`, `quantidade`, `localizacao`) VALUES
