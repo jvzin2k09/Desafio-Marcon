@@ -4,7 +4,8 @@ import { useState, useEffect, useRef, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock, User as UserIcon, Package, ArrowRight, X, QrCode,
-  CheckCircle2, AlertCircle, Undo2, Loader2, Camera
+  CheckCircle2, AlertCircle, Undo2, Loader2, Camera,
+  UserCheck, PackageCheck
 } from "lucide-react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 
@@ -210,8 +211,110 @@ function QRScannerModal({ item, pedidoId, onClose, onSuccess }) {
   );
 }
 
+// ─── Modal Confirmar Entrega ao Funcionário ────────────────────────────────────
+function EntregaModal({ pedido, onClose, onSuccess }) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const nomeSolicitante = pedido.operadorSolicitante || pedido.user?.nome || "Funcionário";
+
+  const handleConfirmar = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/pedidos', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: pedido.id, status: 'CONCLUIDO' }),
+      });
+      if (res.ok) {
+        onSuccess();
+      } else {
+        const d = await res.json();
+        setError(d.error || 'Erro ao confirmar entrega.');
+      }
+    } catch {
+      setError('Erro de conexão.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.96 }}
+        transition={SPRING}
+        onClick={e => e.stopPropagation()}
+        className="site-card w-full max-w-md p-6 bg-white rounded-2xl shadow-xl"
+      >
+        {/* Ícone e título */}
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 flex items-center justify-center mb-3">
+            <UserCheck className="w-8 h-8 text-emerald-600" />
+          </div>
+          <h2 className="text-lg font-display font-black text-slate-900">Confirmar Entrega</h2>
+          <p className="text-sm text-slate-500 mt-1">
+            Pedido <span className="font-mono font-bold text-slate-700">#{pedido.id.toString().padStart(4, '0')}</span>
+          </p>
+        </div>
+
+        {/* Dados do solicitante */}
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-5">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Entregando para</p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center font-black text-violet-700 text-lg">
+              {nomeSolicitante.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p className="font-black text-slate-800 text-base">{nomeSolicitante}</p>
+              <p className="text-xs text-slate-400 font-medium">Setor: {pedido.setor || 'Não informado'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Lista de itens */}
+        <div className="mb-5">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Itens a Entregar</p>
+          <div className="space-y-1.5">
+            {pedido.itens?.map(pi => (
+              <div key={pi.id} className="flex items-center justify-between text-sm bg-white border border-slate-100 rounded-lg px-3 py-2">
+                <span className="font-medium text-slate-700 truncate pr-2">{pi.item?.nome}</span>
+                <span className="font-black text-slate-900 font-mono shrink-0">
+                  {pi.quantidadeEnviada ?? pi.quantidade} <span className="text-slate-400 text-xs font-normal">{pi.item?.unidade}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {error && <p className="text-red-600 text-xs font-bold mb-3 text-center">{error}</p>}
+
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all border border-slate-200"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleConfirmar}
+            disabled={loading}
+            className="flex-1 py-3 rounded-xl text-sm font-black text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 transition-all flex items-center justify-center gap-2 shadow-md"
+          >
+            {loading
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : <><PackageCheck className="w-4 h-4" /> Confirmar Entrega</>
+            }
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 // ─── Pedido Card (Mobile-First) ───────────────────────────────────────────────
-const PedidoCardMobile = memo(function PedidoCardMobile({ pedido, onStatusChange, updating, onScannerModal, onEstornoModal }) {
+const PedidoCardMobile = memo(function PedidoCardMobile({ pedido, onStatusChange, updating, onScannerModal, onEstornoModal, onEntregaModal }) {
   const col = COLUMNS.find(c => c.id === pedido.status) || COLUMNS[0];
   
   return (
@@ -293,6 +396,15 @@ const PedidoCardMobile = memo(function PedidoCardMobile({ pedido, onStatusChange
             </button>
           )}
 
+          {pedido.status === 'PRONTO_RETIRADA' && (
+            <button
+              onClick={() => onEntregaModal(pedido)}
+              className="w-full py-3.5 bg-emerald-600 text-white font-black text-sm uppercase rounded-xl flex items-center justify-center gap-2 shadow-md hover:bg-emerald-700 active:scale-95 transition-all"
+            >
+              <UserCheck className="w-5 h-5" /> Confirmar Entrega ao Funcionário
+            </button>
+          )}
+
           {(pedido.status === 'PRONTO_RETIRADA' || pedido.status === 'EM_SEPARACAO') && (
             <button
               onClick={() => onEstornoModal(pedido)}
@@ -317,6 +429,7 @@ export default function AlmoxarifadoPage() {
   
   const [scannerModal, setScannerModal] = useState(null); // { item, pedidoId }
   const [estornoModal, setEstornoModal] = useState(null);
+  const [entregaModal, setEntregaModal] = useState(null); // pedido completo
 
   const fetchPedidos = async () => {
     try {
@@ -330,10 +443,10 @@ export default function AlmoxarifadoPage() {
   useEffect(() => {
     fetchPedidos();
     const interval = setInterval(() => {
-      if (!updating && !scannerModal && !estornoModal) fetchPedidos();
+      if (!updating && !scannerModal && !estornoModal && !entregaModal) fetchPedidos();
     }, 10000);
     return () => clearInterval(interval);
-  }, [updating, scannerModal, estornoModal]);
+  }, [updating, scannerModal, estornoModal, entregaModal]);
 
   const updatePedidoStatus = async (pedidoId, newStatus) => {
     setUpdating(true);
@@ -426,6 +539,7 @@ export default function AlmoxarifadoPage() {
                 updating={updating}
                 onScannerModal={(item, pid) => setScannerModal({ item, pedidoId: pid })}
                 onEstornoModal={setEstornoModal}
+                onEntregaModal={setEntregaModal}
               />
             ))
           )}
@@ -451,6 +565,17 @@ export default function AlmoxarifadoPage() {
             pedido={estornoModal}
             onClose={() => setEstornoModal(null)}
             onSuccess={() => { setEstornoModal(null); fetchPedidos(); }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Entrega Modal */}
+      <AnimatePresence>
+        {entregaModal && (
+          <EntregaModal
+            pedido={entregaModal}
+            onClose={() => setEntregaModal(null)}
+            onSuccess={() => { setEntregaModal(null); fetchPedidos(); }}
           />
         )}
       </AnimatePresence>
