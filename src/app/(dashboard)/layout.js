@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Package, ClipboardList, History, BarChart3, Undo2 } from "lucide-react";
+import { LogOut, Package, ClipboardList, History, BarChart3, Undo2, Boxes } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 
@@ -22,10 +22,12 @@ export default function DashboardLayout({ children }) {
   }
   if (role === "ALMOXARIFE") {
     navItems.push({ href: "/almoxarifado", icon: ClipboardList, label: "Fila de Pedidos" });
+    navItems.push({ href: "/painel-estoque", icon: Boxes, label: "Monitor Estoque" });
     navItems.push({ href: "/historico", icon: History, label: "Histórico" });
   }
   if (role === "ADMIN") {
     navItems.push({ href: "/admin", icon: BarChart3, label: "Dashboard" });
+    navItems.push({ href: "/painel-estoque", icon: Boxes, label: "Monitor Estoque" });
     navItems.push({ href: "/solicitante", icon: Package, label: "Novo Pedido" });
     navItems.push({ href: "/almoxarifado", icon: ClipboardList, label: "Fila de Pedidos" });
     navItems.push({ href: "/historico", icon: History, label: "Histórico" });

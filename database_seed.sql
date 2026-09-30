@@ -119,7 +119,9 @@ INSERT INTO `Item` (`codigo`, `nome`, `unidade`, `quantidade`, `localizacao`) VA
 ('TM-007', 'Luva de Proteção CA 123 P', 'PAR', 150, 'EPI-01'),
 ('TM-008', 'Óculos de Segurança Fumê', 'UN', 80, 'EPI-02'),
 ('TM-009', 'Eletrodo Revestido AWS E6013 2.5mm', 'KG', 1500, 'C-02-01'),
-('TM-010', 'Disco de Corte Inox 4.1/2"', 'UN', 300, 'C-02-02');
+('TM-010', 'Disco de Corte Inox 4.1/2"', 'UN', 300, 'C-02-02'),
+('TM-011', 'Caixa de Papelão 50x40x30cm', 'UN', 500, 'D-01-01'),
+('TM-012', 'Fita Adesiva Transparente 45mm x 50m', 'ROLO', 150, 'D-01-02');
 
 -- Pedidos com os novos status do Kanban
 INSERT INTO `Pedido` (`userId`, `setor`, `operadorSolicitante`, `status`, `createdAt`, `pinValidadoEm`, `entregueEm`) VALUES

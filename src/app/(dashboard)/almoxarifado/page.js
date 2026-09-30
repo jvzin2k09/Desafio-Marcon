@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock, User as UserIcon, Package, ArrowRight, X, Lock,
@@ -32,10 +32,10 @@ function useDebounce(value, delay) {
 }
 
 // ─── InputsSeparacao (inline no card) ────────────────────────────────────────
-function InputsSeparacao({ pedido, onQtyChange }) {
+const InputsSeparacao = memo(function InputsSeparacao({ pedido, onQtyChange }) {
   const [qtds, setQtds] = useState(() => {
     const s = {};
-    pedido.itens.forEach(pi => { s[pi.id] = pi.quantidadeEnviada ?? pi.quantidade; });
+    pedido.itens?.forEach(pi => { s[pi.id] = pi.quantidadeEnviada ?? pi.quantidade; });
     return s;
   });
   const debouncedQtds = useDebounce(qtds, 900);
@@ -58,11 +58,11 @@ function InputsSeparacao({ pedido, onQtyChange }) {
   return (
     <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
       <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-2">Qtd. Separada</p>
-      {pedido.itens.map(pi => (
+      {pedido.itens?.map(pi => (
         <div key={pi.id} className="flex items-center justify-between bg-amber-50 border border-amber-100 rounded-md px-2 py-1.5">
           <p className="text-[11px] font-medium text-slate-600 truncate flex-1 mr-2">
             <span className="font-bold text-amber-600 mr-1">[{pi.quantidade}]</span>
-            {pi.item.nome}
+            {pi.item?.nome}
           </p>
           <input
             type="number" min="0"
@@ -75,7 +75,7 @@ function InputsSeparacao({ pedido, onQtyChange }) {
       ))}
     </div>
   );
-}
+});
 
 // ─── PIN Validation Modal ─────────────────────────────────────────────────────
 function PinBalcaoModal({ pedido, onClose, onSuccess }) {
@@ -217,7 +217,7 @@ function EstornoModal({ pedido, onClose, onSuccess }) {
 }
 
 // ─── Kanban Card ──────────────────────────────────────────────────────────────
-function KanbanCard({ pedido, column, onStatusChange, onQtyChange, updating, onPinModal, onEstornoModal }) {
+const KanbanCard = memo(function KanbanCard({ pedido, column, onStatusChange, onQtyChange, updating, onPinModal, onEstornoModal }) {
   return (
     <motion.div
       layout
@@ -315,7 +315,7 @@ function KanbanCard({ pedido, column, onStatusChange, onQtyChange, updating, onP
       </div>
     </motion.div>
   );
-}
+});
 
 // ─── Controles de Paginação da Coluna ────────────────────────────────────────
 function ColunaPaginacao({ currentPage, totalPages, onPage, accent, bg, border }) {

@@ -143,12 +143,22 @@ export default function SolicitantePage() {
       });
       if (res.ok) {
         setSubmitStatus("success");
+
+        // Atualização otimista do estoque local para remover o delay da tela
+        setItems(prevItems => prevItems.map(item => {
+          const cartItem = cart.find(c => c.itemId === item.id);
+          if (cartItem) {
+            return { ...item, quantidade: Math.max(0, item.quantidade - (parseInt(cartItem.quantidade, 10) || 1)) };
+          }
+          return item;
+        }));
+
         setCart([]);
         setSearch("");
         setOperadorSolicitante("");
         setShowOperatorModal(false);
-        // Refresh items stock
-        fetch("/api/items").then(r => r.json()).then(setItems).catch(() => {});
+        // Refresh items stock ignorando cache
+        fetch("/api/items", { cache: "no-store" }).then(r => r.json()).then(setItems).catch(() => {});
         setTimeout(() => setSubmitStatus(null), 3000);
       } else {
         setSubmitStatus("error");
