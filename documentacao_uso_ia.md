@@ -809,3 +809,73 @@ Implementada a funcionalidade de solicitação de reposição. O botão com a id
 
 ### 🤖 Resposta do Assistente (Resumo):
 Explicado ao utilizador que este é um erro benigno causado pelo Hot Reload (Fast Refresh) do Next.js ao inserir um novo hook (`useState`) num componente que já estava renderizado no ecrã. A solução indicada foi simplesmente recarregar a página (F5) para restaurar a ordem dos hooks em memória.
+
+---
+
+## Interação 34
+
+**📅 Data/Hora:** 01/10/2026, 16:30:00
+**🎯 Finalidade:** Melhoria de UI/UX Mobile e Layout
+
+### 👤 Prompt do Utilizador:
+```text
+preciso que vc pegue essa parte e coloque embaixo em uma linha com se fosse em um aplicativo mobile igual a segunda imagem
+...
+Na primeira imagem, deixe a logo da marcon maior para todos os paineis, ali em cima deixe apenas o "Administrador", só aparece pra sair da conta quando clicar no administrador. Na segunda imagem, tire o "dashboard", e ajuste os outros
+...
+Na primeira imagem, deixa maior ainda o Marcon para todas as paginas. E na segunda imagem, deixe cada botão clicavel ali com a cor de sua linha conforme o usuario clica, por exemplo: quando clicar na de usinagem fica azul, na de movimento fica verde e etc
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Refatorada a barra de navegação superior para mobile. O botão "Sair" foi recolhido para um submenu ao clicar em "Administrador". A logo da Marcon foi significativamente aumentada e o item "Dashboard" foi removido da listagem. Foram aplicados estilos interativos nos botões de setor/linha de modo que fiquem com a cor correspondente quando ativados (ex: azul para usinagem, verde para movimento).
+
+---
+
+## Interação 35
+
+**📅 Data/Hora:** 01/10/2026, 16:35:00
+**🎯 Finalidade:** Desenvolvimento / Lógica de Almoxarifado Alternativo
+
+### 👤 Prompt do Utilizador:
+```text
+Atue como desenvolvedor Full-Stack Sênior (Next.js, Prisma/MySQL e Tailwind CSS). Reformule a lógica de estoque e separação para dar suporte a Embalagens Fechadas (Caixas) e Roteamento Prioritário via Almoxarifado Alternativo (Estoque Fracionado/Sobras):
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Implementada a arquitetura complexa de `EstoqueAlternativo`. Atualizado o script `criar/route.js` para interceptar a criação de pedidos e verificar saldo "avulso" antes de usar caixas fechadas. Adicionados os cálculos de sobra e integração transparente com o Prisma, gerando a tabela `estoque_alternativo`.
+
+---
+
+## Interação 36
+
+**📅 Data/Hora:** 01/10/2026, 16:40:00
+**🎯 Finalidade:** Ajuste UI Modal / Sincronização de Baixas
+
+### 👤 Prompt do Utilizador:
+```text
+A solicitação de reposição não é para aparecer ali, e sim no card da segunda imagem, apenas em ocasiões de baixo estoque! Corrija isso por gentileza, além disso, deixe todas as paginas sincronizadas e coloque o estoque e baixas funcionando, depois de fazer requisição nao ta baixando as quantidades disponiveis, tem que arrumar isso. E tambem criar uma visualização do estoque alternativo
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Movido o botão "Solicitar Reposição" da lista de concluídos para a lista de itens pendentes no Modal de Checklist, sendo exibido somente quando o estoque for `<= 10`. O desconto de estoque central foi movido de imediato para a API de Criação (`criar/route.js`), refletindo as quantidades instantaneamente nas telas. Criada a página do painel `/estoque-alternativo` para visualização das sobras do almoxarifado.
+
+---
+
+## Interação 37
+
+**📅 Data/Hora:** 01/10/2026, 17:00:00
+**🎯 Finalidade:** Correção de Lógica de Validação e Ambiente
+
+### 👤 Prompt do Utilizador:
+```text
+Não tem nada do que eu pedi no site
+...
+Ta falando que está sem unidades mas as unidades solicitadas vão para essa requisição, essa requisição que vai pegar tudo! Então tem que dar pra ele pegar, e cada a visualização do almoxarifado alternativo?
+...
+a pagina do estoque alternativo esta dando erro
+...
+li o qr code e deu esse erro (ReferenceError: stock is not defined)
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Explicado que o servidor Next.js travou na máquina do utilizador, sendo necessário reiniciar o processo local. Recriados os arquivos perdidos da tela `estoque-alternativo`. Corrigida a lógica de "Estoque Insuficiente" no modal de separação: como as peças são deduzidas na criação da requisição, o sistema agora reconhece que o montante solicitado *já está reservado*, permitindo validar e salvar a separação total perfeitamente. Restaurada a variável `stock` para evitar a falha de renderização ao usar a funcionalidade do botão de alerta de reposição.
