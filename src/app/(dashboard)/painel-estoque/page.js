@@ -383,7 +383,7 @@ export default function PainelEstoquePage() {
                     <span className="font-mono text-[10px] text-blue-800 font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">{item.codigo}</span>
                     <span className="flex items-center gap-0.5 text-[10px] text-slate-500"><MapPin className="w-3 h-3" /> {item.localizacao}</span>
                     <span className={`font-mono text-xs font-black ${isZero ? "text-red-600" : isLow ? "text-amber-600" : "text-emerald-600"}`}>
-                      {item.quantidade} <span className="text-[10px] font-medium text-slate-400">{item.unidade}</span>
+                      {item.quantidade} <span className="text-[10px] font-medium text-slate-400">{item.unidade} {item.qtd_por_caixa > 1 ? `(${Math.floor(item.quantidade / item.qtd_por_caixa)} Cxs)` : ''}</span>
                     </span>
                     <span className="text-[10px] text-slate-400 ml-auto">
                       {formatDate(item.ultimaAtualizacao || item.updatedAt)}
@@ -462,7 +462,7 @@ export default function PainelEstoquePage() {
                           {item.quantidade}
                         </span>
                         <span className="text-xs font-medium text-slate-400 ml-1">
-                          {item.unidade}
+                          {item.unidade} {item.qtd_por_caixa > 1 ? `(${Math.floor(item.quantidade / item.qtd_por_caixa)} Cxs)` : ''}
                         </span>
                       </td>
 

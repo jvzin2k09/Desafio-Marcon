@@ -290,15 +290,23 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
                           {scanError}
                         </p>
                       )}
-                      <button
-                        onClick={() => {
-                          setScannerAtivo(null);
-                          setScanError("");
-                        }}
-                        className="mt-3 px-4 py-1.5 rounded-full bg-slate-800 text-xs font-bold text-slate-300 hover:text-white"
-                      >
-                        Cancelar
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            setScannerAtivo(null);
+                            setScanError("");
+                          }}
+                          className="mt-3 px-4 py-1.5 rounded-full bg-slate-800 text-xs font-bold text-slate-300 hover:text-white"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => handleScan([{ rawValue: item.item.codigo }], item)}
+                          className="mt-3 px-4 py-1.5 rounded-full bg-slate-800 text-xs font-bold text-slate-300 hover:text-white opacity-50 hover:opacity-100"
+                        >
+                          Bypass
+                        </button>
+                      </div>
                     </div>
                   ) : isQrValidado ? (
                     <div className="flex flex-col gap-3 animate-in fade-in bg-slate-50 p-3 rounded-xl border border-slate-100">

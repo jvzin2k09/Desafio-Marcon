@@ -140,28 +140,35 @@ export default function DashboardLayout({ children }) {
       </main>
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t z-50 flex items-center justify-around py-3 px-2 md:hidden shadow-[0_-4px_16px_rgba(0,0,0,0.08)]" style={{ borderColor: "var(--border)" }}>
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t z-50 flex items-center justify-around py-2 px-1 md:hidden shadow-[0_-4px_16px_rgba(0,0,0,0.08)] pb-safe" style={{ borderColor: "var(--border)" }}>
         {mobileNavItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          
+          let compactLabel = item.label;
+          if (item.label.includes("Monitor")) compactLabel = "Estoque";
+          if (item.label.includes("Alt.")) compactLabel = "Sobras";
+          if (item.label.includes("Novo")) compactLabel = "Novo";
+          if (item.label.includes("Fila")) compactLabel = "Pedidos";
+
           return (
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center justify-center flex-1 gap-1.5 text-center transition-all min-w-0"
+              className="flex flex-col items-center justify-center flex-1 min-w-0 gap-1 text-center transition-all px-1"
             >
               <div
-                className={`w-12 h-12 rounded-full transition-all flex items-center justify-center ${isActive
-                    ? "bg-[var(--primary)] text-white shadow-md scale-105"
+                className={`w-9 h-9 rounded-full transition-all flex items-center justify-center ${isActive
+                    ? "bg-[var(--primary)] text-white shadow-md scale-110"
                     : "text-slate-500 hover:text-slate-800 bg-transparent"
                   }`}
               >
-                <item.icon className="w-6 h-6" />
+                <item.icon className="w-5 h-5" />
               </div>
               <span
-                className={`text-[11px] leading-tight truncate w-full px-0.5 ${isActive ? "text-[var(--primary)] font-bold" : "text-slate-500 font-medium"
+                className={`text-[10px] leading-tight truncate w-full mt-0.5 ${isActive ? "text-[var(--primary)] font-bold" : "text-slate-500 font-medium"
                   }`}
               >
-                {item.label}
+                {compactLabel}
               </span>
             </Link>
           );

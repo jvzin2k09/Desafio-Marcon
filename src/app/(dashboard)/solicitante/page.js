@@ -3,15 +3,14 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, Minus, ShoppingCart, Send, X, Clock, Package, Loader2, CheckCircle2, AlertCircle, User as UserIcon } from "lucide-react";
+import { Search, Plus, Minus, ShoppingCart, Send, X, Clock, Package, Loader2, CheckCircle2, AlertCircle, User as UserIcon, Info, MapPin } from "lucide-react";
 
 const SPRING = { type: "spring", stiffness: 280, damping: 24 };
 
 const STATUS_MAP = {
   AGUARDANDO_SEPARACAO: { label: "Aguardando", accent: "#2563eb", bg: "#EFF6FF", border: "#BFDBFE", dot: "bg-blue-500" },
-  EM_SEPARACAO:         { label: "Em Separação", accent: "#d97706", bg: "#FFFBEB", border: "#FDE68A", dot: "bg-amber-500" },
-  PRONTO_RETIRADA:      { label: "Pronto p/ Retirada", accent: "#16a34a", bg: "#F0FDF4", border: "#BBF7D0", dot: "bg-green-500" },
-  ATENDIDO_PARCIALMENTE:{ label: "Parcial", accent: "#ea580c", bg: "#FFF7ED", border: "#FED7AA", dot: "bg-orange-500" },
+  EM_SEPARACAO: { label: "Em Separação", accent: "#d97706", bg: "#FFFBEB", border: "#FDE68A", dot: "bg-amber-500" },
+  PRONTO_RETIRADA: { label: "Pronto p/ Retirada", accent: "#16a34a", bg: "#F0FDF4", border: "#BBF7D0", dot: "bg-green-500" },
 };
 
 function getTempoEspera(ds) {
@@ -35,10 +34,11 @@ export default function SolicitantePage() {
   const [submitStatus, setSubmitStatus] = useState(null); // null | success | error
   const [meusPedidos, setMeusPedidos] = useState([]);
   const [loadingPedidos, setLoadingPedidos] = useState(false);
+  const [infoVisible, setInfoVisible] = useState({});
 
   // Buscar itens do estoque
   useEffect(() => {
-    fetch("/api/items").then(r => r.json()).then(setItems).catch(() => {});
+    fetch("/api/items").then(r => r.json()).then(setItems).catch(() => { });
   }, []);
 
   // Buscar pedidos do próprio operador
@@ -52,7 +52,7 @@ export default function SolicitantePage() {
             setMeusPedidos(data.filter(p => p.userId === parseInt(session?.user?.id) && p.status !== "CONCLUIDO" && p.status !== "ESTORNADO"));
           }
         })
-        .catch(() => {})
+        .catch(() => { })
         .finally(() => setLoadingPedidos(false));
     }
   }, [tab, session?.user?.id]);
@@ -62,21 +62,36 @@ export default function SolicitantePage() {
     item.codigo.toLowerCase().includes(search.toLowerCase())
   );
 
-  const addToCart = (item, initialQty = 1) => {
-    const qtyToAdd = Math.max(1, Math.min(parseInt(initialQty, 10) || 1, item.quantidade || 999999));
+  const addToCart = (item, initialQty) => {
+    const step = item.qtd_por_caixa || 1;
+    let qtyToAdd = initialQty ? parseInt(initialQty, 10) : step;
+    if (isNaN(qtyToAdd) || qtyToAdd <= 0) qtyToAdd = step;
+    qtyToAdd = Math.ceil(qtyToAdd / step) * step;
+    qtyToAdd = Math.max(step, Math.min(qtyToAdd, item.quantidade || 999999));
+
     const existing = cart.find(c => c.itemId === item.id);
     if (existing) {
-      setCart(cart.map(c => c.itemId === item.id ? { ...c, quantidade: Math.min(c.quantidade + qtyToAdd, c.maxQtd) } : c));
+      setCart(cart.map(c => {
+        if (c.itemId === item.id) {
+          let newQty = c.quantidade + qtyToAdd;
+          newQty = Math.ceil(newQty / c.step) * c.step;
+          return { ...c, quantidade: Math.min(newQty, c.maxQtd) };
+        }
+        return c;
+      }));
     } else {
-      setCart([...cart, { itemId: item.id, nome: item.nome, codigo: item.codigo, unidade: item.unidade, quantidade: qtyToAdd, maxQtd: item.quantidade }]);
+      setCart([...cart, { itemId: item.id, nome: item.nome, codigo: item.codigo, unidade: item.unidade, quantidade: qtyToAdd, maxQtd: item.quantidade, step }]);
     }
   };
 
-  const updateCartQty = (itemId, delta) => {
+  const updateCartQty = (itemId, deltaMultiplier) => {
     setCart(cart.map(c => {
       if (c.itemId === itemId) {
+        const delta = c.step * deltaMultiplier;
         const currentQty = parseInt(c.quantidade, 10) || 0;
-        const newQty = Math.max(1, currentQty + delta);
+        let newQty = currentQty + delta;
+        newQty = Math.ceil(newQty / c.step) * c.step;
+        newQty = Math.max(c.step, newQty);
         return { ...c, quantidade: Math.min(newQty, c.maxQtd) };
       }
       return c;
@@ -104,9 +119,10 @@ export default function SolicitantePage() {
       if (c.itemId === itemId) {
         const num = parseInt(c.quantidade, 10);
         if (isNaN(num) || num <= 0) {
-          return { ...c, quantidade: 1 };
+          return { ...c, quantidade: c.step };
         }
-        return { ...c, quantidade: Math.min(num, c.maxQtd || 999999) };
+        let newQty = Math.ceil(num / c.step) * c.step;
+        return { ...c, quantidade: Math.min(newQty, c.maxQtd || 999999) };
       }
       return c;
     }));
@@ -162,7 +178,7 @@ export default function SolicitantePage() {
         setOrdemProducao("");
         setShowOperatorModal(false);
         // Refresh items stock ignorando cache
-        fetch("/api/items", { cache: "no-store" }).then(r => r.json()).then(setItems).catch(() => {});
+        fetch("/api/items", { cache: "no-store" }).then(r => r.json()).then(setItems).catch(() => { });
         setTimeout(() => setSubmitStatus(null), 3000);
       } else {
         setSubmitStatus("error");
@@ -232,11 +248,10 @@ export default function SolicitantePage() {
                     type="button"
                     onClick={() => setSetor(setor === linha.value ? "" : linha.value)}
                     style={setor === linha.value ? { backgroundColor: linha.color, borderColor: linha.color, color: 'white' } : {}}
-                    className={`rounded-lg px-3 py-1.5 md:rounded-xl md:px-2 md:py-3 border-2 transition-all duration-200 flex items-center justify-center font-bold text-xs md:text-sm ${
-                      setor === linha.value
+                    className={`rounded-lg px-3 py-1.5 md:rounded-xl md:px-2 md:py-3 border-2 transition-all duration-200 flex items-center justify-center font-bold text-xs md:text-sm ${setor === linha.value
                         ? "shadow-lg scale-[1.02]"
                         : "border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:shadow-sm hover:bg-slate-50"
-                    }`}
+                      }`}
                   >
                     {linha.label}
                   </button>
@@ -260,7 +275,7 @@ export default function SolicitantePage() {
                   'TM-006': 'Montagem', 'TM-007': 'Montagem', 'TM-008': 'Montagem',
                   'TM-009': 'Manutenção', 'TM-010': 'Manutenção',
                 };
-                
+
                 // Mapear setor para as logos das linhas
                 const logoMap = {
                   'Usinagem': '/logomecanica.png',
@@ -268,7 +283,7 @@ export default function SolicitantePage() {
                   'Manutenção': '/logohidraulica.png',
                   'Montagem': '/logopratika.png'
                 };
-                
+
                 const linhaColors = {
                   'Usinagem': { bg: '#EBF5FF', border: '#0072BC', dot: '#0072BC' },
                   'Logística': { bg: '#E8F5E9', border: '#008C45', dot: '#008C45' },
@@ -276,7 +291,7 @@ export default function SolicitantePage() {
                   'Montagem': { bg: '#FFF8E1', border: '#D4A017', dot: '#D4A017' },
                 };
                 const itemLinha = linhaMap[item.codigo] || 'Logística'; // Logística como fallback
-                
+
                 // Ocultar se estivermos filtrando por um setor específico e este item não pertencer
                 if (setor && itemLinha !== setor) return null;
 
@@ -287,123 +302,188 @@ export default function SolicitantePage() {
                   <motion.div
                     key={item.id}
                     layout
-                    className="site-card flex items-center justify-between p-3 pl-4 relative overflow-hidden"
+                    className="bg-white rounded-xl shadow-sm border border-slate-200 mb-3 relative overflow-visible flex min-h-[110px]"
                   >
                     {/* Barra lateral colorida da linha */}
                     {linhaStyle && (
-                      <div className="absolute top-0 left-0 w-1 h-full rounded-l-xl" style={{ background: linhaStyle.dot }} />
+                      <div className="absolute top-0 left-0 w-1.5 h-full rounded-l-xl z-10" style={{ background: linhaStyle.dot }} />
                     )}
-                    <div className="flex-1 min-w-0 mr-3 pl-1">
-                      <div className="flex items-center gap-2.5">
-                        {logoImg && (
-                          <div className="flex-shrink-0 bg-[var(--surface-3)] p-1.5 rounded-lg border shadow-xs" style={{ borderColor: `${linhaStyle.border}30` }}>
-                            <img src={logoImg} alt={itemLinha} className="h-6 object-contain" />
-                          </div>
-                        )}
-                        <p className="text-sm font-bold text-slate-800 truncate">{item.nome}</p>
-                      </div>
-                      <div className="flex flex-col gap-1 mt-1">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-mono font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                            {item.codigo}
-                          </span>
-                          <span className="text-[11px] font-bold text-slate-400">·</span>
-                          <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${item.quantidade > 0 ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50'}`}>
-                            {item.quantidade} {item.unidade} disp.
-                          </span>
-                          <span className="text-[11px] font-bold text-slate-400">·</span>
-                          <span className="text-[11px] font-medium text-slate-400 truncate max-w-[80px]">
-                            {item.localizacao}
-                          </span>
+
+                    <div className="flex-1 min-w-0 p-3 pl-4 flex flex-col justify-between h-full">
+
+                      {/* LINHA SUPERIOR */}
+                      <div className="flex justify-between items-start w-full gap-2">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          {logoImg && (
+                            <div className="shrink-0 w-9 h-9 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center shadow-xs">
+                              <img src={logoImg} alt={itemLinha} className="h-6 w-6 object-contain" />
+                            </div>
+                          )}
+                          <p className="text-sm font-bold text-gray-800 truncate">{item.nome}</p>
                         </div>
+                        <span className="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap shrink-0">
+                          <MapPin className="w-3 h-3 text-gray-400" />
+                          {item.localizacao || 'S/L'}
+                        </span>
+                      </div>
+
+                      {/* LINHA INTERMEDIÁRIA */}
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                        <span className="text-xs font-mono font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded whitespace-nowrap">
+                          {item.codigo}
+                        </span>
+
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-md whitespace-nowrap ${item.quantidade > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}`}>
+                          {item.quantidade} {item.unidade} {item.qtd_por_caixa > 1 ? `(${Math.floor(item.quantidade / item.qtd_por_caixa)} Cxs)` : ''}
+                        </span>
+
                         {item.qtd_por_caixa > 1 && (
-                          <span className="text-[9px] font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 mt-0.5 w-fit">
-                            📦 Fornecido em caixas de {item.qtd_por_caixa} {item.unidade}. O saldo remanescente vai pro seu Alternativo.
-                          </span>
+                          <button 
+                            onClick={() => setInfoVisible(prev => ({...prev, [item.id]: !prev[item.id]}))}
+                            className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium transition-all border ${
+                              infoVisible[item.id] 
+                                ? 'bg-blue-100 text-blue-700 border-blue-200' 
+                                : 'bg-slate-50 text-slate-400 border-slate-200 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200'
+                            }`}
+                          >
+                            <Info className="w-3 h-3" />
+                            <span className="hidden sm:inline">Saiba mais</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* INFO INLINE EXPANSÍVEL */}
+                      <AnimatePresence>
+                        {infoVisible[item.id] && (
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="mt-2 p-2.5 bg-gradient-to-r from-blue-50 to-sky-50 border border-blue-100 rounded-lg flex items-start gap-2">
+                              <div className="shrink-0 w-6 h-6 rounded-md bg-blue-100 flex items-center justify-center mt-0.5">
+                                <Package className="w-3.5 h-3.5 text-blue-600" />
+                              </div>
+                              <p className="text-[11px] text-blue-800 leading-relaxed">
+                                <strong className="text-blue-900">Lote de Fornecimento:</strong> Este item é entregue em caixas de <strong>{item.qtd_por_caixa} UN</strong>. O saldo sobressalente vai diretamente para o seu Estoque Alternativo.
+                              </p>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      {/* LINHA INFERIOR (AÇÕES) */}
+                      <div className="flex justify-between items-center mt-3 pt-2 border-t border-slate-100">
+                        {inCart ? (
+                          <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200 w-full justify-between">
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => updateCartQty(item.id, -1)}
+                                className="w-8 h-8 rounded-md flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
+                              >
+                                <Minus className="w-4 h-4" />
+                              </button>
+                              <input
+                                type="number"
+                                min={1}
+                                max={item.quantidade}
+                                value={inCart.quantidade}
+                                onChange={e => setCartQty(item.id, e.target.value)}
+                                onBlur={() => handleBlurCartQty(item.id)}
+                                onFocus={e => e.target.select()}
+                                className="w-12 h-8 text-center font-mono font-black text-sm text-[#1B3A6B] bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              />
+                              <button
+                                onClick={() => updateCartQty(item.id, 1)}
+                                className="w-8 h-8 rounded-md flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
+                              >
+                                <Plus className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <button
+                              onClick={() => removeFromCart(item.id)}
+                              className="w-8 h-8 rounded-md flex items-center justify-center text-red-500 bg-red-50 hover:bg-red-100 transition-colors mr-1"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between w-full gap-2">
+                            <div className="flex items-center gap-1 bg-slate-50 p-1.5 rounded-lg border border-slate-200 shrink-0">
+                              <button
+                                onClick={() => {
+                                  const current = parseInt(itemInputs[item.id], 10) || (item.qtd_por_caixa || 1);
+                                  const step = item.qtd_por_caixa || 1;
+                                  const next = Math.max(step, current - step);
+                                  setItemInputs(prev => ({ ...prev, [item.id]: next }));
+                                }}
+                                className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
+                              >
+                                <Minus className="w-3.5 h-3.5" />
+                              </button>
+                              <input
+                                type="number"
+                                min={1}
+                                max={item.quantidade}
+                                value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : (item.qtd_por_caixa || 1)}
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  if (val === "") {
+                                    setItemInputs(prev => ({ ...prev, [item.id]: "" }));
+                                  } else {
+                                    const num = parseInt(val, 10);
+                                    setItemInputs(prev => ({
+                                      ...prev,
+                                      [item.id]: isNaN(num) ? (item.qtd_por_caixa || 1) : Math.max(1, Math.min(num, item.quantidade))
+                                    }));
+                                  }
+                                }}
+                                onBlur={() => {
+                                  const step = item.qtd_por_caixa || 1;
+                                  const current = itemInputs[item.id];
+                                  if (!current || parseInt(current, 10) <= 0) {
+                                    setItemInputs(prev => ({ ...prev, [item.id]: step }));
+                                  } else {
+                                    const num = parseInt(current, 10);
+                                    let newQty = Math.ceil(num / step) * step;
+                                    newQty = Math.min(newQty, item.quantidade);
+                                    setItemInputs(prev => ({ ...prev, [item.id]: newQty }));
+                                  }
+                                }}
+                                onFocus={e => e.target.select()}
+                                disabled={item.quantidade === 0}
+                                className="w-10 h-7 text-center font-mono font-black text-sm text-slate-800 bg-transparent focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                placeholder={(item.qtd_por_caixa || 1).toString()}
+                              />
+                              <button
+                                onClick={() => {
+                                  const current = parseInt(itemInputs[item.id], 10) || (item.qtd_por_caixa || 1);
+                                  const step = item.qtd_por_caixa || 1;
+                                  const next = Math.min(item.quantidade, current + step);
+                                  setItemInputs(prev => ({ ...prev, [item.id]: next }));
+                                }}
+                                className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+
+                            <button
+                              onClick={() => {
+                                const qty = parseInt(itemInputs[item.id], 10) || (item.qtd_por_caixa || 1);
+                                addToCart(item, qty);
+                              }}
+                              disabled={item.quantidade === 0}
+                              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 flex-1 disabled:opacity-50 disabled:pointer-events-none shadow-sm h-10"
+                            >
+                              <Plus className="w-4 h-4" />
+                              Adicionar
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
-                    {inCart ? (
-                      <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200">
-                        <button 
-                          onClick={() => updateCartQty(item.id, -1)} 
-                          className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-xs transition-colors"
-                          title="Diminuir 1"
-                        >
-                          <Minus className="w-3 h-3" />
-                        </button>
-                        <input
-                          type="number"
-                          min={1}
-                          max={item.quantidade}
-                          value={inCart.quantidade}
-                          onChange={e => setCartQty(item.id, e.target.value)}
-                          onBlur={() => handleBlurCartQty(item.id)}
-                          onFocus={e => e.target.select()}
-                          className="w-14 h-6 text-center font-mono font-black text-xs text-[#1B3A6B] bg-white border border-slate-200 focus:border-[#1B3A6B] rounded focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
-                          title={`No carrinho: ${inCart.quantidade} (Estoque: ${item.quantidade})`}
-                        />
-                        <button 
-                          onClick={() => updateCartQty(item.id, 1)} 
-                          className="w-6 h-6 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:shadow-xs transition-colors"
-                          title="Aumentar 1"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </button>
-                        <button 
-                          onClick={() => removeFromCart(item.id)} 
-                          className="w-6 h-6 rounded flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors ml-0.5"
-                          title="Remover do carrinho"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5">
-                        <input
-                          type="number"
-                          min={1}
-                          max={item.quantidade}
-                          value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : 1}
-                          onChange={e => {
-                            const val = e.target.value;
-                            if (val === "") {
-                              setItemInputs(prev => ({ ...prev, [item.id]: "" }));
-                            } else {
-                              const num = parseInt(val, 10);
-                              setItemInputs(prev => ({
-                                ...prev,
-                                [item.id]: isNaN(num) ? 1 : Math.max(1, Math.min(num, item.quantidade))
-                              }));
-                            }
-                          }}
-                          onBlur={() => {
-                            const current = itemInputs[item.id];
-                            if (!current || parseInt(current, 10) <= 0) {
-                              setItemInputs(prev => ({ ...prev, [item.id]: 1 }));
-                            }
-                          }}
-                          onFocus={e => e.target.select()}
-                          disabled={item.quantidade === 0}
-                          className="w-14 h-8 text-center font-mono font-black text-xs text-slate-800 bg-slate-50 border border-slate-200 focus:border-[#1B3A6B] rounded-lg focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
-                          placeholder="1"
-                          title={`Digite a quantidade desejada (Disponível: ${item.quantidade} ${item.unidade})`}
-                        />
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => {
-                            const qty = parseInt(itemInputs[item.id], 10) || 1;
-                            addToCart(item, qty);
-                          }}
-                          disabled={item.quantidade === 0}
-                          className="btn-magnetic flex items-center gap-1 text-xs font-bold px-3 py-2 rounded-lg text-white disabled:opacity-30 whitespace-nowrap shadow-sm"
-                          style={{ background: "linear-gradient(135deg, var(--primary), var(--accent))" }}
-                        >
-                          <Plus className="w-3.5 h-3.5" /> Adicionar
-                        </motion.button>
-                      </div>
-                    )}
                   </motion.div>
                 );
               })}
@@ -441,8 +521,8 @@ export default function SolicitantePage() {
                           <p className="text-[10px] font-mono text-slate-400">{c.codigo}</p>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <button 
-                            onClick={() => updateCartQty(c.itemId, -1)} 
+                          <button
+                            onClick={() => updateCartQty(c.itemId, -1)}
                             className="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors"
                             title="Diminuir 1"
                           >
@@ -459,15 +539,15 @@ export default function SolicitantePage() {
                             className="w-16 h-7 text-center font-mono font-black text-sm text-slate-800 bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 focus:border-[#1B3A6B] rounded-md focus:outline-none focus:ring-1 focus:ring-[#1B3A6B] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
                             title={`Digite a quantidade (Disponível: ${c.maxQtd} ${c.unidade})`}
                           />
-                          <button 
-                            onClick={() => updateCartQty(c.itemId, 1)} 
+                          <button
+                            onClick={() => updateCartQty(c.itemId, 1)}
                             className="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors"
                             title="Aumentar 1"
                           >
                             <Plus className="w-3.5 h-3.5" />
                           </button>
-                          <button 
-                            onClick={() => removeFromCart(c.itemId)} 
+                          <button
+                            onClick={() => removeFromCart(c.itemId)}
                             className="w-7 h-7 rounded-md flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors ml-1"
                             title="Remover do carrinho"
                           >
@@ -615,16 +695,16 @@ export default function SolicitantePage() {
               className="site-card w-full max-w-md p-8 relative overflow-hidden bg-white rounded-2xl shadow-2xl"
             >
               <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full mix-blend-multiply filter blur-3xl opacity-20" style={{ background: "var(--primary)" }} />
-              
+
               <div className="relative z-10 flex flex-col items-center">
                 <div className="mb-4">
-                  <img 
-                    src="/funcionarioMARCONI.png" 
-                    alt="Funcionário Marconi" 
+                  <img
+                    src="/funcionarioMARCONI.png"
+                    alt="Funcionário Marconi"
                     className="w-24 h-24 object-contain shadow-sm"
                   />
                 </div>
-                
+
                 <h2 className="text-xl font-display font-black text-slate-900 mb-2 text-center">Identificação do Operador</h2>
                 <p className="text-sm text-slate-500 text-center mb-6">
                   Informe o nome ou matrícula do operador do chão de fábrica que solicitou esta peça.
