@@ -13,6 +13,7 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
         quantidadeBaixa: isBaixado ? i.quantidadeEnviada : i.quantidade,
         observacao: i.observacao_baixa || "",
         qrValido: isBaixado,
+        reposicaoSolicitada: false,
       };
     })
   );
@@ -21,6 +22,7 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
   const [scannerAtivo, setScannerAtivo] = useState(null);
   const [scanError, setScanError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [toastMessage, setToastMessage] = useState(null);
   const containerRef = useRef(null);
 
   const pendentesCount = itens.filter((i) => i.statusLocal === "PENDENTE").length;
@@ -95,9 +97,48 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
     }
   };
 
+  const handleSolicitarReposicao = (item) => {
+    setToastMessage({
+      produto: item.item.nome,
+      codigo: item.item.codigo,
+      setor: pedido.setor || "Geral",
+      requisicao: `#${pedido.id.toString().padStart(4, "0")}`,
+      solicitante: "Almoxarife",
+    });
+    setItens((prev) =>
+      prev.map((p) =>
+        p.id === item.id ? { ...p, reposicaoSolicitada: true } : p
+      )
+    );
+    setTimeout(() => setToastMessage(null), 4000);
+  };
+
   return (
     <>
       <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-in fade-in" onClick={onClose} />
+
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: -20, x: "-50%" }}
+            className="fixed top-6 left-1/2 z-[60] bg-white p-4 rounded-xl shadow-2xl border border-emerald-200 min-w-[320px]"
+          >
+            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-slate-100">
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              <span className="font-bold text-emerald-700">Solicitação registrada com sucesso!</span>
+            </div>
+            <div className="text-xs text-slate-600 space-y-1 font-medium">
+              <p><strong className="text-slate-800">Produto:</strong> {toastMessage.produto}</p>
+              <p><strong className="text-slate-800">Código:</strong> {toastMessage.codigo}</p>
+              <p><strong className="text-slate-800">Setor:</strong> {toastMessage.setor}</p>
+              <p><strong className="text-slate-800">Requisição:</strong> {toastMessage.requisicao}</p>
+              <p><strong className="text-slate-800">Solicitante:</strong> {toastMessage.solicitante}</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       <motion.div
         initial={{ y: "100%" }}
@@ -187,14 +228,28 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
                     layout
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-emerald-50 text-emerald-800 min-h-[48px] flex items-center justify-between px-4 py-2 rounded-xl shrink-0 border border-emerald-100 shadow-sm"
+                    className="bg-emerald-50 text-emerald-800 flex flex-col px-4 py-3 rounded-xl shrink-0 border border-emerald-100 shadow-sm gap-2"
                   >
-                    <span className="font-bold text-sm truncate pr-2 flex-1">
-                      {item.item.nome}
-                    </span>
-                    <span className="font-black font-mono shrink-0 flex items-center gap-1.5 bg-emerald-100 px-2 py-0.5 rounded-md">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> {item.quantidadeBaixa}
-                    </span>
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-sm truncate pr-2 flex-1">
+                        {item.item.nome}
+                      </span>
+                      <span className="font-black font-mono shrink-0 flex items-center gap-1.5 bg-emerald-100 px-2 py-0.5 rounded-md">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> {item.quantidadeBaixa}
+                      </span>
+                    </div>
+                    {item.reposicaoSolicitada ? (
+                      <div className="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1.5 rounded-lg border border-amber-300 flex items-center justify-center gap-1.5 opacity-80 cursor-not-allowed">
+                        ✉️ Reposição Solicitada
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleSolicitarReposicao(item)}
+                        className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-semibold py-2 px-3 rounded-lg text-sm w-full transition-colors flex items-center justify-center gap-2 mt-2"
+                      >
+                        🛒 Solicitar Reposição ao Compras
+                      </button>
+                    )}
                   </motion.div>
                 );
               }
