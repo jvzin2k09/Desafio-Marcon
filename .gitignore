@@ -3,7 +3,9 @@
 
 # dependencies
 node_modules/
+**/node_modules/
 .expo/
+**/.expo/
 /.pnp
 .pnp.*
 .yarn/*

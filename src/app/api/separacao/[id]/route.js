@@ -75,15 +75,22 @@ export async function POST(request, { params }) {
 
         const qtdeEnviada = parseInt(itemEnviado.quantidadeEnviada);
 
-        // Deduzir o estoque
-        await tx.item.update({
-          where: { id: pedidoItem.itemId },
-          data: {
-            quantidade: {
-              decrement: qtdeEnviada
+        // O estoque central só perde as caixas fechadas que saíram dele.
+        // O estoque alternativo já foi ajustado no momento da requisição (no criar/route.js).
+        const qtdCaixas = pedidoItem.qtd_caixas_central || 0;
+        const qtdPorCaixa = pedidoItem.item?.qtd_por_caixa || 1;
+        const descontoCentral = qtdCaixas * qtdPorCaixa;
+
+        if (descontoCentral > 0) {
+          await tx.item.update({
+            where: { id: pedidoItem.itemId },
+            data: {
+              quantidade: {
+                decrement: descontoCentral
+              }
             }
-          }
-        });
+          });
+        }
 
         // Atualizar o pedidoItem com o que realmente foi enviado
         const pedidoItemDelegate = tx.pedidoitem || tx.pedidoItem;

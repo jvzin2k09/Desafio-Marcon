@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 const SPRING = { type: "spring", stiffness: 280, damping: 24 };
 
 // ─── Linha de item ────────────────────────────────────────────────────────────
-function ItemRow({ pi, index }) {
+function ItemRow({ pi, index, pedido }) {
   const solicitado = pi.quantidade;
   const separado = pi.quantidadeEnviada ?? pi.quantidade;
   const diverge = separado !== solicitado;
@@ -48,6 +48,33 @@ function ItemRow({ pi, index }) {
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Feedback Visual de Origem (Roteamento Prioritário) */}
+      <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2">
+        {pi.qtd_alternativo > 0 && pi.qtd_caixas_central === 0 && (
+          <div className="text-sm font-medium text-slate-700 bg-green-50 border border-green-200 p-3 rounded-lg flex items-center gap-2">
+            <span>📍 Retirar {pi.qtd_alternativo} UN no Almoxarifado Alternativo (Box Sobras {pedido?.setor || "Local"})</span>
+          </div>
+        )}
+        
+        {pi.qtd_caixas_central > 0 && (
+          <div className="text-sm font-medium text-slate-700 bg-blue-50 border border-blue-200 p-3 rounded-lg flex flex-col gap-1">
+            <span className="flex items-center gap-2">📦 Retirar {pi.qtd_caixas_central} CX ({pi.qtd_caixas_central * (pi.item.qtd_por_caixa || 1)} UN) na Prateleira {pi.item.localizacao || "Central"}.</span>
+            {pi.sobra_gerada > 0 && (
+              <span className="text-xs text-blue-600 font-bold ml-6">💡 {pi.sobra_gerada} UN sobrantes serão enviadas ao Alternativo</span>
+            )}
+            {pi.qtd_alternativo > 0 && (
+              <span className="text-xs text-slate-500 font-bold ml-6">E completar com {pi.qtd_alternativo} UN do Alternativo.</span>
+            )}
+          </div>
+        )}
+
+        {pi.qtd_alternativo > 0 && (
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-green-700 bg-green-100 px-2 py-1 rounded w-fit">
+            ♻️ Economia: Retirado do Estoque Alternativo
+          </span>
+        )}
       </div>
 
       {diverge && (
@@ -205,7 +232,7 @@ export default function PreBaixaCheckout({ params }) {
         </div>
 
         <div className="p-6 space-y-3">
-          {pedido.itens.map((pi, i) => <ItemRow key={pi.id} pi={pi} index={i} />)}
+          {pedido.itens.map((pi, i) => <ItemRow key={pi.id} pi={pi} index={i} pedido={pedido} />)}
         </div>
 
         {/* CTAs */}

@@ -40,45 +40,23 @@ export default function DashboardLayout({ children }) {
     OPERADOR: { label: "Operador", color: "#16a34a" },
   }[role] || { label: role, color: "#64748b" };
 
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showMobileLogout, setShowMobileLogout] = useState(false);
+
+  // Filtramos o "Dashboard" apenas para o menu inferior móvel
+  const mobileNavItems = navItems.filter(item => item.label !== "Dashboard");
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "var(--background)" }}>
-      {/* Mobile Topbar */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white border-b sticky top-0 z-30 shadow-sm" style={{ borderColor: "var(--border)" }}>
-        <Image src="/Logo.png" alt="Til Marcon" width={220} height={64} className="h-14 w-auto object-contain" priority />
-        <button 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="p-2 rounded-lg bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors"
-        >
-          {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
-      </div>
-
-      {/* Sidebar Overlay (Mobile) */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside 
-        className={`
-          fixed md:static inset-y-0 left-0 z-50 w-64 bg-white border-r flex flex-col transition-transform duration-300 md:translate-x-0
-          ${isMobileMenuOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full md:shadow-none"}
-        `} 
-        style={{ borderColor: "var(--border)" }}
-      >
-        {/* Logo - Hide on mobile since it's in topbar */}
-        <div className="hidden md:flex p-5 border-b items-center gap-3" style={{ borderColor: "var(--border)" }}>
-          <Image src="/Logo.png" alt="Til Marcon" width={160} height={48} className="h-10 w-auto object-contain" priority />
+      {/* Sidebar - Desktop Only */}
+      <aside className="hidden md:flex w-64 bg-white border-r flex-col shrink-0 min-h-screen" style={{ borderColor: "var(--border)" }}>
+        {/* Logo */}
+        <div className="p-5 border-b flex items-center gap-3" style={{ borderColor: "var(--border)" }}>
+          <Image src="/Logo.png" alt="Til Marcon" width={240} height={72} className="h-14 w-auto object-contain" priority />
         </div>
         
-        {/* Nav - flex-1 to push footer down */}
+        {/* Nav */}
         <div className="p-3 flex-1">
-          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-2 mt-2 md:mt-0">Navegação</p>
+          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-2">Navegação</p>
           <nav className="space-y-0.5">
             {navItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
@@ -86,14 +64,13 @@ export default function DashboardLayout({ children }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-3 md:py-2.5 rounded-lg transition-all text-sm font-medium ${
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${
                     isActive
-                      ? "bg-[var(--surface-3)] text-[var(--primary)] font-bold shadow-sm md:shadow-none"
+                      ? "bg-[var(--surface-3)] text-[var(--primary)] font-bold"
                       : "text-slate-600 hover:bg-[var(--surface-2)] hover:text-slate-900"
                   }`}
                 >
-                  <item.icon className="w-5 h-5 md:w-[18px] md:h-[18px]" style={{ color: isActive ? "var(--primary)" : "var(--text-muted)" }} />
+                  <item.icon className="w-[18px] h-[18px]" style={{ color: isActive ? "var(--primary)" : "var(--text-muted)" }} />
                   {item.label}
                 </Link>
               );
@@ -101,10 +78,10 @@ export default function DashboardLayout({ children }) {
           </nav>
         </div>
 
-        {/* User Footer — sempre no final da sidebar */}
-        <div className="p-4 border-t mt-auto" style={{ borderColor: "var(--border)" }}>
+        {/* User Footer */}
+        <div className="p-4 border-t" style={{ borderColor: "var(--border)" }}>
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 md:w-9 md:h-9 rounded-full flex items-center justify-center text-white font-bold text-sm" style={{ background: "var(--primary)" }}>
+            <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm" style={{ background: "var(--primary)" }}>
               {session.user.name?.charAt(0)}
             </div>
             <div className="overflow-hidden flex-1">
@@ -116,18 +93,81 @@ export default function DashboardLayout({ children }) {
           </div>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="w-full flex items-center justify-center gap-2 px-3 py-3 md:py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-bold text-xs uppercase tracking-wider border border-red-100 md:border-transparent"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-bold text-xs uppercase tracking-wider"
           >
-            <LogOut className="w-4 h-4 md:w-3.5 md:h-3.5" />
+            <LogOut className="w-3.5 h-3.5" />
             Sair
           </button>
         </div>
       </aside>
 
+      {/* Mobile Top Header */}
+      <header className="flex md:hidden items-center justify-between px-4 py-3 bg-white border-b sticky top-0 z-40 shadow-sm" style={{ borderColor: "var(--border)" }}>
+        <div className="flex items-center gap-2">
+          <Image src="/Logo.png" alt="Til Marcon" width={240} height={72} className="h-14 w-auto object-contain" priority />
+        </div>
+        <div className="flex items-center gap-3 relative">
+          <div 
+            className="flex items-center gap-2 cursor-pointer select-none"
+            onClick={() => setShowMobileLogout(!showMobileLogout)}
+          >
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm" style={{ background: "var(--primary)" }}>
+              {roleBadge.label.charAt(0)}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-slate-800 leading-tight max-w-[120px] truncate">{roleBadge.label}</span>
+              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">{roleBadge.label}</span>
+            </div>
+          </div>
+          {showMobileLogout && (
+            <div className="absolute right-0 top-full mt-2 bg-white border border-slate-200 rounded-lg shadow-lg p-2 min-w-[100px] z-50">
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="w-full flex items-center justify-center gap-2 p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors font-bold text-xs uppercase tracking-wider"
+              >
+                <LogOut className="w-4 h-4" />
+                Sair
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
+
       {/* Main Content */}
-      <main className="flex-1 overflow-auto p-2 sm:p-4 md:p-8 bg-slate-50 md:bg-transparent">
+      <main className="flex-1 overflow-auto p-4 md:p-8 pb-28 md:pb-8">
         {children}
       </main>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t z-50 flex items-center justify-around py-3 px-2 md:hidden shadow-[0_-4px_16px_rgba(0,0,0,0.08)]" style={{ borderColor: "var(--border)" }}>
+        {mobileNavItems.map((item) => {
+          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex flex-col items-center justify-center flex-1 gap-1.5 text-center transition-all min-w-0"
+            >
+              <div
+                className={`w-12 h-12 rounded-full transition-all flex items-center justify-center ${
+                  isActive
+                    ? "bg-[var(--primary)] text-white shadow-md scale-105"
+                    : "text-slate-500 hover:text-slate-800 bg-transparent"
+                }`}
+              >
+                <item.icon className="w-6 h-6" />
+              </div>
+              <span
+                className={`text-[11px] leading-tight truncate w-full px-0.5 ${
+                  isActive ? "text-[var(--primary)] font-bold" : "text-slate-500 font-medium"
+                }`}
+              >
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }

@@ -33,7 +33,7 @@ export async function POST(request) {
         }
 
         const pedidoItem = await tx.pedidoitem.findUnique({ where: { id: parseInt(pedidoItemId) } });
-        
+
         if (parseInt(quantidadeBaixa) < pedidoItem.quantidade) {
           isAnyPartial = true;
         }

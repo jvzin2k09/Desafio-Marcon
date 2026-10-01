@@ -139,7 +139,7 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
           </motion.div>
         )}
       </AnimatePresence>
-      
+
       <motion.div
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
@@ -186,18 +186,17 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
               <button
                 key={f}
                 onClick={() => setFiltro(f)}
-                className={`flex-1 py-1.5 text-[11px] font-medium rounded-lg transition-all ${
-                  filtro === f
+                className={`flex-1 py-1.5 text-[11px] font-medium rounded-lg transition-all ${filtro === f
                     ? "bg-blue-600 text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-700"
-                }`}
+                  }`}
               >
                 {f} (
                 {f === "PENDENTES"
                   ? pendentesCount
                   : f === "CONCLUIDOS"
-                  ? concluidosCount
-                  : totalCount}
+                    ? concluidosCount
+                    : totalCount}
                 )
               </button>
             ))}
@@ -271,7 +270,7 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
                     <h3 className="font-bold text-slate-800 text-base leading-tight">
                       {item.item.nome}
                     </h3>
-                    
+
                     {/* Endereçamento */}
                     <div className="mt-1.5 flex items-center text-xs font-medium text-slate-500">
                       <span className="text-blue-500 mr-1">📍</span> Prateleira B-04 • Box 12
@@ -371,11 +370,10 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
                               )
                             )
                           }
-                          className={`w-full border-2 p-2.5 rounded-lg text-sm outline-none resize-none transition-colors ${
-                            obsRequired && !item.observacao.trim()
+                          className={`w-full border-2 p-2.5 rounded-lg text-sm outline-none resize-none transition-colors ${obsRequired && !item.observacao.trim()
                               ? "border-red-200 bg-red-50 focus:border-red-400 placeholder:text-red-300"
                               : "border-slate-200 focus:border-indigo-500"
-                          }`}
+                            }`}
                           placeholder={
                             obsRequired
                               ? "Justifique a entrega parcial..."

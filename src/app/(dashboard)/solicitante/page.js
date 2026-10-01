@@ -231,9 +231,10 @@ export default function SolicitantePage() {
                     key={linha.value}
                     type="button"
                     onClick={() => setSetor(setor === linha.value ? "" : linha.value)}
+                    style={setor === linha.value ? { backgroundColor: linha.color, borderColor: linha.color, color: 'white' } : {}}
                     className={`rounded-lg px-3 py-1.5 md:rounded-xl md:px-2 md:py-3 border-2 transition-all duration-200 flex items-center justify-center font-bold text-xs md:text-sm ${
                       setor === linha.value
-                        ? "border-[var(--primary)] bg-[var(--primary)] text-white shadow-lg scale-[1.02]"
+                        ? "shadow-lg scale-[1.02]"
                         : "border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:shadow-sm hover:bg-slate-50"
                     }`}
                   >
@@ -301,18 +302,25 @@ export default function SolicitantePage() {
                         )}
                         <p className="text-sm font-bold text-slate-800 truncate">{item.nome}</p>
                       </div>
-                      <div className="flex items-center gap-1.5 mt-1">
-                        <span className="text-xs font-mono font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                          {item.codigo}
-                        </span>
-                        <span className="text-[11px] font-bold text-slate-400">·</span>
-                        <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${item.quantidade > 0 ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50'}`}>
-                          {item.quantidade} {item.unidade} disp.
-                        </span>
-                        <span className="text-[11px] font-bold text-slate-400">·</span>
-                        <span className="text-[11px] font-medium text-slate-400 truncate max-w-[80px]">
-                          {item.localizacao}
-                        </span>
+                      <div className="flex flex-col gap-1 mt-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-mono font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                            {item.codigo}
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-400">·</span>
+                          <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${item.quantidade > 0 ? 'text-green-600 bg-green-50' : 'text-red-500 bg-red-50'}`}>
+                            {item.quantidade} {item.unidade} disp.
+                          </span>
+                          <span className="text-[11px] font-bold text-slate-400">·</span>
+                          <span className="text-[11px] font-medium text-slate-400 truncate max-w-[80px]">
+                            {item.localizacao}
+                          </span>
+                        </div>
+                        {item.qtd_por_caixa > 1 && (
+                          <span className="text-[9px] font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100 mt-0.5 w-fit">
+                            📦 Fornecido em caixas de {item.qtd_por_caixa} {item.unidade}. O saldo remanescente vai pro seu Alternativo.
+                          </span>
+                        )}
                       </div>
                     </div>
                     {inCart ? (
