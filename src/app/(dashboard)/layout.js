@@ -46,7 +46,7 @@ export default function DashboardLayout({ children }) {
     <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "var(--background)" }}>
       {/* Mobile Topbar */}
       <div className="md:hidden flex items-center justify-between p-4 bg-white border-b sticky top-0 z-30 shadow-sm" style={{ borderColor: "var(--border)" }}>
-        <Image src="/Logo.png" alt="Til Marcon" width={120} height={36} className="h-8 w-auto object-contain" priority />
+        <Image src="/Logo.png" alt="Til Marcon" width={220} height={64} className="h-14 w-auto object-contain" priority />
         <button 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 rounded-lg bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors"

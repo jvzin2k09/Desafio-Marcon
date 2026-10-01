@@ -248,33 +248,27 @@ export default function HistoricoPage() {
   return (
     <div className="min-h-[calc(100vh-80px)] lg:h-[calc(100vh-80px)] overflow-y-auto lg:overflow-hidden custom-scrollbar flex flex-col space-y-4 md:space-y-6 max-w-7xl mx-auto pb-4 p-4 md:p-6">
       {/* ─── Topo: Título e Ação de Exportar ─────────────────────────────── */}
-      <div className="flex flex-row md:items-center justify-between gap-2 md:gap-4 shrink-0">
+      <div className="flex flex-row items-center justify-between gap-2 md:gap-4 shrink-0">
         <div className="flex items-center gap-3">
           <div className="p-2 md:p-3 bg-[var(--primary)] rounded-xl shadow-lg border-2 border-white text-white shrink-0 hidden sm:block">
             <History className="w-5 h-5 md:w-7 md:h-7" />
           </div>
           <div>
             <h1 className="text-xl md:text-2xl sm:text-3xl font-display font-black text-slate-900 tracking-tight leading-tight">
-              Histórico de <span className="text-orange-500">Ferramentas</span>
+              Histórico de <span className="text-orange-500">Movimentações</span>
             </h1>
             <p className="text-slate-500 text-[11px] md:text-sm mt-0.5 font-medium">
               Suas movimentações passadas
             </p>
           </div>
         </div>
-        
-        {/* Ícone de pergaminho da imagem para desktop e mobile (substituindo ou acompanhando ações) */}
+
         <div className="hidden lg:flex items-center justify-center p-3 rounded-2xl bg-white border border-slate-200 shadow-sm shrink-0">
           <ScrollText className="w-7 h-7 text-orange-300" />
         </div>
 
-        {/* Botão Exportar Excel */}
+        {/* Botões de Ação */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* ScrollText para mobile, ao lado do botão exportar */}
-          <div className="lg:hidden flex items-center justify-center p-2 rounded-xl bg-white border border-slate-200 shadow-sm shrink-0 mr-1">
-            <ScrollText className="w-5 h-5 text-orange-300" />
-          </div>
-
           <button
             onClick={carregarHistorico}
             disabled={loading}
@@ -289,13 +283,13 @@ export default function HistoricoPage() {
             whileTap={{ scale: 0.98 }}
             onClick={exportarParaExcel}
             disabled={loading || movimentacoesFiltradas.length === 0 || exporting}
-            className="flex items-center gap-1.5 md:gap-2 px-3 py-2.5 md:px-5 md:py-3 rounded-xl text-white font-bold text-[11px] md:text-sm tracking-wide shadow-md transition-all disabled:opacity-50 cursor-pointer"
+            className="flex items-center justify-center p-2.5 md:px-5 md:py-3 rounded-xl md:rounded-xl text-white font-bold text-sm tracking-wide shadow-md transition-all disabled:opacity-50 cursor-pointer bg-emerald-600"
             style={{ background: "linear-gradient(135deg, #107C41 0%, #0d6334 100%)" }}
+            title="Exportar Planilha"
           >
             <FileSpreadsheet className="w-4 h-4 md:w-5 md:h-5 text-white" />
-            <span className="hidden sm:inline">{exporting ? "Gerando..." : "Exportar Excel"}</span>
-            <span className="sm:hidden">{exporting ? "..." : "Exportar"}</span>
-            <span className="ml-0.5 md:ml-1 px-1.5 md:px-2 py-0.5 text-[9px] md:text-xs rounded-full bg-white/20 font-mono">
+            <span className="hidden md:inline ml-2">{exporting ? "Gerando..." : "Exportar Excel"}</span>
+            <span className="ml-1.5 md:ml-2 px-1.5 md:px-2 py-0.5 text-[10px] md:text-xs rounded-full bg-white/20 font-mono flex items-center justify-center">
               {movimentacoesFiltradas.length}
             </span>
           </motion.button>
@@ -323,45 +317,45 @@ export default function HistoricoPage() {
       </AnimatePresence>
 
       {/* ─── Cards de Métricas (KPIs) ─────────────────────────────────────── */}
-      <div className="flex overflow-x-auto gap-3 snap-x snap-mandatory custom-scrollbar pb-2 shrink-0 lg:grid lg:grid-cols-4 lg:snap-none lg:overflow-visible">
-        <div className="min-w-[220px] lg:min-w-0 snap-start p-5 rounded-2xl bg-[var(--primary)] text-white shadow-md border border-transparent relative overflow-hidden shrink-0">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-5 rounded-full -mr-12 -mt-12" />
-          <div className="flex justify-between items-center text-slate-300 mb-2 relative z-10">
-            <span className="text-[11px] font-black uppercase tracking-wider">Movimentações</span>
-            <Layers className="w-4 h-4 text-slate-300" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
+        <div className="p-3 md:p-5 rounded-2xl bg-[var(--primary)] text-white shadow-md border border-transparent relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 md:w-24 md:h-24 bg-white opacity-5 rounded-full -mr-8 -mt-8 md:-mr-12 md:-mt-12" />
+          <div className="flex justify-between items-center text-slate-300 mb-1 md:mb-2 relative z-10">
+            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-wider truncate">Movimentações</span>
+            <Layers className="w-4 h-4 text-slate-300 shrink-0" />
           </div>
-          <div className="text-2xl font-mono font-black text-white relative z-10">{kpis.total}</div>
-          <span className="text-[11px] text-slate-300 font-medium relative z-10">Registros no período</span>
+          <div className="text-xl md:text-2xl font-mono font-black text-white relative z-10">{kpis.total}</div>
+          <span className="text-[9px] md:text-[11px] text-slate-300 font-medium relative z-10 truncate block">No período</span>
         </div>
 
-        <div className="min-w-[220px] lg:min-w-0 snap-start p-5 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-transparent shadow-md relative overflow-hidden shrink-0">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500 opacity-10 rounded-full -mr-12 -mt-12" />
-          <div className="flex justify-between items-center mb-2 relative z-10">
-            <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400">Entregas / Saídas</span>
-            <PackageCheck className="w-4 h-4 text-emerald-400" />
+        <div className="p-3 md:p-5 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-transparent shadow-md relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 md:w-24 md:h-24 bg-emerald-500 opacity-10 rounded-full -mr-8 -mt-8 md:-mr-12 md:-mt-12" />
+          <div className="flex justify-between items-center mb-1 md:mb-2 relative z-10">
+            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-wider text-emerald-400 truncate">Entregas</span>
+            <PackageCheck className="w-4 h-4 text-emerald-400 shrink-0" />
           </div>
-          <div className="text-2xl font-mono font-black text-white relative z-10">{kpis.saidas}</div>
-          <span className="text-[11px] text-slate-400 font-medium relative z-10">Pedidos concluídos</span>
+          <div className="text-xl md:text-2xl font-mono font-black text-white relative z-10">{kpis.saidas}</div>
+          <span className="text-[9px] md:text-[11px] text-slate-400 font-medium relative z-10 truncate block">Concluídos</span>
         </div>
 
-        <div className="min-w-[220px] lg:min-w-0 snap-start p-5 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-transparent shadow-md relative overflow-hidden shrink-0">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-red-500 opacity-10 rounded-full -mr-12 -mt-12" />
-          <div className="flex justify-between items-center mb-2 relative z-10">
-            <span className="text-[11px] font-black uppercase tracking-wider text-red-400">Estornos / Cancelados</span>
-            <Undo2 className="w-4 h-4 text-red-400" />
+        <div className="p-3 md:p-5 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-transparent shadow-md relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 md:w-24 md:h-24 bg-red-500 opacity-10 rounded-full -mr-8 -mt-8 md:-mr-12 md:-mt-12" />
+          <div className="flex justify-between items-center mb-1 md:mb-2 relative z-10">
+            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-wider text-red-400 truncate">Estornos</span>
+            <Undo2 className="w-4 h-4 text-red-400 shrink-0" />
           </div>
-          <div className="text-2xl font-mono font-black text-white relative z-10">{kpis.estornos}</div>
-          <span className="text-[11px] text-slate-400 font-medium relative z-10">Devoluções ao estoque</span>
+          <div className="text-xl md:text-2xl font-mono font-black text-white relative z-10">{kpis.estornos}</div>
+          <span className="text-[9px] md:text-[11px] text-slate-400 font-medium relative z-10 truncate block">Devoluções</span>
         </div>
 
-        <div className="min-w-[220px] lg:min-w-0 snap-start p-5 rounded-2xl bg-[var(--highlight)] text-white shadow-md border border-transparent relative overflow-hidden shrink-0">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-white opacity-10 rounded-full -mr-12 -mt-12" />
-          <div className="flex justify-between items-center text-orange-100 mb-2 relative z-10">
-            <span className="text-[11px] font-black uppercase tracking-wider">Volume de Peças</span>
-            <Tag className="w-4 h-4 text-orange-100" />
+        <div className="p-3 md:p-5 rounded-2xl bg-[var(--highlight)] text-white shadow-md border border-transparent relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 md:w-24 md:h-24 bg-white opacity-10 rounded-full -mr-8 -mt-8 md:-mr-12 md:-mt-12" />
+          <div className="flex justify-between items-center text-orange-100 mb-1 md:mb-2 relative z-10">
+            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-wider truncate">Volume (Qtd)</span>
+            <Tag className="w-4 h-4 text-orange-100 shrink-0" />
           </div>
-          <div className="text-2xl font-mono font-black text-white relative z-10">{kpis.totalPecas}</div>
-          <span className="text-[11px] text-orange-100 font-medium relative z-10">Unidades movimentadas</span>
+          <div className="text-xl md:text-2xl font-mono font-black text-white relative z-10">{kpis.totalPecas}</div>
+          <span className="text-[9px] md:text-[11px] text-orange-100 font-medium relative z-10 truncate block">Peças movidas</span>
         </div>
       </div>
 
@@ -427,35 +421,47 @@ export default function HistoricoPage() {
 
         {/* ── Filtro por Período de Data ── */}
         <div className="pt-3 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-bold text-slate-600 flex items-center gap-1 text-[11px] uppercase tracking-wider">
-              <Calendar className="w-3.5 h-3.5 text-[#1B3A6B]" /> Filtrar Data:
-            </span>
-
-            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
-              <span className="text-slate-400 text-[10px] font-bold">DE</span>
-              <input
-                type="date"
-                value={dataInicio}
-                onChange={(e) => { setDataInicio(e.target.value); setCurrentPage(1); }}
-                className="bg-transparent text-xs font-mono font-medium text-slate-700 outline-none"
-              />
+          <div className="flex flex-col md:flex-row md:items-center gap-2">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-600 flex items-center gap-1 text-[11px] uppercase tracking-wider">
+                <Calendar className="w-3.5 h-3.5 text-[#1B3A6B]" /> Filtrar Data
+              </span>
+              {(dataInicio || dataFim) && (
+                <button
+                  onClick={() => aplicarAtalhoData("limpar")}
+                  className="md:hidden text-[10px] font-bold text-slate-400 hover:text-red-500 transition-colors"
+                >
+                  Limpar
+                </button>
+              )}
             </div>
 
-            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
-              <span className="text-slate-400 text-[10px] font-bold">ATÉ</span>
-              <input
-                type="date"
-                value={dataFim}
-                onChange={(e) => { setDataFim(e.target.value); setCurrentPage(1); }}
-                className="bg-transparent text-xs font-mono font-medium text-slate-700 outline-none"
-              />
+            <div className="grid grid-cols-2 gap-2 md:flex md:items-center md:gap-1.5">
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 w-full">
+                <span className="text-slate-400 text-[10px] font-bold">DE</span>
+                <input
+                  type="date"
+                  value={dataInicio}
+                  onChange={(e) => { setDataInicio(e.target.value); setCurrentPage(1); }}
+                  className="bg-transparent text-[11px] sm:text-xs font-mono font-medium text-slate-700 outline-none w-full"
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 w-full">
+                <span className="text-slate-400 text-[10px] font-bold">ATÉ</span>
+                <input
+                  type="date"
+                  value={dataFim}
+                  onChange={(e) => { setDataFim(e.target.value); setCurrentPage(1); }}
+                  className="bg-transparent text-[11px] sm:text-xs font-mono font-medium text-slate-700 outline-none w-full"
+                />
+              </div>
             </div>
 
             {(dataInicio || dataFim) && (
               <button
                 onClick={() => aplicarAtalhoData("limpar")}
-                className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors px-1"
+                className="hidden md:block text-xs font-bold text-slate-400 hover:text-red-500 transition-colors px-1"
                 title="Limpar filtro de data"
               >
                 Limpar
@@ -464,29 +470,28 @@ export default function HistoricoPage() {
           </div>
 
           {/* Atalhos Rápidos */}
-          <div className="flex items-center gap-1 text-slate-500 overflow-x-auto pb-1 md:pb-0">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">Atalhos:</span>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 text-slate-500">
             <button
               onClick={() => aplicarAtalhoData("hoje")}
-              className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors text-[11px]"
+              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors text-[11px] whitespace-nowrap"
             >
               Hoje
             </button>
             <button
               onClick={() => aplicarAtalhoData(7)}
-              className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors text-[11px]"
+              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors text-[11px] whitespace-nowrap"
             >
               7 dias
             </button>
             <button
               onClick={() => aplicarAtalhoData(30)}
-              className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors text-[11px]"
+              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors text-[11px] whitespace-nowrap"
             >
               30 dias
             </button>
             <button
               onClick={() => aplicarAtalhoData("mes")}
-              className="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors text-[11px]"
+              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors text-[11px] whitespace-nowrap"
             >
               Este Mês
             </button>
@@ -537,41 +542,68 @@ export default function HistoricoPage() {
           </div>
         ) : (
           <div className="flex-1 lg:overflow-y-auto custom-scrollbar">
-            {/* ─── Visão Mobile (Cards como na imagem) ─── */}
-            <div className="block lg:hidden space-y-4 p-2 pb-6">
+            {/* ─── Visão Mobile (Cards Auditáveis) ─── */}
+            <div className="block lg:hidden space-y-4 p-2 pb-6 max-h-[55vh] overflow-y-auto no-scrollbar">
               {paginatedItems.map(m => (
-                m.itens.map(item => (
-                  <div key={`${m.id}-${item.id}`} className="bg-white rounded-[24px] p-5 shadow-sm border border-slate-100 flex flex-col relative overflow-hidden">
-                    <div className="flex gap-4 items-center">
-                      <div className="w-[48px] h-[48px] bg-[#FFF2E8] rounded-2xl flex items-center justify-center shrink-0">
-                        <RefreshCw className="w-5 h-5 text-[#3B82F6]" />
-                      </div>
+                m.itens.map(item => {
+                  const isEstorno = m.tipo === "ESTORNO";
+                  return (
+                  <div 
+                    key={`${m.id}-${item.id}`} 
+                    onClick={() => setExpandedId({ pedido: m, item })}
+                    className="bg-blue-50/80 rounded-2xl p-4 shadow-sm border border-blue-200 flex flex-col relative overflow-hidden active:scale-[0.98] transition-transform cursor-pointer"
+                  >
+                    {/* Cabeçalho do Card */}
+                    <div className="flex justify-between items-start gap-2 mb-3">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-black text-slate-900 text-[13px] uppercase leading-tight truncate">{item.nome}</h3>
-                        <p className="text-[11px] text-slate-500 mt-1">Código: <span className="font-bold text-slate-800">{item.codigo}</span></p>
+                        <h3 className="font-bold text-slate-900 text-sm leading-tight">{item.nome}</h3>
+                        <p className="font-mono text-[10px] font-bold text-slate-600 mt-0.5">{item.codigo}</p>
+                      </div>
+                      <div className="shrink-0 flex flex-col items-end">
+                        <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider mb-1 ${item.tipo_baixa === 'QR_CODE' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'}`}>
+                          {item.tipo_baixa === 'QR_CODE' ? '[QR CODE VERIFICADO]' : '[MANUAL]'}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${isEstorno ? 'bg-red-100 text-red-800 border border-red-200' : 'bg-blue-100 text-blue-900 border border-blue-200'}`}>
+                          {isEstorno ? "ESTORNO" : "SAÍDA"}
+                        </span>
                       </div>
                     </div>
                     
-                    <hr className="my-4 border-dashed border-slate-200" />
-                    
-                    <div className="text-[11px] text-slate-500 space-y-1.5">
-                      <div className="flex justify-between">
-                        <span>Retirada:</span>
-                        <span className="font-bold text-slate-800">{new Date(m.data).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
+                    {/* Grid de Informações de Rastreabilidade */}
+                    <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-700 border-t border-blue-200/60 pt-3">
+                      <div className="flex flex-col">
+                        <span className="text-slate-500 font-bold mb-0.5">Pedido & OP</span>
+                        <span className="font-black text-slate-900">#{m.id.toString().padStart(4, "0")} <span className="font-medium text-slate-500">| OP-2026-89</span></span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Status:</span>
-                        <span className="font-bold text-orange-500">
-                          {m.tipo === "ESTORNO" ? "Estornado" : "Em Uso"}
+                      <div className="flex flex-col">
+                        <span className="text-slate-500 font-bold mb-0.5">Quantidade</span>
+                        <span className={`font-mono font-black ${isEstorno ? 'text-red-700' : 'text-[#1B3A6B]'}`}>
+                          {item.quantidadeEfetiva} <span className="text-[9px] font-bold text-slate-600">{item.unidade}</span>
                         </span>
                       </div>
-                      <div className="flex justify-between mt-2 pt-2 border-t border-slate-100/50">
-                        <span>Pedido:</span>
-                        <span className="font-bold text-slate-800">#{m.id.toString().padStart(4, "0")} ({item.quantidadeEfetiva} {item.unidade})</span>
+                      
+                      <div className="col-span-2 flex flex-col mt-1">
+                        <span className="text-slate-500 font-bold mb-0.5">Solicitante ➔ Operador</span>
+                        <span className="font-black text-slate-900">{m.solicitante?.nome || "Responsável"} ➔ {m.operadorSolicitante || "Operador"}</span>
+                      </div>
+
+                      <div className="col-span-2 flex flex-col">
+                        <span className="text-slate-500 font-bold mb-0.5">Almoxarife Responsável</span>
+                        <span className="font-black text-slate-900">{m.responsavel || "Almoxarife"}</span>
+                      </div>
+
+                      <div className="flex flex-col mt-1">
+                        <span className="text-slate-500 font-bold mb-0.5">Data e Hora</span>
+                        <span className="font-black text-slate-900">{new Date(m.data).toLocaleDateString("pt-BR")} às {new Date(m.data).toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"})}</span>
+                      </div>
+                      <div className="flex flex-col mt-1 items-end justify-center">
+                        <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-200/70 text-slate-600">
+                          TOTVS: Integrado
+                        </span>
                       </div>
                     </div>
                   </div>
-                ))
+                )})
               ))}
             </div>
 
@@ -808,6 +840,69 @@ export default function HistoricoPage() {
           </div>
         )}
       </div>
+      {/* Modal de Auditoria Mobile */}
+      <AnimatePresence>
+        {expandedId && typeof expandedId === 'object' && expandedId.pedido && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setExpandedId(null)}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 lg:hidden"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50 p-5 lg:hidden max-h-[85vh] overflow-y-auto"
+            >
+              <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-5" />
+              
+              <h2 className="text-lg font-black text-slate-900 mb-1">Linha do Tempo - Pedido #{expandedId.pedido.id.toString().padStart(4, "0")}</h2>
+              <p className="text-xs font-bold text-slate-500 mb-6">{expandedId.item.nome}</p>
+
+              <div className="relative border-l-2 border-slate-100 ml-3 space-y-6 pb-4">
+                {/* Etapa 1: Criação */}
+                <div className="relative pl-6">
+                  <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full border-4 border-white bg-blue-500" />
+                  <p className="text-xs font-bold text-slate-800">Pedido Criado</p>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Criado por <strong>{expandedId.pedido.solicitante?.nome || "Responsável"}</strong> para o operador <strong>{expandedId.pedido.operadorSolicitante || "Operador"}</strong> em {new Date(expandedId.pedido.data).toLocaleString("pt-BR")}.
+                  </p>
+                </div>
+
+                {/* Etapa 2: Separação/Baixa */}
+                <div className="relative pl-6">
+                  <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full border-4 border-white bg-emerald-500" />
+                  <p className="text-xs font-bold text-slate-800">Estoque Movimentado</p>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    {expandedId.item.tipo_baixa === 'QR_CODE' ? "Separado e Lido via QR Code" : "Baixa manual realizada"} por <strong>{expandedId.pedido.responsavel || "Almoxarife"}</strong> em {expandedId.item.data_hora_baixa ? new Date(expandedId.item.data_hora_baixa).toLocaleString("pt-BR") : new Date(expandedId.pedido.data).toLocaleString("pt-BR")}.
+                  </p>
+                </div>
+
+                {/* Etapa 3: Obs/Estorno */}
+                {(expandedId.pedido.motivo || expandedId.item.observacao_baixa) && (
+                  <div className="relative pl-6">
+                    <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full border-4 border-white bg-amber-500" />
+                    <p className="text-xs font-bold text-slate-800">Observações Registradas</p>
+                    <p className="text-[11px] text-slate-600 mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                      {expandedId.pedido.motivo || expandedId.item.observacao_baixa}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={() => setExpandedId(null)}
+                className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm mt-4 transition-colors"
+              >
+                Fechar Detalhes
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

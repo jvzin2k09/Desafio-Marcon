@@ -127,6 +127,21 @@ export default function PainelEstoquePage() {
 
 
 
+  // Helper para formatar datas com segurança (evita "Invalid Date")
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "Sem dados";
+    const d = new Date(dateValue);
+    if (isNaN(d.getTime())) return "Sem dados";
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatDateShort = (dateValue) => {
+    if (!dateValue) return "--:--";
+    const d = new Date(dateValue);
+    if (isNaN(d.getTime())) return "--:--";
+    return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  };
+
   // Contagens e KPIs — limiteMinimo padrão = 10 quando não existir no banco
   const getMin = (item) => item.limiteMinimo ?? 10;
   const emptyItems = items.filter(i => i.quantidade === 0);
@@ -163,37 +178,39 @@ export default function PainelEstoquePage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-80px)] lg:h-[calc(100vh-80px)] overflow-y-auto lg:overflow-hidden custom-scrollbar flex flex-col p-4 md:p-6 max-w-7xl mx-auto space-y-4 md:space-y-6">
+    <div className="w-full overflow-x-hidden min-h-screen flex flex-col p-3 sm:p-4 md:p-6 max-w-7xl mx-auto space-y-3 md:space-y-6">
       
       {/* CABEÇALHO */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm shrink-0">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black tracking-tight text-slate-900">
-              Painel de Controle de Estoque
-            </h1>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-              Tempo Real Ativo
-            </span>
+      <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm shrink-0">
+        <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+                Painel de Controle de Estoque
+              </h1>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                Tempo Real Ativo
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              Monitoramento de unidades disponíveis e alertas automáticos de reposição crítica
+            </p>
           </div>
-          <p className="text-sm text-slate-500 mt-1">
-            Monitoramento de unidades disponíveis e alertas automáticos de reposição crítica
-          </p>
-        </div>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={requestNotif}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold border transition-colors ${
-              notifPerm === "granted"
-                ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                : "bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100"
-            }`}
-          >
-            {notifPerm === "granted" ? <Bell className="w-4 h-4 text-emerald-600" /> : <BellOff className="w-4 h-4 text-slate-500" />}
-            {notifPerm === "granted" ? "Notificações Ativas" : "Ativar Notificações"}
-          </button>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={requestNotif}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold border transition-colors ${
+                notifPerm === "granted"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                  : "bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100"
+              }`}
+            >
+              {notifPerm === "granted" ? <Bell className="w-4 h-4 text-emerald-600" /> : <BellOff className="w-4 h-4 text-slate-500" />}
+              {notifPerm === "granted" ? "Notificações Ativas" : "Ativar Notificações"}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -245,61 +262,62 @@ export default function PainelEstoquePage() {
       )}
 
       {/* CARDS DE MÉTRICAS (KPIs) */}
-      <div className="flex overflow-x-auto gap-3 snap-x snap-mandatory custom-scrollbar pb-2 shrink-0 lg:grid lg:grid-cols-4 lg:snap-none lg:overflow-visible">
-        <div className="min-w-[220px] lg:min-w-0 snap-start bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-600 shrink-0">
+      {/* CARDS DE MÉTRICAS (KPIs) — grid 2 colunas no mobile, 4 no md+ */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 shrink-0">
+        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-600">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] lg:text-xs font-bold uppercase tracking-wider">Total de Itens</span>
-            <Layers className="w-5 h-5 text-blue-600" />
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Total de Itens</span>
+            <Layers className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
           </div>
-          <div className="text-3xl font-black font-mono text-slate-900">{items.length}</div>
-          <span className="text-[10px] lg:text-xs text-slate-400 mt-1 block">Peças monitoradas</span>
+          <div className="text-2xl sm:text-3xl font-black font-mono text-slate-900">{items.length}</div>
+          <span className="text-[9px] sm:text-xs text-slate-400 mt-1 block">Peças monitoradas</span>
         </div>
 
-        <div className="min-w-[220px] lg:min-w-0 snap-start bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500 shrink-0">
+        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] lg:text-xs font-bold uppercase tracking-wider">Em Nível Seguro</span>
-            <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Nível Seguro</span>
+            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
           </div>
-          <div className="text-3xl font-black font-mono text-emerald-600">{okItems.length}</div>
-          <span className="text-[10px] lg:text-xs text-slate-400 mt-1 block">Acima do estoque mínimo</span>
+          <div className="text-2xl sm:text-3xl font-black font-mono text-emerald-600">{okItems.length}</div>
+          <span className="text-[9px] sm:text-xs text-slate-400 mt-1 block">Acima do mínimo</span>
         </div>
 
-        <div className="min-w-[220px] lg:min-w-0 snap-start bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-amber-500 shrink-0">
+        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-amber-500">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] lg:text-xs font-bold uppercase tracking-wider">Estoque Baixo</span>
-            <AlertTriangle className="w-5 h-5 text-amber-500" />
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Est. Baixo</span>
+            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
           </div>
-          <div className="text-3xl font-black font-mono text-amber-600">{lowItems.length}</div>
-          <span className="text-[10px] lg:text-xs text-slate-400 mt-1 block">Abaixo do limite de segurança</span>
+          <div className="text-2xl sm:text-3xl font-black font-mono text-amber-600">{lowItems.length}</div>
+          <span className="text-[9px] sm:text-xs text-slate-400 mt-1 block">Abaixo do limite</span>
         </div>
 
-        <div className="min-w-[220px] lg:min-w-0 snap-start bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-red-600 shrink-0">
+        <div className="bg-white p-3 sm:p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-red-600">
           <div className="flex items-center justify-between text-slate-500 mb-2">
-            <span className="text-[11px] lg:text-xs font-bold uppercase tracking-wider">Esgotados</span>
-            <XCircle className="w-5 h-5 text-red-600" />
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Esgotados</span>
+            <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
           </div>
-          <div className="text-3xl font-black font-mono text-red-600">{emptyItems.length}</div>
-          <span className="text-[10px] lg:text-xs text-slate-400 mt-1 block">Saldo zerado (0 un)</span>
+          <div className="text-2xl sm:text-3xl font-black font-mono text-red-600">{emptyItems.length}</div>
+          <span className="text-[9px] sm:text-xs text-slate-400 mt-1 block">Saldo zerado (0 un)</span>
         </div>
       </div>
 
       {/* REQUISITO 3: BARRA DE FERRAMENTAS COM BUSCA EM TEMPO REAL E FILTROS */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 shrink-0">
-        <div className="relative w-full md:max-w-md">
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-3 shrink-0">
+        <div className="relative w-full">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar peça por código, nome..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs md:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 flex-nowrap overflow-x-auto w-full md:w-auto custom-scrollbar pb-1 md:pb-0 shrink-0">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 w-full">
           <button
             onClick={() => setFilter("all")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
               filter === "all" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
             }`}
           >
@@ -307,15 +325,15 @@ export default function PainelEstoquePage() {
           </button>
           <button
             onClick={() => setFilter("low")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               filter === "low" ? "bg-amber-500 text-white" : "bg-amber-50 text-amber-700 hover:bg-amber-100"
             }`}
           >
-            <AlertTriangle className="w-3.5 h-3.5" /> Estoque Baixo ({lowItems.length})
+            <AlertTriangle className="w-3.5 h-3.5" /> Est. Baixo ({lowItems.length})
           </button>
           <button
             onClick={() => setFilter("empty")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               filter === "empty" ? "bg-red-600 text-white" : "bg-red-50 text-red-700 hover:bg-red-100"
             }`}
           >
@@ -323,7 +341,7 @@ export default function PainelEstoquePage() {
           </button>
           <button
             onClick={() => setFilter("ok")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 ${
+            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               filter === "ok" ? "bg-emerald-600 text-white" : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
             }`}
           >
@@ -335,8 +353,8 @@ export default function PainelEstoquePage() {
       {/* TABELA DE ESTOQUE COM SCROLL E DESTAQUE DE ALERTAS */}
       <div className="flex-1 lg:bg-white lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm flex flex-col min-h-0 lg:overflow-hidden">
         
-        {/* Visão Mobile (Cards) */}
-        <div className="block lg:hidden max-h-[calc(100vh-420px)] overflow-y-auto custom-scrollbar space-y-3 pb-6">
+        {/* Visão Mobile (Cards) — scroll contido */}
+        <div className="block lg:hidden max-h-[50vh] overflow-y-auto no-scrollbar space-y-3 pb-6">
           {filteredItems.length === 0 ? (
              <div className="py-12 text-center text-slate-400 font-medium bg-white rounded-xl">
                Nenhuma peça encontrada com os critérios informados.
@@ -347,19 +365,14 @@ export default function PainelEstoquePage() {
               const isLow = item.quantidade > 0 && item.quantidade <= getMin(item);
               
               return (
-                <div key={item.id} className={`p-4 bg-white rounded-[20px] shadow-sm border-l-4 relative overflow-hidden ${
+                <div key={item.id} className={`p-3 sm:p-4 bg-white rounded-2xl shadow-sm border-l-4 relative overflow-hidden ${
                   isZero ? "border-l-red-600 border-t border-r border-b border-red-100" 
                   : isLow ? "border-l-amber-500 border-t border-r border-b border-amber-100" 
                   : "border-l-emerald-500 border-t border-r border-b border-slate-100"
                 }`}>
-                  <div className="flex justify-between items-start gap-2 mb-3">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-slate-900 text-sm truncate">{item.nome}</h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="font-mono text-[10px] text-blue-800 font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">{item.codigo}</span>
-                        <span className="flex items-center gap-0.5 text-[10px] text-slate-500"><MapPin className="w-3 h-3" /> {item.localizacao}</span>
-                      </div>
-                    </div>
+                  {/* Linha Superior: Nome + Badge */}
+                  <div className="flex justify-between items-center gap-2 mb-2">
+                    <h3 className="font-bold text-sm text-slate-900 truncate max-w-[200px]">{item.nome}</h3>
                     {isZero ? (
                       <span className="shrink-0 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide animate-pulse">Esgotado</span>
                     ) : isLow ? (
@@ -369,18 +382,16 @@ export default function PainelEstoquePage() {
                     )}
                   </div>
                   
-                  <div className="flex items-end justify-between border-t border-slate-100 pt-3">
-                    <div>
-                       <p className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">Mín: {getMin(item)}</p>
-                       <div className="text-xl font-black font-mono leading-none">
-                         <span className={isZero ? "text-red-600" : isLow ? "text-amber-600" : "text-emerald-600"}>{item.quantidade}</span>
-                         <span className="text-[10px] font-medium text-slate-500 ml-1">{item.unidade}</span>
-                       </div>
-                    </div>
-                    <div className="text-right">
-                       <p className="text-[9px] text-slate-400 font-medium">Últ. Atualização</p>
-                       <p className="text-[10px] text-slate-600 font-bold">{new Date(item.ultimaAtualizacao).toLocaleDateString('pt-BR')} {new Date(item.ultimaAtualizacao).toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}</p>
-                    </div>
+                  {/* Linha Inferior: Código, Local, Qtd, Data */}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-slate-100 pt-2">
+                    <span className="font-mono text-[10px] text-blue-800 font-bold bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">{item.codigo}</span>
+                    <span className="flex items-center gap-0.5 text-[10px] text-slate-500"><MapPin className="w-3 h-3" /> {item.localizacao}</span>
+                    <span className={`font-mono text-xs font-black ${isZero ? "text-red-600" : isLow ? "text-amber-600" : "text-emerald-600"}`}>
+                      {item.quantidade} <span className="text-[10px] font-medium text-slate-400">{item.unidade}</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 ml-auto">
+                      {formatDate(item.ultimaAtualizacao || item.updatedAt)}
+                    </span>
                   </div>
                 </div>
               );
@@ -504,7 +515,7 @@ export default function PainelEstoquePage() {
 
                       {/* ATUALIZADO */}
                       <td className="py-3.5 px-4 text-xs font-mono text-slate-400">
-                        {item.updatedAt ? new Date(item.updatedAt).toLocaleTimeString("pt-BR") : "--:--"}
+                        {formatDateShort(item.updatedAt)}
                       </td>
                     </tr>
                   );

@@ -309,7 +309,8 @@ combinações de bancadas, armários, carros organizadores e acessórios, até a
 
 - Movimento: Versátil, e completa, atende às várias demandas de intralogística, composta por uma ampla variedade de modelos, oferece os equipamentos ideias para otimizar o transporte e a operação de diferentes tipos de carga.
 
-- Hidráulica: Entrega a robustez e a confiança que você precisa, nosso criterioso processo de fabricação de conjuntos hidráulicos, assegura máxima força, eficiência, e segurança na utilização. Todos os conjuntos são rigorosamente testados, para atender nossos clientes com alto índice de satisfação, contamos com uma ampla rede de pós venda, e assistência técnica em todo Brasil.
+
+- Hidráulica: Entrega a robustez e a confiança que você precisa, nosso criterioso processo de fabricação de conjuntos hidráulicos, assegura máxima força, eficiência, e segurança na utilização. Todos os conjuntos são rigorosamente testados, para atender nossos clientes com alto índice de satisfação, contamos com uma ampla rede de pós venda, e assistência técnica em todo Brasil.
 
 - Prátika: Traz equipamentos essenciais para otimizar a rotina de seu posto de trabalho. São muitos engenheiros, projetistas, técnicos e representantes, que com dedicação planejam cada etapa do projeto e da distribuição de todo nosso portfólio para os mais de 5 mil pontos de venda em todo o Brasil, além de países da América Latina e do Oriente Médio.
 
@@ -466,3 +467,266 @@ Desenvolvi um script que corrigiu as peças no banco de dados com valores negati
 
 ---
 
+## Interação 16
+
+**📅 Data/Hora:** 30/09/2026, 21:11:24
+**🎯 Finalidade:** Desenvolvimento / Refatoração de UI Mobile-First
+
+### 👤 Prompt do Utilizador:
+```text
+Atue como especialista em UI/UX Mobile-First com Tailwind CSS e React. Refaça a tela do "Painel de Controle de Estoque" para telemóvel, corrigindo todos os erros visuais das imagens:
+
+1. CABEÇALHO E MÉTRICAS (MOBILE):
+   - Alinhe o título "Painel de Controle de Estoque" e o badge "Tempo Real Ativo" de forma flexível: no mobile use `flex flex-col items-start gap-2`, e em telas maiores `md:flex-row md:items-center md:justify-between`.
+   - Reorganize os Cards de KPI superiores para exibição em grelha de 2 colunas no mobile: `grid grid-cols-2 gap-3 md:grid-cols-4`. Remova qualquer largura fixa (`w-[px]`) que cause corte de texto.
+
+2. BARRA DE PESQUISA E FILTROS:
+   - A barra de pesquisa deve ter largura total (`w-full`).
+   - Para a lista de filtros ("Todos", "Estoque Baixo", "Esgotados"), crie um contentor de scroll horizontal suave sem barra visível: `flex gap-2 overflow-x-auto no-scrollbar py-1 w-full`.
+
+3. CARDS DE PRODUTOS COMPACTOS:
+   - Reduza os paddings internos dos cards no mobile para `p-3 sm:p-4`.
+   - Linha Superior do Card: Nome da peça em destaque com truncamento caso seja longo (`font-bold text-sm truncate max-w-[200px]`) + Badge de estado ("EM DIA") à direita.
+   - Linha Inferior: Código (`TM-011`), Localização, Quantidade em stock e Data de Atualização.
+
+4. TRATAMENTO DE ERRO DE DATA:
+   - Corrija a função de formatação de data no código frontend. Caso o campo de data venha nulo ou inválido da API, exiba um valor padrão como "Sem dados" ou a data atual formatada (`DD/MM/AAAA`), evitando o texto "Invalid Date".
+
+5. REMOÇÃO DE BARRAS DE SCROLL DUPLAS:
+   - Garanta que o contentor principal tenha `w-full overflow-x-hidden min-h-screen` e remova alturas fixas (`h-[400px]` ou similares) que gerem scrollbars internas dentro da página.
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Refatorei a UI do Painel de Estoque para mobile-first aplicando Tailwind CSS. Modifiquei o layout do cabeçalho, os KPIs (agora em grid 2 colunas no mobile), e os filtros (com scroll horizontal sem scrollbar visível). Compactei os cards de produtos com informações organizadas. Adicionei funções `formatDate` para evitar erros de "Invalid Date" na formatação e adicionei a classe utilitária `.no-scrollbar` no `globals.css` para esconder a barra de scroll mantendo a funcionalidade limpa.
+
+---
+
+## Interação 17
+
+**📅 Data/Hora:** 30/09/2026, 21:16:41
+**🎯 Finalidade:** Correção de Bug / Ajuste de UI
+
+### 👤 Prompt do Utilizador:
+```text
+Ficou ótimo, mas faça um scroll para as peças nao ficarem sendo jogadas pra baixo 
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Ajustei o contentor de cartões mobile para usar `flex-1 overflow-y-auto no-scrollbar`, o que permite um scroll interno contido para as peças em vez de empurrar a página inteira. Também modifiquei temporariamente a altura do container principal no mobile para `h-[calc(100vh-64px)]`.
+
+---
+
+## Interação 18
+
+**📅 Data/Hora:** 30/09/2026, 21:19:06
+**🎯 Finalidade:** Correção de Bug / Ajuste de UI
+
+### 👤 Prompt do Utilizador:
+```text
+Não estou conseguindo ver as peças
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Simplifiquei a abordagem de layout removendo a altura fixa e a classe `overflow-hidden` do container pai, voltando para `min-h-screen` para o scroll normal da página fluir corretamente. Apliquei `max-h-[50vh]` com `overflow-y-auto` especificamente nos cartões de peças mobile, limitando o espaço ocupado sem cortar o conteúdo e resolvendo o problema de visibilidade perfeitamente.
+
+---
+
+## Interação 19
+
+**📅 Data/Hora:** 30/09/2026, 21:50:00
+**🎯 Finalidade:** Melhoria de UI/UX Mobile-First (Histórico)
+
+### 👤 Prompt do Utilizador:
+```text
+Atue como desenvolvedor Full-Stack / UI Designer Sênior em Next.js e Tailwind CSS. Refaça a tela de "Histórico de Movimentações" da Marcon para ser 100% responsiva em dispositivos móveis e auditável conforme as exigências industriais da empresa.
+
+Siga rigorosamente as correções e especificações abaixo:
+
+---
+
+1. CORREÇÃO DO LAYOUT MOBILE (RESPONSIVIDADE):
+   - Altere o título principal para "Histórico de Movimentações" (abrangendo ferramentas e insumos).
+   - KPIs Superiores: Em telas mobile (< 640px), exiba os cards de métricas em uma grade de 2 colunas (`grid grid-cols-2 gap-3 md:grid-cols-4`). Remova larguras fixas em pixels que causam o corte do texto (ex: "VOLUME DE PEÇAS").
+   - Cabeçalho & Botão Exportar: Reduza o botão "Exportar Planilha" no mobile para um ícone compacto com badge (`p-2.5 rounded-lg bg-emerald-600 text-white`) ao lado do título, mantendo o botão completo apenas no desktop (`hidden md:flex`).
+
+2. OTIMIZAÇÃO DOS FILTROS NO MOBILE:
+   - Agrupe a barra de pesquisa
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Refatorada a tela de Histórico de Movimentações, implementando um layout mobile-first com flexbox/grid dinâmicos, agrupamento de filtros no mobile, e redesenhando os cartões de registro para melhor leitura das informações auditáveis (timestamp, operador, localização).
+
+---
+
+## Interação 20
+
+**📅 Data/Hora:** 30/09/2026, 22:05:00
+**🎯 Finalidade:** Ajuste fino de Design
+
+### 👤 Prompt do Utilizador:
+```text
+Deixe a logo da imagem maior em todas as telas do mobile, o histórico ficou ótimo, mas nos cards, coloque um fundo azul suave pra nao ficar branco. Alem de colocar o scrol a cada 3 peças pra nao ficar indo muito para baixo
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Ajustado o tamanho do logotipo para mobile, aplicado um fundo `bg-blue-50/80` nos cards de histórico para destacar do fundo branco e introduzido um limite máximo de altura com scroll customizado dentro dos cards com mais de 3 itens para não esticar muito a página.
+
+---
+
+## Interação 21
+
+**📅 Data/Hora:** 30/09/2026, 22:15:00
+**🎯 Finalidade:** Ajuste de Contraste
+
+### 👤 Prompt do Utilizador:
+```text
+continua um pouco ruim, pode deixar mais visivel
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Melhorado o contraste das fontes e bordas nos cartões do histórico para garantir melhor legibilidade.
+
+---
+
+## Interação 22
+
+**📅 Data/Hora:** 30/09/2026, 22:20:00
+**🎯 Finalidade:** Refatoração de Fluxo / Checklist Digital
+
+### 👤 Prompt do Utilizador:
+```text
+Atue como desenvolvedor Full-Stack Sênior (Next.js, Tailwind CSS e Prisma/MySQL). Implemente o fluxo de Separação por Checklist Digital com suporte a grandes listas e a regra de Estoque Parcial para a tela do ALMOXARIFE:
+
+---
+
+1. MODAL DE SEPARAÇÃO (OVERLAY FULL-SCREEN MOBILE):
+   - Ao clicar em "Iniciar Separação", abra um Modal ocupando a tela mobile com fundo desfocado (`fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex flex-col`).
+
+2. CABEÇALHO E RODAPÉ FIXOS (STICKY LAYOUT):
+   - Topo Fixo (`sticky top-0 bg-white border-b z-10 p-4`):
+     * N° do Pedido, Setor Solicitante e Botão "Fechar".
+     * Barra de Progresso visual (`Progress Bar`) exibindo: "X de Y itens bipados".
+     * Abas de Filtro Rápido: "Pendentes (N)" | "Concluídos (N)" | "Todos".
+   - Rodapé Fixo (`sticky bottom-0 bg-white border-t z-10 p-4`):
+     * Botão "Finalizar Requisição" (desabilitado até que 100% dos itens sejam bipados/validados).
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Criado o componente `SeparacaoChecklistModal.js`, implementando Poka-Yoke (bloqueio de itens inválidos no QR Code), limitadores de estoque parcial (obrigatoriedade de observação) e desenvolvida a nova rota atômica de banco de dados (`/api/pedidos/baixa-lote`) para registrar as alterações.
+
+---
+
+## Interação 23
+
+**📅 Data/Hora:** 30/09/2026, 22:34:57
+**🎯 Finalidade:** Correção de Bug (Variável Indefinida)
+
+### 👤 Prompt do Utilizador:
+```text
+deu erro
+(ReferenceError: scannerModal is not defined)
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Corrigido o erro de compilação substituindo uma referência antiga de `scannerModal` por `separacaoModal` dentro do hook `useEffect` no `page.js` do Almoxarifado.
+
+---
+
+## Interação 24
+
+**📅 Data/Hora:** 30/09/2026, 22:37:41
+**🎯 Finalidade:** Simplificação de UX (Fila Linear)
+
+### 👤 Prompt do Utilizador:
+```text
+Na fila de pedidos é para tirar o método kanban, deixar apenas uma lista com os cards das requisições, cada card vai ter um "iniciar separação" aonde vai aparecer o formulário na tela borrando o fundo, tire o método kanban da fila!
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Removido o sistema de Kanban. A página do almoxarifado foi convertida numa lista linear com botões para disparar diretamente o modal de separação full-screen.
+
+---
+
+## Interação 25
+
+**📅 Data/Hora:** 30/09/2026, 23:00:09
+**🎯 Finalidade:** Interface Ultra-Compacta
+
+### 👤 Prompt do Utilizador:
+```text
+Atue como especialista em UI/UX Mobile-First com Next.js e Tailwind CSS. Refaça do zero a tela "Fila de Requisições" do ALMOXARIFE para eliminar a poluição visual e transformar os cards em uma lista extremamente limpa e compacta:
+
+---
+
+1. ESTRUTURA DE ABAS NO TOPO (TABS NAVEGÁVEIS):
+   - Remova os cards estáticos de estatística do topo.
+   - Crie uma barra de navegação por Abas (Tabs) fixa abaixo do título:
+     * Aba 1: "Pendentes (N)" (Exibe apenas requisições em aguardando)
+     * Aba 2: "Em Separação (N)" (Exibe apenas requisições atribuídas ao almoxarife atual)
+   - Remova completamente os itens com status "ENTREGUE" desta tela (eles devem figurar exclusivamente na página de Histórico).
+
+2. CARDS DE FILA COMPACTOS (MAX 120PX DE ALTURA):
+   - Cada card da lista deve ser minimalista e ultra compacto...
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Refeita a lista principal da fila com design minimalista, duas abas unificadas (Pendentes / Em Separação), cartões compactos resumidos sem listar os itens e um menu de reticências (três pontos) ocultando as ações destrutivas como estorno.
+
+---
+
+## Interação 26
+
+**📅 Data/Hora:** 30/09/2026, 23:17:13
+**🎯 Finalidade:** Polimento Visual do Modal
+
+### 👤 Prompt do Utilizador:
+```text
+Atue como desenvolvedor Frontend / UI Designer Sênior (Tailwind CSS e Next.js). Aplique as seguintes melhorias no Modal de Separação/Checklist do ALMOXARIFE:
+
+---
+
+1. ENDEREÇAMENTO DE ESTOQUE (PRATELEIRA/LOCALIZAÇÃO):
+   - Adicione o campo de localização/endereçamento do produto em destaque no card do item (ex: "📍 Prateleira B-04 • Box 12").
+   - Isso é essencial para guiar o almoxarife até a posição física exata no almoxarifado.
+
+2. BOTÃO "ESCANEAR QR CODE" DE ALTO CONTRASTE:
+   - Substitua a cor lavada/clara do botão por um estilo primário de alto impacto (`bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-md flex items-center justify-center gap-2 w-full`).
+   - Mantenha o ícone de câmera em destaque.
+
+3. PADRONIZAÇÃO DAS ABAS (TABS):
+   - Remova a borda preta espessa da aba selecionada (`PENDENTES`).
+   - Aplique o mesmo estilo global: Aba ativa em azul sólido (`bg-blue-600 text-white font-medium shadow-sm`), aba inativa em cinza claro suave (`bg-gray-100 text-gray-600`).
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Refinados os elementos do Checklist Modal. Adicionado o endereçamento (📍) de estoque, transformado o botão Escanear em botão azul (alto contraste), padronizadas as abas de filtro e estendido corretamente o background blur.
+
+---
+
+## Interação 27
+
+**📅 Data/Hora:** 30/09/2026, 23:23:07
+**🎯 Finalidade:** Correção de Bug (Renderização do Modal)
+
+### 👤 Prompt do Utilizador:
+```text
+ta com erro
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Detectado e corrigido um erro de sintaxe (remoção acidental da tag `return (`) no arquivo `SeparacaoChecklistModal.js`, restaurando o fluxo normal da interface.
+
+---
+
+## Interação 28
+
+**📅 Data/Hora:** 30/09/2026, 23:25:56
+**🎯 Finalidade:** Melhoria de UI/UX Mobile-First (Cards da Fila)
+
+### 👤 Prompt do Utilizador:
+```text
+coloque bordas em cada card, não deixe com que as requisições fiquem indo para baixo, faça um scroll limpo para manter uma boa visualização, diminua o tamanho desse botão: "continuar checklist" deixando proporcional com o card, e em cada card, faça uma pequena lista com os itens requisitados, se passar de 5, coloque um "ver mais" que ai ele só vai poder ver quando clicar
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Adicionadas bordas mais definidas nos cartões (`border-2 border-slate-100`). Restringido o contêiner principal da página (`h-[calc(100vh-80px)]` e `overflow-hidden`) para que apenas a lista tenha scroll fluído. O botão de ação foi redimensionado (botão fino em bloco total no mobile) e foi adicionada a lista encurtada de itens (limitada a 5, com aviso "+ X itens" caso haja excedentes) de forma muito minimalista.
