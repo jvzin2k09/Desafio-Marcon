@@ -730,3 +730,82 @@ coloque bordas em cada card, não deixe com que as requisições fiquem indo par
 
 ### 🤖 Resposta do Assistente (Resumo):
 Adicionadas bordas mais definidas nos cartões (`border-2 border-slate-100`). Restringido o contêiner principal da página (`h-[calc(100vh-80px)]` e `overflow-hidden`) para que apenas a lista tenha scroll fluído. O botão de ação foi redimensionado (botão fino em bloco total no mobile) e foi adicionada a lista encurtada de itens (limitada a 5, com aviso "+ X itens" caso haja excedentes) de forma muito minimalista.
+
+---
+
+## Interação 29
+
+**📅 Data/Hora:** 01/10/2026, 09:30:00
+**🎯 Finalidade:** Correção de Bug de Permissão
+
+### 👤 Prompt do Utilizador:
+```text
+Após escanear e dar baixa deu "Não autorizado", estou no login de Administrador
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Ajustada a política de autorização nas rotas de API `/api/pedidos/baixa-lote/route.js` e `/api/pedidos/baixa-qr/route.js`, garantindo que o perfil `ADMIN` tenha as mesmas permissões do `ALMOXARIFE` para efetuar baixas no estoque usando o leitor de QR Code ou o modo lote.
+
+---
+
+## Interação 30
+
+**📅 Data/Hora:** 01/10/2026, 10:15:00
+**🎯 Finalidade:** Ajuste de UI / Cores
+
+### 👤 Prompt do Utilizador:
+```text
+quero que mude a cor dos retangulos da imagen para a cor só do primeiro quadrado
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Unificadas as cores dos 4 cards de KPIs da página de Histórico. Foi removido o degradê escuro e a cor laranja, e aplicado o padrão `bg-[var(--primary)]` (Azul Marinho) com texto branco em todos os cartões para garantir consistência visual no topo da página.
+
+---
+
+## Interação 31
+
+**📅 Data/Hora:** 01/10/2026, 10:30:00
+**🎯 Finalidade:** Correção de Dados de Exibição
+
+### 👤 Prompt do Utilizador:
+```text
+No histórico tem que mostrar o nome do operador que solicitou
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Alterado o retorno da API de Histórico (`/api/historico/route.js`) para incluir a variável `operadorSolicitante` nos dados serializados. Com isso, a interface da linha do tempo e do card de detalhes passou a mostrar o nome correto de quem solicitou a peça (Operador do chão de fábrica) em vez do fallback genérico "Operador".
+
+---
+
+## Interação 32
+
+**📅 Data/Hora:** 01/10/2026, 10:45:00
+**🎯 Finalidade:** Desenvolvimento de Funcionalidade
+
+### 👤 Prompt do Utilizador:
+```text
+Atue como desenvolvedor Frontend Sênior (Next.js, React e Tailwind CSS). Adicione o botão "Solicitar Reposição ao Compras" no card de cada item escaneado com exibição de mensagem em tela:
+
+1. BOTÃO DE AÇÃO NO CARD DO ITEM:
+2. AÇÃO AO CLICAR (AVISO NA TELA / TOAST):
+3. ALTERAÇÃO DE ESTADO DO BOTÃO:
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Implementada a funcionalidade de solicitação de reposição. O botão com a identidade visual solicitada (cor âmbar) foi integrado na interface. Criado um componente visual flutuante (Toast/Alert) para exibir a notificação instantânea. Ao clicar, o estado local é alterado e o botão é trocado por um "badge" de confirmação indicando "Reposição Solicitada", desabilitando cliques múltiplos.
+
+---
+
+## Interação 33
+
+**📅 Data/Hora:** 01/10/2026, 11:00:00
+**🎯 Finalidade:** Correção de Bug de Ambiente (Fast Refresh)
+
+### 👤 Prompt do Utilizador:
+```text
+[Captura de ecrã anexada] Error: Rendered fewer hooks than expected.
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Explicado ao utilizador que este é um erro benigno causado pelo Hot Reload (Fast Refresh) do Next.js ao inserir um novo hook (`useState`) num componente que já estava renderizado no ecrã. A solução indicada foi simplesmente recarregar a página (F5) para restaurar a ordem dos hooks em memória.
