@@ -99,10 +99,10 @@ export default function PainelEstoquePage() {
   const triggerAlert = (item) => {
     playBeep();
     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-      const isZero = item.quantidade === 0;
-      const title = isZero 
-        ? `🚫 ESTOQUE ZERADO: ${item.codigo}` 
-        : `⚠️ ALERTA ESTOQUE BAIXO: ${item.codigo}`;
+    const isZero = item.quantidade === 0;
+    const title = isZero 
+      ? `ESTOQUE ZERADO: ${item.codigo}` 
+      : `ALERTA ESTOQUE BAIXO: ${item.codigo}`;
       
       new Notification(title, {
         body: `A peça "${item.nome}" atingiu nível crítico: ${item.quantidade} ${item.unidade} disponíveis (Mínimo: ${item.limiteMinimo}). Local: ${item.localizacao}`,

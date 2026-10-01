@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, CheckCircle2, AlertCircle, Camera, PackageCheck, Loader2 } from "lucide-react";
+import { X, CheckCircle2, AlertCircle, Camera, PackageCheck, Loader2, Mail, ShoppingCart, Check, MapPin } from "lucide-react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 
 export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
@@ -262,7 +262,7 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
 
                     {/* Endereçamento */}
                     <div className="mt-1.5 flex items-center text-xs font-medium text-slate-500">
-                      <span className="text-blue-500 mr-1">📍</span> Prateleira B-04 • Box 12
+                      <MapPin className="w-4 h-4 text-blue-500 mr-1" /> Prateleira B-04 • Box 12
                     </div>
 
                     <div className="flex items-center gap-2 mt-2">
@@ -384,25 +384,33 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
                       {stock <= 10 && (
                         item.reposicaoSolicitada ? (
                           <div className="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1.5 rounded-lg border border-amber-300 flex items-center justify-center gap-1.5 opacity-80 cursor-not-allowed mt-2">
-                            ✉️ Reposição Solicitada
+                            <Mail className="w-4 h-4" /> Reposição Solicitada
                           </div>
                         ) : (
                           <button
                             onClick={() => handleSolicitarReposicao(item)}
                             className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-semibold py-2 px-3 rounded-lg text-sm w-full transition-colors flex items-center justify-center gap-2 mt-2"
                           >
-                            🛒 Solicitar Reposição ao Compras
+                            <ShoppingCart className="w-4 h-4" /> Solicitar Reposição ao Compras
                           </button>
                         )
                       )}
                     </div>
                   ) : (
-                    <button
-                      onClick={() => setScannerAtivo(item.id)}
-                      className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all mt-1"
-                    >
-                      <Camera className="w-5 h-5" /> Escanear QR Code
-                    </button>
+                    <div className="flex flex-col gap-2 mt-1">
+                      <button
+                        onClick={() => setScannerAtivo(item.id)}
+                        className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all"
+                      >
+                        <Camera className="w-5 h-5" /> Escanear QR Code
+                      </button>
+                      <button
+                        onClick={() => handleScan([{ rawValue: item.item.codigo }], item)}
+                        className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all"
+                      >
+                        <Check className="w-5 h-5 text-emerald-400" /> Bypass (Dar Baixa)
+                      </button>
+                    </div>
                   )}
                 </motion.div>
               );

@@ -255,7 +255,7 @@ export default function AuthScreen() {
       setIsExiting(true);
       setTimeout(() => {
         if (role === "ADMIN") {
-          router.push("/admin");
+          router.push("/painel-estoque");
         } else if (role === "ALMOXARIFE") {
           router.push("/almoxarifado");
         } else {

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { LogOut, Package, ClipboardList, History, BarChart3, Undo2, Boxes, Menu, X, Recycle } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
+import SplashScreen from "@/components/SplashScreen";
 
 export default function DashboardLayout({ children }) {
   const { data: session } = useSession();
@@ -28,7 +29,6 @@ export default function DashboardLayout({ children }) {
     navItems.push({ href: "/historico", icon: History, label: "Histórico" });
   }
   if (role === "ADMIN") {
-    navItems.push({ href: "/admin", icon: BarChart3, label: "Dashboard" });
     navItems.push({ href: "/painel-estoque", icon: Boxes, label: "Monitor Estoque" });
     navItems.push({ href: "/estoque-alternativo", icon: Recycle, label: "Estoque Alt." });
     navItems.push({ href: "/solicitante", icon: Package, label: "Novo Pedido" });
@@ -44,11 +44,20 @@ export default function DashboardLayout({ children }) {
 
   const [showMobileLogout, setShowMobileLogout] = useState(false);
 
-  // Filtramos o "Dashboard" apenas para o menu inferior móvel
-  const mobileNavItems = navItems.filter(item => item.label !== "Dashboard");
+  // Filtramos o "Dashboard" apenas para o menu inferior móvel e definimos a ordem exata
+  const mobileOrder = ["/almoxarifado", "/estoque-alternativo", "/solicitante", "/painel-estoque", "/historico"];
+  const mobileNavItems = navItems
+    .filter(item => item.label !== "Dashboard")
+    .sort((a, b) => {
+      const idxA = mobileOrder.indexOf(a.href);
+      const idxB = mobileOrder.indexOf(b.href);
+      return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+    });
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "var(--background)" }}>
+    <>
+      <SplashScreen />
+      <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "var(--background)" }}>
       {/* Sidebar - Desktop Only */}
       <aside className="hidden md:flex w-64 bg-white border-r flex-col shrink-0 min-h-screen" style={{ borderColor: "var(--border)" }}>
         {/* Logo */}
@@ -175,5 +184,6 @@ export default function DashboardLayout({ children }) {
         })}
       </nav>
     </div>
+    </>
   );
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Boxes, Recycle, Loader2, MapPin, Package } from "lucide-react";
+import { Search, Boxes, Recycle, Loader2, MapPin, Package, Edit2, RefreshCcw } from "lucide-react";
 
 export default function EstoqueAlternativoPage() {
   const { data: session } = useSession();
@@ -131,21 +131,23 @@ export default function EstoqueAlternativoPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100 mt-1">
                   <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
                     <MapPin className="w-4 h-4 text-blue-500 shrink-0" />
-                    <span className="truncate">📍 Localização: [Box de Sobras - {item.setor} / {item.item?.localizacao || 'Sem Armário'}]</span>
+                    <span className="truncate">Localização: [Box de Sobras - {item.setor} / {item.item?.localizacao || 'Sem Armário'}]</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-slate-600 font-medium">
                     <Package className="w-4 h-4 text-amber-500 shrink-0" />
-                    <span>📦 Caixa Padrão: [{item.item?.qtd_por_caixa || 1} {item.item?.unidade || 'UN'}]</span>
+                    <span>Caixa Padrão: [{item.item?.qtd_por_caixa || 1} {item.item?.unidade || 'UN'}]</span>
                   </div>
                 </div>
 
                 {isAdmin && (
                   <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-100 mt-1">
                     <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 text-[11px] font-bold transition-colors shadow-sm">
-                      <span>✏️ Ajustar Saldo</span>
+                      <Edit2 className="w-3.5 h-3.5" />
+                      <span>Ajustar Saldo</span>
                     </button>
                     <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 text-[11px] font-bold transition-colors shadow-sm">
-                      <span>🔄 Devolver p/ Central</span>
+                      <RefreshCcw className="w-3.5 h-3.5" />
+                      <span>Devolver p/ Central</span>
                     </button>
                   </div>
                 )}

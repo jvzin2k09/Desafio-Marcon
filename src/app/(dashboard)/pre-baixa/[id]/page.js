@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, use } from "react";
 import { motion } from "framer-motion";
-import { ScanLine, AlertCircle, ArrowLeft, CheckCircle2, ChevronRight, PackageCheck, AlertTriangle, RotateCcw } from "lucide-react";
+import { ScanLine, AlertCircle, ArrowLeft, CheckCircle2, ChevronRight, PackageCheck, AlertTriangle, RotateCcw, MapPin, Package, Lightbulb, Recycle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -40,8 +40,9 @@ function ItemRow({ pi, index, pedido }) {
           </div>
           <ChevronRight className="w-4 h-4 text-slate-300" />
           <div className="text-center min-w-[68px]">
-            <p className={`text-[9px] font-mono font-black uppercase tracking-widest mb-1 ${diverge ? 'text-orange-600' : 'text-slate-400'}`}>
-              {diverge ? '⚠ Divergência' : 'Separado'}
+            <p className={`text-[9px] font-mono font-black uppercase tracking-widest mb-1 flex items-center justify-center gap-1 ${diverge ? 'text-orange-600' : 'text-slate-400'}`}>
+              {diverge && <AlertTriangle className="w-3 h-3" />}
+              {diverge ? 'Divergência' : 'Separado'}
             </p>
             <p className={`text-2xl font-mono font-black ${diverge ? 'text-orange-600' : 'text-primary'}`}>
               {separado}
@@ -54,15 +55,22 @@ function ItemRow({ pi, index, pedido }) {
       <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2">
         {pi.qtd_alternativo > 0 && pi.qtd_caixas_central === 0 && (
           <div className="text-sm font-medium text-slate-700 bg-green-50 border border-green-200 p-3 rounded-lg flex items-center gap-2">
-            <span>📍 Retirar {pi.qtd_alternativo} UN no Almoxarifado Alternativo (Box Sobras {pedido?.setor || "Local"})</span>
+            <MapPin className="w-4 h-4 text-green-600 shrink-0" />
+            <span>Retirar {pi.qtd_alternativo} UN no Almoxarifado Alternativo (Box Sobras {pedido?.setor || "Local"})</span>
           </div>
         )}
         
         {pi.qtd_caixas_central > 0 && (
           <div className="text-sm font-medium text-slate-700 bg-blue-50 border border-blue-200 p-3 rounded-lg flex flex-col gap-1">
-            <span className="flex items-center gap-2">📦 Retirar {pi.qtd_caixas_central} CX ({pi.qtd_caixas_central * (pi.item.qtd_por_caixa || 1)} UN) na Prateleira {pi.item.localizacao || "Central"}.</span>
+            <span className="flex items-center gap-2">
+              <Package className="w-4 h-4 text-blue-600 shrink-0" />
+              Retirar {pi.qtd_caixas_central} CX ({pi.qtd_caixas_central * (pi.item.qtd_por_caixa || 1)} UN) na Prateleira {pi.item.localizacao || "Central"}.
+            </span>
             {pi.sobra_gerada > 0 && (
-              <span className="text-xs text-blue-600 font-bold ml-6">💡 {pi.sobra_gerada} UN sobrantes serão enviadas ao Alternativo</span>
+              <span className="text-xs text-blue-600 font-bold ml-6 flex items-center gap-1">
+                <Lightbulb className="w-3.5 h-3.5" />
+                {pi.sobra_gerada} UN sobrantes serão enviadas ao Alternativo
+              </span>
             )}
             {pi.qtd_alternativo > 0 && (
               <span className="text-xs text-slate-500 font-bold ml-6">E completar com {pi.qtd_alternativo} UN do Alternativo.</span>
@@ -72,7 +80,8 @@ function ItemRow({ pi, index, pedido }) {
 
         {pi.qtd_alternativo > 0 && (
           <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-green-700 bg-green-100 px-2 py-1 rounded w-fit">
-            ♻️ Economia: Retirado do Estoque Alternativo
+            <Recycle className="w-3.5 h-3.5" />
+            Economia: Retirado do Estoque Alternativo
           </span>
         )}
       </div>
@@ -204,7 +213,11 @@ export default function PreBaixaCheckout({ params }) {
             ? 'bg-orange-50 border-orange-200 text-orange-700'
             : 'bg-green-50 border-green-200 text-green-700'
         }`}>
-          {divergentes > 0 ? '⚠ Divergências Detectadas' : '✓ Tudo Conferido'}
+          {divergentes > 0 ? (
+            <span className="flex items-center gap-1.5"><AlertTriangle className="w-4 h-4" /> Divergências Detectadas</span>
+          ) : (
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" /> Tudo Conferido</span>
+          )}
         </div>
       </div>
 

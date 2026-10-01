@@ -57,10 +57,16 @@ export default function SolicitantePage() {
     }
   }, [tab, session?.user?.id]);
 
-  const filteredItems = items.filter(item =>
-    item.nome.toLowerCase().includes(search.toLowerCase()) ||
-    item.codigo.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredItems = items
+    .filter(item =>
+      item.nome.toLowerCase().includes(search.toLowerCase()) ||
+      item.codigo.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (a.quantidade === 0 && b.quantidade > 0) return 1;
+      if (b.quantidade === 0 && a.quantidade > 0) return -1;
+      return a.codigo.localeCompare(b.codigo, undefined, { numeric: true, sensitivity: 'base' });
+    });
 
   const addToCart = (item, initialQty) => {
     const step = item.qtd_por_caixa || 1;
@@ -302,7 +308,7 @@ export default function SolicitantePage() {
                   <motion.div
                     key={item.id}
                     layout
-                    className="bg-white rounded-xl shadow-sm border border-slate-200 mb-3 relative overflow-visible flex min-h-[110px]"
+                    className={`bg-white rounded-xl shadow-sm border border-slate-200 mb-3 relative overflow-visible flex min-h-[110px] ${item.quantidade === 0 ? 'opacity-60 grayscale' : ''}`}
                   >
                     {/* Barra lateral colorida da linha */}
                     {linhaStyle && (
@@ -334,7 +340,7 @@ export default function SolicitantePage() {
                         </span>
 
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-md whitespace-nowrap ${item.quantidade > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}`}>
-                          {item.quantidade} {item.unidade} {item.qtd_por_caixa > 1 ? `(${Math.floor(item.quantidade / item.qtd_por_caixa)} Cxs)` : ''}
+                          {item.quantidade} {item.unidade} {item.qtd_por_caixa > 1 ? `(${Math.floor(item.quantidade / item.qtd_por_caixa)} Caixas)` : ''}
                         </span>
 
                         {item.qtd_por_caixa > 1 && (
