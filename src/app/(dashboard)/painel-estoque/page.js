@@ -188,10 +188,6 @@ export default function PainelEstoquePage() {
               <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
                 Painel de Controle de Estoque
               </h1>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                Tempo Real Ativo
-              </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
               Monitoramento de unidades disponíveis e alertas automáticos de reposição crítica
