@@ -187,8 +187,8 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
                 key={f}
                 onClick={() => setFiltro(f)}
                 className={`flex-1 py-1.5 text-[11px] font-medium rounded-lg transition-all ${filtro === f
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "text-slate-500 hover:text-slate-700"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
                   }`}
               >
                 {f} (
@@ -216,9 +216,10 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
               </motion.div>
             )}
             {itensFiltrados.map((item) => {
+              // O estoque já foi deduzido na requisição. A quantidade máxima é o que foi pedido.
               const stock = item.item.quantidade;
-              const insuficient = stock < item.quantidade;
-              const maxQtd = insuficient ? stock : item.quantidade;
+              const maxQtd = item.quantidade;
+              const insuficient = false;
 
               if (item.statusLocal === "CONCLUIDO") {
                 return (
@@ -237,18 +238,6 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
                         <CheckCircle2 className="w-3.5 h-3.5" /> {item.quantidadeBaixa}
                       </span>
                     </div>
-                    {item.reposicaoSolicitada ? (
-                      <div className="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1.5 rounded-lg border border-amber-300 flex items-center justify-center gap-1.5 opacity-80 cursor-not-allowed">
-                        ✉️ Reposição Solicitada
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleSolicitarReposicao(item)}
-                        className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-semibold py-2 px-3 rounded-lg text-sm w-full transition-colors flex items-center justify-center gap-2 mt-2"
-                      >
-                        🛒 Solicitar Reposição ao Compras
-                      </button>
-                    )}
                   </motion.div>
                 );
               }
@@ -256,7 +245,7 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
               // PENDENTE
               const isScannerOpen = scannerAtivo === item.id;
               const isQrValidado = item.qrValido;
-              const obsRequired = insuficient;
+              const obsRequired = item.quantidadeBaixa < maxQtd;
 
               return (
                 <motion.div
@@ -285,15 +274,6 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
                       </span>
                     </div>
                   </div>
-
-                  {insuficient && (
-                    <div className="bg-orange-50 border border-orange-200 p-2.5 rounded-xl text-orange-800 text-xs font-bold flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                      <span className="leading-tight">
-                        Aviso: Saldo em estoque insuficiente (Disponível: {stock} un)
-                      </span>
-                    </div>
-                  )}
 
                   {isScannerOpen ? (
                     <div className="flex flex-col items-center bg-slate-900 rounded-xl p-1 pb-3">
@@ -371,8 +351,8 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
                             )
                           }
                           className={`w-full border-2 p-2.5 rounded-lg text-sm outline-none resize-none transition-colors ${obsRequired && !item.observacao.trim()
-                              ? "border-red-200 bg-red-50 focus:border-red-400 placeholder:text-red-300"
-                              : "border-slate-200 focus:border-indigo-500"
+                            ? "border-red-200 bg-red-50 focus:border-red-400 placeholder:text-red-300"
+                            : "border-slate-200 focus:border-indigo-500"
                             }`}
                           placeholder={
                             obsRequired
@@ -391,6 +371,22 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
                       >
                         Salvar Item
                       </button>
+
+                      {/* Solicitar Reposição — aparece SOMENTE quando estoque baixo (<=10) */}
+                      {stock <= 10 && (
+                        item.reposicaoSolicitada ? (
+                          <div className="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1.5 rounded-lg border border-amber-300 flex items-center justify-center gap-1.5 opacity-80 cursor-not-allowed mt-2">
+                            ✉️ Reposição Solicitada
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleSolicitarReposicao(item)}
+                            className="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-semibold py-2 px-3 rounded-lg text-sm w-full transition-colors flex items-center justify-center gap-2 mt-2"
+                          >
+                            🛒 Solicitar Reposição ao Compras
+                          </button>
+                        )
+                      )}
                     </div>
                   ) : (
                     <button

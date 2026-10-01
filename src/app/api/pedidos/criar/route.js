@@ -62,6 +62,17 @@ export async function POST(request) {
           create: { itemId: itemDb.id, setor: setorFiltro, quantidade_avulsa: avulsaDisponivel }
         });
 
+        // Deduct from Central Stock immediately so "Disponível" reflects the pending order
+        if (qtd_caixas_central > 0) {
+          let qtdPorCaixa = itemDb.qtd_por_caixa || 1;
+          let descontoCentral = qtd_caixas_central * qtdPorCaixa;
+          let novoSaldoCentral = Math.max(0, itemDb.quantidade - descontoCentral);
+          await tx.item.update({
+            where: { id: itemDb.id },
+            data: { quantidade: novoSaldoCentral }
+          });
+        }
+
         itensComRoteamento.push({
           itemId: itemDb.id,
           quantidade: qtdPedida,

@@ -4,14 +4,14 @@ import React, { useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Package, ClipboardList, History, BarChart3, Undo2, Boxes, Menu, X } from "lucide-react";
+import { LogOut, Package, ClipboardList, History, BarChart3, Undo2, Boxes, Menu, X, Recycle } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 
 export default function DashboardLayout({ children }) {
   const { data: session } = useSession();
   const pathname = usePathname();
-  
+
   if (!session) return null;
 
   const role = session.user.role;
@@ -24,11 +24,13 @@ export default function DashboardLayout({ children }) {
   if (role === "ALMOXARIFE") {
     navItems.push({ href: "/almoxarifado", icon: ClipboardList, label: "Fila de Pedidos" });
     navItems.push({ href: "/painel-estoque", icon: Boxes, label: "Monitor Estoque" });
+    navItems.push({ href: "/estoque-alternativo", icon: Recycle, label: "Estoque Alt." });
     navItems.push({ href: "/historico", icon: History, label: "Histórico" });
   }
   if (role === "ADMIN") {
     navItems.push({ href: "/admin", icon: BarChart3, label: "Dashboard" });
     navItems.push({ href: "/painel-estoque", icon: Boxes, label: "Monitor Estoque" });
+    navItems.push({ href: "/estoque-alternativo", icon: Recycle, label: "Estoque Alt." });
     navItems.push({ href: "/solicitante", icon: Package, label: "Novo Pedido" });
     navItems.push({ href: "/almoxarifado", icon: ClipboardList, label: "Fila de Pedidos" });
     navItems.push({ href: "/historico", icon: History, label: "Histórico" });
@@ -53,7 +55,7 @@ export default function DashboardLayout({ children }) {
         <div className="p-5 border-b flex items-center gap-3" style={{ borderColor: "var(--border)" }}>
           <Image src="/Logo.png" alt="Til Marcon" width={240} height={72} className="h-14 w-auto object-contain" priority />
         </div>
-        
+
         {/* Nav */}
         <div className="p-3 flex-1">
           <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-2">Navegação</p>
@@ -64,11 +66,10 @@ export default function DashboardLayout({ children }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${
-                    isActive
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${isActive
                       ? "bg-[var(--surface-3)] text-[var(--primary)] font-bold"
                       : "text-slate-600 hover:bg-[var(--surface-2)] hover:text-slate-900"
-                  }`}
+                    }`}
                 >
                   <item.icon className="w-[18px] h-[18px]" style={{ color: isActive ? "var(--primary)" : "var(--text-muted)" }} />
                   {item.label}
@@ -107,7 +108,7 @@ export default function DashboardLayout({ children }) {
           <Image src="/Logo.png" alt="Til Marcon" width={240} height={72} className="h-14 w-auto object-contain" priority />
         </div>
         <div className="flex items-center gap-3 relative">
-          <div 
+          <div
             className="flex items-center gap-2 cursor-pointer select-none"
             onClick={() => setShowMobileLogout(!showMobileLogout)}
           >
@@ -149,18 +150,16 @@ export default function DashboardLayout({ children }) {
               className="flex flex-col items-center justify-center flex-1 gap-1.5 text-center transition-all min-w-0"
             >
               <div
-                className={`w-12 h-12 rounded-full transition-all flex items-center justify-center ${
-                  isActive
+                className={`w-12 h-12 rounded-full transition-all flex items-center justify-center ${isActive
                     ? "bg-[var(--primary)] text-white shadow-md scale-105"
                     : "text-slate-500 hover:text-slate-800 bg-transparent"
-                }`}
+                  }`}
               >
                 <item.icon className="w-6 h-6" />
               </div>
               <span
-                className={`text-[11px] leading-tight truncate w-full px-0.5 ${
-                  isActive ? "text-[var(--primary)] font-bold" : "text-slate-500 font-medium"
-                }`}
+                className={`text-[11px] leading-tight truncate w-full px-0.5 ${isActive ? "text-[var(--primary)] font-bold" : "text-slate-500 font-medium"
+                  }`}
               >
                 {item.label}
               </span>
