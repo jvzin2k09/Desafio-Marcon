@@ -328,34 +328,34 @@ export default function HistoricoPage() {
           <span className="text-[9px] md:text-[11px] text-slate-300 font-medium relative z-10 truncate block">No período</span>
         </div>
 
-        <div className="p-3 md:p-5 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-transparent shadow-md relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-16 h-16 md:w-24 md:h-24 bg-emerald-500 opacity-10 rounded-full -mr-8 -mt-8 md:-mr-12 md:-mt-12" />
-          <div className="flex justify-between items-center mb-1 md:mb-2 relative z-10">
-            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-wider text-emerald-400 truncate">Entregas</span>
-            <PackageCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+        <div className="p-3 md:p-5 rounded-2xl bg-[var(--primary)] text-white shadow-md border border-transparent relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 md:w-24 md:h-24 bg-white opacity-5 rounded-full -mr-8 -mt-8 md:-mr-12 md:-mt-12" />
+          <div className="flex justify-between items-center text-slate-300 mb-1 md:mb-2 relative z-10">
+            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-wider truncate">Entregas</span>
+            <PackageCheck className="w-4 h-4 text-slate-300 shrink-0" />
           </div>
           <div className="text-xl md:text-2xl font-mono font-black text-white relative z-10">{kpis.saidas}</div>
-          <span className="text-[9px] md:text-[11px] text-slate-400 font-medium relative z-10 truncate block">Concluídos</span>
+          <span className="text-[9px] md:text-[11px] text-slate-300 font-medium relative z-10 truncate block">Concluídos</span>
         </div>
 
-        <div className="p-3 md:p-5 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-transparent shadow-md relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-16 h-16 md:w-24 md:h-24 bg-red-500 opacity-10 rounded-full -mr-8 -mt-8 md:-mr-12 md:-mt-12" />
-          <div className="flex justify-between items-center mb-1 md:mb-2 relative z-10">
-            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-wider text-red-400 truncate">Estornos</span>
-            <Undo2 className="w-4 h-4 text-red-400 shrink-0" />
+        <div className="p-3 md:p-5 rounded-2xl bg-[var(--primary)] text-white shadow-md border border-transparent relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 md:w-24 md:h-24 bg-white opacity-5 rounded-full -mr-8 -mt-8 md:-mr-12 md:-mt-12" />
+          <div className="flex justify-between items-center text-slate-300 mb-1 md:mb-2 relative z-10">
+            <span className="text-[10px] md:text-[11px] font-black uppercase tracking-wider truncate">Estornos</span>
+            <Undo2 className="w-4 h-4 text-slate-300 shrink-0" />
           </div>
           <div className="text-xl md:text-2xl font-mono font-black text-white relative z-10">{kpis.estornos}</div>
-          <span className="text-[9px] md:text-[11px] text-slate-400 font-medium relative z-10 truncate block">Devoluções</span>
+          <span className="text-[9px] md:text-[11px] text-slate-300 font-medium relative z-10 truncate block">Devoluções</span>
         </div>
 
-        <div className="p-3 md:p-5 rounded-2xl bg-[var(--highlight)] text-white shadow-md border border-transparent relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-16 h-16 md:w-24 md:h-24 bg-white opacity-10 rounded-full -mr-8 -mt-8 md:-mr-12 md:-mt-12" />
-          <div className="flex justify-between items-center text-orange-100 mb-1 md:mb-2 relative z-10">
+        <div className="p-3 md:p-5 rounded-2xl bg-[var(--primary)] text-white shadow-md border border-transparent relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 md:w-24 md:h-24 bg-white opacity-5 rounded-full -mr-8 -mt-8 md:-mr-12 md:-mt-12" />
+          <div className="flex justify-between items-center text-slate-300 mb-1 md:mb-2 relative z-10">
             <span className="text-[10px] md:text-[11px] font-black uppercase tracking-wider truncate">Volume (Qtd)</span>
-            <Tag className="w-4 h-4 text-orange-100 shrink-0" />
+            <Tag className="w-4 h-4 text-slate-300 shrink-0" />
           </div>
           <div className="text-xl md:text-2xl font-mono font-black text-white relative z-10">{kpis.totalPecas}</div>
-          <span className="text-[9px] md:text-[11px] text-orange-100 font-medium relative z-10 truncate block">Peças movidas</span>
+          <span className="text-[9px] md:text-[11px] text-slate-300 font-medium relative z-10 truncate block">Peças movidas</span>
         </div>
       </div>
 

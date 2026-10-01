@@ -106,6 +106,7 @@ export async function GET(request) {
           email: p.user.email,
           setor: p.setor || p.user.setor || 'Geral'
         },
+        operadorSolicitante: p.operadorSolicitante,
         responsavel: responsavelNome,
         motivo: motivoEstorno,
         observacao: p.observacao,
