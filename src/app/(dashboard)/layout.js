@@ -59,7 +59,7 @@ export default function DashboardLayout({ children }) {
       <SplashScreen />
       <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "var(--background)" }}>
       {/* Sidebar - Desktop Only */}
-      <aside className="hidden md:flex w-64 bg-white border-r flex-col shrink-0 min-h-screen" style={{ borderColor: "var(--border)" }}>
+      <aside className="hidden md:flex w-64 bg-white border-r flex-col shrink-0 h-screen sticky top-0" style={{ borderColor: "var(--border)" }}>
         {/* Logo */}
         <div className="p-5 border-b flex items-center gap-3" style={{ borderColor: "var(--border)" }}>
           <Image src="/Logo.png" alt="Til Marcon" width={240} height={72} className="h-14 w-auto object-contain" priority />

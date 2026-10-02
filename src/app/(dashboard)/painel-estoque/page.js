@@ -396,7 +396,7 @@ export default function PainelEstoquePage() {
         </div>
 
         {/* Visão Desktop (Tabela original) */}
-        <div className="hidden lg:block flex-1 overflow-y-auto custom-scrollbar">
+        <div className="hidden lg:block flex-1 overflow-y-auto custom-scrollbar max-h-[65vh]">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 z-10">
               <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
