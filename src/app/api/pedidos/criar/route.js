@@ -28,39 +28,52 @@ export async function POST(request) {
         const itemDb = await tx.item.findUnique({ where: { id: parseInt(reqItem.itemId) } });
         if (!itemDb) continue;
 
-        let estoqueAlt = await tx.estoque_alternativo.findUnique({
-          where: { itemId_setor: { itemId: itemDb.id, setor: setorFiltro } }
+        let estoquesAlt = await tx.estoque_alternativo.findMany({
+          where: { itemId: itemDb.id, quantidade_avulsa: { gt: 0 } },
+          orderBy: { quantidade_avulsa: 'desc' }
         });
         
-        let qtdPedida = parseInt(reqItem.quantidade);
+        let originalQtdPedida = parseInt(reqItem.quantidade);
+        let qtdPedida = originalQtdPedida;
         let qtd_alternativo = 0;
         let qtd_caixas_central = 0;
         let sobra_gerada = 0;
-        let avulsaDisponivel = estoqueAlt ? estoqueAlt.quantidade_avulsa : 0;
-
-        // PASSO 1: O sistema consulta primeiro a tabela EstoqueAlternativo.
-        if (avulsaDisponivel >= qtdPedida) {
-          qtd_alternativo = qtdPedida;
-          avulsaDisponivel -= qtdPedida;
-        } else {
-          // PASSO 2: CÁLCULO DE CAIXAS E SOBRAS
-          qtd_alternativo = avulsaDisponivel;
-          let restante = qtdPedida - qtd_alternativo;
-          
-          let qtdPorCaixa = itemDb.qtd_por_caixa || 1;
-          qtd_caixas_central = Math.ceil(restante / qtdPorCaixa);
-          sobra_gerada = (qtd_caixas_central * qtdPorCaixa) - restante;
-          
-          // O saldo remanescente será direcionado ao Almoxarifado Alternativo local
-          avulsaDisponivel = sobra_gerada;
+        
+        // PASSO 1: Consumir de todas as sobras disponíveis para esvaziar o estoque alternativo
+        for (let alt of estoquesAlt) {
+           if (qtdPedida === 0) break;
+           let consumed = Math.min(qtdPedida, alt.quantidade_avulsa);
+           qtd_alternativo += consumed;
+           qtdPedida -= consumed;
+           await tx.estoque_alternativo.update({
+             where: { id: alt.id },
+             data: { quantidade_avulsa: alt.quantidade_avulsa - consumed }
+           });
         }
 
-        // Registra/Atualiza a sobra no EstoqueAlternativo
-        await tx.estoque_alternativo.upsert({
-          where: { itemId_setor: { itemId: itemDb.id, setor: setorFiltro } },
-          update: { quantidade_avulsa: avulsaDisponivel },
-          create: { itemId: itemDb.id, setor: setorFiltro, quantidade_avulsa: avulsaDisponivel }
-        });
+        // PASSO 2: CÁLCULO DE CAIXAS E SOBRAS CASO AINDA FALTE
+        if (qtdPedida > 0) {
+          let qtdPorCaixa = itemDb.qtd_por_caixa || 1;
+          qtd_caixas_central = Math.ceil(qtdPedida / qtdPorCaixa);
+          sobra_gerada = (qtd_caixas_central * qtdPorCaixa) - qtdPedida;
+          
+          // O saldo remanescente será direcionado ao Almoxarifado Alternativo local do solicitante
+          if (sobra_gerada > 0) {
+            let altLocal = await tx.estoque_alternativo.findUnique({
+              where: { itemId_setor: { itemId: itemDb.id, setor: setorFiltro } }
+            });
+            if (altLocal) {
+              await tx.estoque_alternativo.update({
+                where: { id: altLocal.id },
+                data: { quantidade_avulsa: altLocal.quantidade_avulsa + sobra_gerada }
+              });
+            } else {
+              await tx.estoque_alternativo.create({
+                data: { itemId: itemDb.id, setor: setorFiltro, quantidade_avulsa: sobra_gerada }
+              });
+            }
+          }
+        }
 
         // Deduct from Central Stock immediately so "Disponível" reflects the pending order
         if (qtd_caixas_central > 0) {
@@ -75,7 +88,7 @@ export async function POST(request) {
 
         itensComRoteamento.push({
           itemId: itemDb.id,
-          quantidade: qtdPedida,
+          quantidade: originalQtdPedida,
           qtd_alternativo,
           qtd_caixas_central,
           sobra_gerada
@@ -100,9 +113,6 @@ export async function POST(request) {
           user: true
         }
       });
-
-      // Não descontamos mais o estoque na criação. O desconto ocorre fisicamente 
-      // quando o almoxarife bipar o QR Code na baixa (baixa-qr/route.js)
 
       return novoPedido;
     });

@@ -161,10 +161,10 @@ const FilaCard = memo(function FilaCard({ pedido, tab, onAction, onEstornar }) {
       {/* Lista curta de Itens */}
       {totalItens > 0 && (
         <div className="mb-4 space-y-1.5">
-          {pedido.itens.slice(0, 5).map(pi => (
+          {pedido.itens.filter(pi => pi.qtd_caixas_central > 0).slice(0, 5).map(pi => (
             <div key={pi.id} className="text-[11px] text-slate-500 truncate flex items-center gap-1.5">
               <span className="w-1 h-1 bg-slate-300 rounded-full shrink-0" />
-              <span className="font-bold text-slate-700">{pi.quantidade}x</span> {pi.item?.nome}
+              <span className="font-bold text-slate-700">{pi.qtd_caixas_central} Cx(s)</span> {pi.item?.nome}
             </div>
           ))}
           {totalItens > 5 && (
@@ -224,9 +224,9 @@ export default function AlmoxarifadoPage() {
     return () => clearInterval(interval);
   }, [updating, separacaoModal, estornoModal]);
 
-  // Filtra por aba
-  const pendentes = pedidos.filter(p => p.status === 'AGUARDANDO_SEPARACAO');
-  const emSeparacao = pedidos.filter(p => p.status === 'EM_SEPARACAO');
+  // Filtra por aba (Ignora pedidos que são 100% resolvidos pelo Estoque Alternativo)
+  const pendentes = pedidos.filter(p => p.status === 'AGUARDANDO_SEPARACAO' && p.itens?.some(pi => pi.qtd_caixas_central > 0));
+  const emSeparacao = pedidos.filter(p => p.status === 'EM_SEPARACAO' && p.itens?.some(pi => pi.qtd_caixas_central > 0));
   const currentList = activeTab === "PENDENTES" ? pendentes : emSeparacao;
 
   // Iniciar separação: muda status e abre modal

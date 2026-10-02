@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, Minus, ShoppingCart, Send, X, Clock, Package, Loader2, CheckCircle2, AlertCircle, User as UserIcon, Info, MapPin } from "lucide-react";
+import { Search, Plus, Minus, ShoppingCart, Send, X, Clock, Package, Loader2, CheckCircle2, AlertCircle, User as UserIcon, Info, MapPin, Recycle } from "lucide-react";
 
 const SPRING = { type: "spring", stiffness: 280, damping: 24 };
 
@@ -57,47 +57,52 @@ export default function SolicitantePage() {
     }
   }, [tab, session?.user?.id]);
 
+  const getSaldoTotal = (item) => {
+    const sobras = item.estoques_alt?.reduce((acc, e) => acc + e.quantidade_avulsa, 0) || 0;
+    const cxs = Math.floor(item.quantidade / (item.qtd_por_caixa || 1));
+    return sobras + (cxs * (item.qtd_por_caixa || 1));
+  };
+
   const filteredItems = items
     .filter(item =>
       item.nome.toLowerCase().includes(search.toLowerCase()) ||
       item.codigo.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
-      if (a.quantidade === 0 && b.quantidade > 0) return 1;
-      if (b.quantidade === 0 && a.quantidade > 0) return -1;
+      const saldoA = getSaldoTotal(a);
+      const saldoB = getSaldoTotal(b);
+      if (saldoA === 0 && saldoB > 0) return 1;
+      if (saldoB === 0 && saldoA > 0) return -1;
       return a.codigo.localeCompare(b.codigo, undefined, { numeric: true, sensitivity: 'base' });
     });
 
   const addToCart = (item, initialQty) => {
-    const step = item.qtd_por_caixa || 1;
-    let qtyToAdd = initialQty ? parseInt(initialQty, 10) : step;
-    if (isNaN(qtyToAdd) || qtyToAdd <= 0) qtyToAdd = step;
-    qtyToAdd = Math.ceil(qtyToAdd / step) * step;
-    qtyToAdd = Math.max(step, Math.min(qtyToAdd, item.quantidade || 999999));
+    const maxDisponivel = getSaldoTotal(item);
+    let qtyToAdd = initialQty ? parseInt(initialQty, 10) : 1;
+    if (isNaN(qtyToAdd) || qtyToAdd <= 0) qtyToAdd = 1;
+    qtyToAdd = Math.max(1, Math.min(qtyToAdd, maxDisponivel));
 
     const existing = cart.find(c => c.itemId === item.id);
     if (existing) {
       setCart(cart.map(c => {
         if (c.itemId === item.id) {
           let newQty = c.quantidade + qtyToAdd;
-          newQty = Math.ceil(newQty / c.step) * c.step;
           return { ...c, quantidade: Math.min(newQty, c.maxQtd) };
         }
         return c;
       }));
     } else {
-      setCart([...cart, { itemId: item.id, nome: item.nome, codigo: item.codigo, unidade: item.unidade, quantidade: qtyToAdd, maxQtd: item.quantidade, step }]);
+      setCart([...cart, { itemId: item.id, nome: item.nome, codigo: item.codigo, unidade: item.unidade, quantidade: qtyToAdd, maxQtd: maxDisponivel }]);
     }
   };
 
   const updateCartQty = (itemId, deltaMultiplier) => {
     setCart(cart.map(c => {
       if (c.itemId === itemId) {
-        const delta = c.step * deltaMultiplier;
+        const delta = deltaMultiplier;
         const currentQty = parseInt(c.quantidade, 10) || 0;
         let newQty = currentQty + delta;
-        newQty = Math.ceil(newQty / c.step) * c.step;
-        newQty = Math.max(c.step, newQty);
+        newQty = Math.max(1, newQty);
         return { ...c, quantidade: Math.min(newQty, c.maxQtd) };
       }
       return c;
@@ -125,10 +130,9 @@ export default function SolicitantePage() {
       if (c.itemId === itemId) {
         const num = parseInt(c.quantidade, 10);
         if (isNaN(num) || num <= 0) {
-          return { ...c, quantidade: c.step };
+          return { ...c, quantidade: 1 };
         }
-        let newQty = Math.ceil(num / c.step) * c.step;
-        return { ...c, quantidade: Math.min(newQty, c.maxQtd || 999999) };
+        return { ...c, quantidade: Math.min(num, c.maxQtd || 999999) };
       }
       return c;
     }));
@@ -169,21 +173,13 @@ export default function SolicitantePage() {
       if (res.ok) {
         setSubmitStatus("success");
 
-        // Atualização otimista do estoque local para remover o delay da tela
-        setItems(prevItems => prevItems.map(item => {
-          const cartItem = cart.find(c => c.itemId === item.id);
-          if (cartItem) {
-            return { ...item, quantidade: Math.max(0, item.quantidade - (parseInt(cartItem.quantidade, 10) || 1)) };
-          }
-          return item;
-        }));
-
         setCart([]);
         setSearch("");
+        setItemInputs({});
         setOperadorSolicitante("");
         setOrdemProducao("");
         setShowOperatorModal(false);
-        // Refresh items stock ignorando cache
+        // Refresh items stock imediatamente
         fetch("/api/items", { cache: "no-store" }).then(r => r.json()).then(setItems).catch(() => { });
         setTimeout(() => setSubmitStatus(null), 3000);
       } else {
@@ -308,7 +304,11 @@ export default function SolicitantePage() {
                   <motion.div
                     key={item.id}
                     layout
-                    className={`bg-white rounded-xl shadow-sm border border-slate-200 mb-3 relative overflow-visible flex min-h-[110px] ${item.quantidade === 0 ? 'opacity-60 grayscale' : ''}`}
+                    className={`bg-white rounded-xl shadow-sm border border-slate-200 mb-3 relative overflow-visible flex min-h-[110px] ${(() => {
+                      const sobras = item.estoques_alt?.reduce((acc, e) => acc + e.quantidade_avulsa, 0) || 0;
+                      const cxs = Math.floor(item.quantidade / (item.qtd_por_caixa || 1));
+                      return (sobras + (cxs * (item.qtd_por_caixa || 1))) === 0;
+                    })() ? 'opacity-60 grayscale' : ''}`}
                   >
                     {/* Barra lateral colorida da linha */}
                     {linhaStyle && (
@@ -317,7 +317,15 @@ export default function SolicitantePage() {
 
                     <div className="flex-1 min-w-0 p-3 pl-4 flex flex-col justify-between h-full">
 
-                      {/* LINHA SUPERIOR */}
+                      {/* CALCULOS DE ESTOQUE UNIFICADO */}
+                      {(() => {
+                        const saldo_sobras = item.estoques_alt?.reduce((acc, e) => acc + e.quantidade_avulsa, 0) || 0;
+                        const caixas_central = Math.floor(item.quantidade / (item.qtd_por_caixa || 1));
+                        const saldo_total = saldo_sobras + (caixas_central * (item.qtd_por_caixa || 1));
+
+                        return (
+                          <>
+                            {/* LINHA SUPERIOR */}
                       <div className="flex justify-between items-start w-full gap-2">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           {logoImg && (
@@ -339,9 +347,14 @@ export default function SolicitantePage() {
                           {item.codigo}
                         </span>
 
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-md whitespace-nowrap ${item.quantidade > 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'}`}>
-                          {item.quantidade} {item.unidade} {item.qtd_por_caixa > 1 ? `(${Math.floor(item.quantidade / item.qtd_por_caixa)} Caixas)` : ''}
-                        </span>
+                        <div className="flex flex-col gap-0.5 mt-1 mb-2">
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-md whitespace-nowrap w-fit ${saldo_total > 0 ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>
+                            {saldo_total} UN Total
+                          </span>
+                          <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1.5 px-1">
+                            <Recycle className="w-3 h-3 shrink-0" /> {saldo_sobras} UN em Sobras • <Package className="w-3 h-3 shrink-0" /> {caixas_central} CX Central
+                          </span>
+                        </div>
 
                         {item.qtd_por_caixa > 1 && (
                           <button 
@@ -393,7 +406,7 @@ export default function SolicitantePage() {
                               <input
                                 type="number"
                                 min={1}
-                                max={item.quantidade}
+                                max={saldo_total}
                                 value={inCart.quantidade}
                                 onChange={e => setCartQty(item.id, e.target.value)}
                                 onBlur={() => handleBlurCartQty(item.id)}
@@ -419,9 +432,10 @@ export default function SolicitantePage() {
                             <div className="flex items-center gap-1 bg-slate-50 p-1.5 rounded-lg border border-slate-200 shrink-0">
                               <button
                                 onClick={() => {
-                                  const current = parseInt(itemInputs[item.id], 10) || (item.qtd_por_caixa || 1);
+                                  const defaultStart = Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total));
+                                  const current = parseInt(itemInputs[item.id], 10) || defaultStart;
                                   const step = item.qtd_por_caixa || 1;
-                                  const next = Math.max(step, current - step);
+                                  const next = Math.max(1, current - step);
                                   setItemInputs(prev => ({ ...prev, [item.id]: next }));
                                 }}
                                 className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
@@ -431,8 +445,8 @@ export default function SolicitantePage() {
                               <input
                                 type="number"
                                 min={1}
-                                max={item.quantidade}
-                                value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : (item.qtd_por_caixa || 1)}
+                                max={saldo_total}
+                                value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total))}
                                 onChange={e => {
                                   const val = e.target.value;
                                   if (val === "") {
@@ -441,7 +455,7 @@ export default function SolicitantePage() {
                                     const num = parseInt(val, 10);
                                     setItemInputs(prev => ({
                                       ...prev,
-                                      [item.id]: isNaN(num) ? (item.qtd_por_caixa || 1) : Math.max(1, Math.min(num, item.quantidade))
+                                      [item.id]: isNaN(num) ? (item.qtd_por_caixa || 1) : Math.max(1, Math.min(num, saldo_total))
                                     }));
                                   }
                                 }}
@@ -453,20 +467,21 @@ export default function SolicitantePage() {
                                   } else {
                                     const num = parseInt(current, 10);
                                     let newQty = Math.ceil(num / step) * step;
-                                    newQty = Math.min(newQty, item.quantidade);
+                                    newQty = Math.min(newQty, saldo_total);
                                     setItemInputs(prev => ({ ...prev, [item.id]: newQty }));
                                   }
                                 }}
                                 onFocus={e => e.target.select()}
-                                disabled={item.quantidade === 0}
+                                disabled={saldo_total === 0}
                                 className="w-10 h-7 text-center font-mono font-black text-sm text-slate-800 bg-transparent focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                placeholder={(item.qtd_por_caixa || 1).toString()}
+                                placeholder={Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total)).toString()}
                               />
                               <button
                                 onClick={() => {
-                                  const current = parseInt(itemInputs[item.id], 10) || (item.qtd_por_caixa || 1);
+                                  const defaultStart = Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total));
+                                  const current = parseInt(itemInputs[item.id], 10) || defaultStart;
                                   const step = item.qtd_por_caixa || 1;
-                                  const next = Math.min(item.quantidade, current + step);
+                                  const next = Math.min(saldo_total, current + step);
                                   setItemInputs(prev => ({ ...prev, [item.id]: next }));
                                 }}
                                 className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
@@ -477,10 +492,11 @@ export default function SolicitantePage() {
 
                             <button
                               onClick={() => {
-                                const qty = parseInt(itemInputs[item.id], 10) || (item.qtd_por_caixa || 1);
+                                const defaultStart = Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total));
+                                const qty = parseInt(itemInputs[item.id], 10) || defaultStart;
                                 addToCart(item, qty);
                               }}
-                              disabled={item.quantidade === 0}
+                              disabled={saldo_total === 0}
                               className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 flex-1 disabled:opacity-50 disabled:pointer-events-none shadow-sm h-10"
                             >
                               <Plus className="w-4 h-4" />
@@ -489,6 +505,9 @@ export default function SolicitantePage() {
                           </div>
                         )}
                       </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </motion.div>
                 );

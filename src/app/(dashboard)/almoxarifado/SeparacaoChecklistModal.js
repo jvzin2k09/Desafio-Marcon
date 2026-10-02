@@ -18,7 +18,8 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
     })
   );
 
-  const [filtro, setFiltro] = useState("PENDENTES");
+  const initialPendentes = pedido.itens.filter(i => !i.data_hora_baixa).length;
+  const [filtro, setFiltro] = useState(initialPendentes > 0 ? "PENDENTES" : "TODOS");
   const [scannerAtivo, setScannerAtivo] = useState(null);
   const [scanError, setScanError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -115,7 +116,7 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-in fade-in" onClick={onClose} />
+      <div className="fixed inset-0 z-[55] bg-black/50 backdrop-blur-sm animate-in fade-in" onClick={onClose} />
 
       <AnimatePresence>
         {toastMessage && (
@@ -145,7 +146,7 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="fixed inset-x-0 bottom-0 top-6 z-50 bg-white rounded-t-2xl shadow-2xl flex flex-col md:max-w-md md:mx-auto md:top-10 md:rounded-3xl overflow-hidden"
+        className="fixed inset-x-0 bottom-0 top-6 z-[60] bg-white rounded-t-2xl shadow-2xl flex flex-col md:max-w-md md:mx-auto md:top-10 md:rounded-3xl overflow-hidden"
       >
         {/* CABEÇALHO FIXO */}
         <div className="sticky top-0 bg-white border-b border-slate-200 z-10 px-4 pt-5 pb-3 flex flex-col gap-4">
@@ -419,7 +420,7 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
         </div>
 
         {/* RODAPÉ FIXO */}
-        <div className="sticky bottom-0 bg-white border-t border-slate-200 z-10 p-4">
+        <div className="bg-white border-t border-slate-200 p-4 pb-8 shrink-0">
           <button
             disabled={pendentesCount > 0 || loading}
             onClick={handleFinalizar}
