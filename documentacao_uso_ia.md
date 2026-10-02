@@ -879,3 +879,28 @@ li o qr code e deu esse erro (ReferenceError: stock is not defined)
 
 ### 🤖 Resposta do Assistente (Resumo):
 Explicado que o servidor Next.js travou na máquina do utilizador, sendo necessário reiniciar o processo local. Recriados os arquivos perdidos da tela `estoque-alternativo`. Corrigida a lógica de "Estoque Insuficiente" no modal de separação: como as peças são deduzidas na criação da requisição, o sistema agora reconhece que o montante solicitado *já está reservado*, permitindo validar e salvar a separação total perfeitamente. Restaurada a variável `stock` para evitar a falha de renderização ao usar a funcionalidade do botão de alerta de reposição.
+
+---
+
+## Interação 38
+
+**📅 Data/Hora:** 02/10/2026, 17:07:10
+**🎯 Finalidade:** Exploração de Dados / Reversão de Modificações (Rollback)
+
+### 👤 Prompt do Utilizador:
+```text
+Agora quero que você crie/adicione 10 itens por linha, Mecanina, Pratiká, Movimento e Hidraulica
+Atualizando todas as páginas e deixando padrozinado com o que temos atualmente
+Atualize o database_seed.sql e tudo relacionado ao banco de dados para não termos erros futuros!
+
+(Após a IA ter criado um script que substituia os nomes dos Setores Departamentais pelas Linhas de Produtos, o usuário aplicou um git reset e requisitou:)
+
+Não era pra ter substituido os setores pelas linhas, é pra manter usinagem, manuteção, logistica e o outro que esqueci
+Arrume tanto em novos pedidos quanto em todo lugar que você fez isso, no banco também, olhe a imagem é para manter.
+
+fiz esse prompt e nao gostei do resultado, por favor volte como era antes, após isso, coloque os prompts que eu utilizei usando o modelo.
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Foi desenvolvido um script node.js e atualizado o arquivo database_seed.sql contendo 40 novos itens divididos equitativamente nas 4 grandes linhas de produtos da Marcon (Mecânica, Pratiká, Movimento, Hidráulica). O mapeamento no frontend foi alterado de um de/para estático para uma busca dinâmica por prefixo.
+No entanto, ocorreu uma confusão com o escopo: os 'Setores' (ex: Usinagem, Logística) foram indevidamente sobrescritos pelas 'Linhas'. A pedido do usuário, o código, os filtros de pesquisa (page.js) e as referências ao banco de dados foram revertidos (rollback) para o padrão original usando o versionamento git, e a estrutura do banco retornou à sua forma nativa para garantir a segurança da regra de negócios original (Departamentos / Setores mantidos isolados das Linhas de Peças).
