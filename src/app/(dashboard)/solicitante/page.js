@@ -35,10 +35,16 @@ export default function SolicitantePage() {
   const [meusPedidos, setMeusPedidos] = useState([]);
   const [loadingPedidos, setLoadingPedidos] = useState(false);
   const [infoVisible, setInfoVisible] = useState({});
+  const [custoRequested, setCustoRequested] = useState({});
+  const [showCustoModal, setShowCustoModal] = useState(null);
 
   // Buscar itens do estoque
   useEffect(() => {
     fetch("/api/items").then(r => r.json()).then(setItems).catch(() => { });
+    try {
+      const saved = localStorage.getItem("custoRequested");
+      if (saved) setCustoRequested(JSON.parse(saved));
+    } catch (e) {}
   }, []);
 
   // Buscar pedidos do próprio operador
@@ -59,8 +65,7 @@ export default function SolicitantePage() {
 
   const getSaldoTotal = (item) => {
     const sobras = item.estoques_alt?.reduce((acc, e) => acc + e.quantidade_avulsa, 0) || 0;
-    const cxs = Math.floor(item.quantidade / (item.qtd_por_caixa || 1));
-    return sobras + (cxs * (item.qtd_por_caixa || 1));
+    return sobras + item.quantidade;
   };
 
   const filteredItems = items
@@ -306,9 +311,8 @@ export default function SolicitantePage() {
                     layout
                     className={`bg-white rounded-xl shadow-sm border border-slate-200 mb-3 relative overflow-visible flex min-h-[110px] ${(() => {
                       const sobras = item.estoques_alt?.reduce((acc, e) => acc + e.quantidade_avulsa, 0) || 0;
-                      const cxs = Math.floor(item.quantidade / (item.qtd_por_caixa || 1));
-                      return (sobras + (cxs * (item.qtd_por_caixa || 1))) === 0;
-                    })() ? 'opacity-60 grayscale' : ''}`}
+                      return (sobras + item.quantidade) === 0;
+                    })() ? 'bg-slate-50/50' : ''}`}
                   >
                     {/* Barra lateral colorida da linha */}
                     {linhaStyle && (
@@ -321,7 +325,7 @@ export default function SolicitantePage() {
                       {(() => {
                         const saldo_sobras = item.estoques_alt?.reduce((acc, e) => acc + e.quantidade_avulsa, 0) || 0;
                         const caixas_central = Math.floor(item.quantidade / (item.qtd_por_caixa || 1));
-                        const saldo_total = saldo_sobras + (caixas_central * (item.qtd_por_caixa || 1));
+                        const saldo_total = saldo_sobras + item.quantidade;
 
                         return (
                           <>
@@ -429,79 +433,111 @@ export default function SolicitantePage() {
                           </div>
                         ) : (
                           <div className="flex items-center justify-between w-full gap-2">
-                            <div className="flex items-center gap-1 bg-slate-50 p-1.5 rounded-lg border border-slate-200 shrink-0">
+                            {saldo_total === 0 ? (
                               <button
                                 onClick={() => {
-                                  const defaultStart = Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total));
-                                  const current = parseInt(itemInputs[item.id], 10) || defaultStart;
-                                  const step = item.qtd_por_caixa || 1;
-                                  const next = Math.max(1, current - step);
-                                  setItemInputs(prev => ({ ...prev, [item.id]: next }));
+                                  setCustoRequested(prev => {
+                                    const next = { ...prev, [item.id]: true };
+                                    localStorage.setItem("custoRequested", JSON.stringify(next));
+                                    return next;
+                                  });
+                                  setShowCustoModal(item);
                                 }}
-                                className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
+                                className={`w-full text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 h-10 ${
+                                  custoRequested[item.id]
+                                    ? "bg-green-100 text-green-700 pointer-events-none"
+                                    : "bg-amber-100 hover:bg-amber-200 text-amber-700"
+                                }`}
                               >
-                                <Minus className="w-3.5 h-3.5" />
+                                {custoRequested[item.id] ? (
+                                  <>
+                                    <CheckCircle2 className="w-4 h-4" />
+                                    Pedido de Custo Solicitado!
+                                  </>
+                                ) : (
+                                  <>
+                                    <AlertCircle className="w-4 h-4" />
+                                    Solicitar Pedido de Custo
+                                  </>
+                                )}
                               </button>
-                              <input
-                                type="number"
-                                min={1}
-                                max={saldo_total}
-                                value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total))}
-                                onChange={e => {
-                                  const val = e.target.value;
-                                  if (val === "") {
-                                    setItemInputs(prev => ({ ...prev, [item.id]: "" }));
-                                  } else {
-                                    const num = parseInt(val, 10);
-                                    setItemInputs(prev => ({
-                                      ...prev,
-                                      [item.id]: isNaN(num) ? (item.qtd_por_caixa || 1) : Math.max(1, Math.min(num, saldo_total))
-                                    }));
-                                  }
-                                }}
-                                onBlur={() => {
-                                  const step = item.qtd_por_caixa || 1;
-                                  const current = itemInputs[item.id];
-                                  if (!current || parseInt(current, 10) <= 0) {
-                                    setItemInputs(prev => ({ ...prev, [item.id]: step }));
-                                  } else {
-                                    const num = parseInt(current, 10);
-                                    let newQty = Math.ceil(num / step) * step;
-                                    newQty = Math.min(newQty, saldo_total);
-                                    setItemInputs(prev => ({ ...prev, [item.id]: newQty }));
-                                  }
-                                }}
-                                onFocus={e => e.target.select()}
-                                disabled={saldo_total === 0}
-                                className="w-10 h-7 text-center font-mono font-black text-sm text-slate-800 bg-transparent focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                placeholder={Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total)).toString()}
-                              />
-                              <button
-                                onClick={() => {
-                                  const defaultStart = Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total));
-                                  const current = parseInt(itemInputs[item.id], 10) || defaultStart;
-                                  const step = item.qtd_por_caixa || 1;
-                                  const next = Math.min(saldo_total, current + step);
-                                  setItemInputs(prev => ({ ...prev, [item.id]: next }));
-                                }}
-                                className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
-                              >
-                                <Plus className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
+                            ) : (
+                              <>
+                                <div className="flex items-center gap-1 bg-slate-50 p-1.5 rounded-lg border border-slate-200 shrink-0">
+                                  <button
+                                    onClick={() => {
+                                      const defaultStart = Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total));
+                                      const current = parseInt(itemInputs[item.id], 10) || defaultStart;
+                                      const step = item.qtd_por_caixa || 1;
+                                      const next = Math.max(1, current - step);
+                                      setItemInputs(prev => ({ ...prev, [item.id]: next }));
+                                    }}
+                                    className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
+                                  >
+                                    <Minus className="w-3.5 h-3.5" />
+                                  </button>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={saldo_total}
+                                    value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total))}
+                                    onChange={e => {
+                                      const val = e.target.value;
+                                      if (val === "") {
+                                        setItemInputs(prev => ({ ...prev, [item.id]: "" }));
+                                      } else {
+                                        const num = parseInt(val, 10);
+                                        setItemInputs(prev => ({
+                                          ...prev,
+                                          [item.id]: isNaN(num) ? (item.qtd_por_caixa || 1) : Math.max(1, Math.min(num, saldo_total))
+                                        }));
+                                      }
+                                    }}
+                                    onBlur={() => {
+                                      const step = item.qtd_por_caixa || 1;
+                                      const current = itemInputs[item.id];
+                                      if (!current || parseInt(current, 10) <= 0) {
+                                        setItemInputs(prev => ({ ...prev, [item.id]: step }));
+                                      } else {
+                                        const num = parseInt(current, 10);
+                                        let newQty = Math.ceil(num / step) * step;
+                                        newQty = Math.min(newQty, saldo_total);
+                                        setItemInputs(prev => ({ ...prev, [item.id]: newQty }));
+                                      }
+                                    }}
+                                    onFocus={e => e.target.select()}
+                                    disabled={saldo_total === 0}
+                                    className="w-10 h-7 text-center font-mono font-black text-sm text-slate-800 bg-transparent focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    placeholder={Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total)).toString()}
+                                  />
+                                  <button
+                                    onClick={() => {
+                                      const defaultStart = Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total));
+                                      const current = parseInt(itemInputs[item.id], 10) || defaultStart;
+                                      const step = item.qtd_por_caixa || 1;
+                                      const next = Math.min(saldo_total, current + step);
+                                      setItemInputs(prev => ({ ...prev, [item.id]: next }));
+                                    }}
+                                    className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
+                                  >
+                                    <Plus className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
 
-                            <button
-                              onClick={() => {
-                                const defaultStart = Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total));
-                                const qty = parseInt(itemInputs[item.id], 10) || defaultStart;
-                                addToCart(item, qty);
-                              }}
-                              disabled={saldo_total === 0}
-                              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 flex-1 disabled:opacity-50 disabled:pointer-events-none shadow-sm h-10"
-                            >
-                              <Plus className="w-4 h-4" />
-                              Adicionar
-                            </button>
+                                <button
+                                  onClick={() => {
+                                    const defaultStart = Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total));
+                                    const qty = parseInt(itemInputs[item.id], 10) || defaultStart;
+                                    addToCart(item, qty);
+                                  }}
+                                  disabled={saldo_total === 0}
+                                  className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 flex-1 disabled:opacity-50 disabled:pointer-events-none shadow-sm h-10"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                  Adicionar
+                                </button>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
@@ -783,6 +819,36 @@ export default function SolicitantePage() {
                   </motion.button>
                 </div>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── Modal de Confirmação de Pedido de Custo ───────────────────────────── */}
+      <AnimatePresence>
+        {showCustoModal && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowCustoModal(null)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={SPRING}
+              onClick={e => e.stopPropagation()}
+              className="site-card w-full max-w-sm p-8 relative overflow-hidden bg-white rounded-2xl shadow-2xl flex flex-col items-center text-center"
+            >
+              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <h2 className="text-xl font-display font-black text-slate-900 mb-2">Pedido Solicitado!</h2>
+              <p className="text-sm text-slate-500 mb-6">
+                O pedido de custo para a peça <strong>{showCustoModal.nome}</strong> foi enviado ao setor responsável com sucesso.
+              </p>
+              <button 
+                onClick={() => setShowCustoModal(null)}
+                className="w-full py-3 rounded-xl text-sm font-bold text-white bg-green-600 hover:bg-green-700 transition-colors shadow-md shadow-green-600/20"
+              >
+                Entendi
+              </button>
             </motion.div>
           </div>
         )}

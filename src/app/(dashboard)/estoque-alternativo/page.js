@@ -42,6 +42,29 @@ export default function EstoqueAlternativoPage() {
     return e.quantidade_avulsa > 0 && (e.item?.nome.toLowerCase().includes(search.toLowerCase()) || e.item?.codigo.toLowerCase().includes(search.toLowerCase()));
   });
 
+  const [ajusteModal, setAjusteModal] = useState(null);
+  const [novoSaldo, setNovoSaldo] = useState("");
+
+  const salvarAjuste = async () => {
+    if (!ajusteModal || novoSaldo === "") return;
+    const qtde = parseInt(novoSaldo, 10);
+    if (isNaN(qtde) || qtde < 0) return;
+
+    try {
+      const res = await fetch("/api/estoque-alternativo", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: ajusteModal.id, novaQuantidade: qtde })
+      });
+      if (res.ok) {
+        setEstoque(estoque.map(e => e.id === ajusteModal.id ? { ...e, quantidade_avulsa: qtde } : e));
+        setAjusteModal(null);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleSepararEntregar = async (pedido) => {
     try {
       const res = await fetch("/api/pedidos/separar-alternativo", {
@@ -177,13 +200,15 @@ export default function EstoqueAlternativoPage() {
 
                 {isAdmin && (
                   <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-100 mt-1">
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 text-[11px] font-bold transition-colors shadow-sm">
+                    <button 
+                      onClick={() => {
+                        setAjusteModal(item);
+                        setNovoSaldo(item.quantidade_avulsa.toString());
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 text-[11px] font-bold transition-colors shadow-sm"
+                    >
                       <Edit2 className="w-3.5 h-3.5" />
                       <span>Ajustar Saldo</span>
-                    </button>
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-800 text-[11px] font-bold transition-colors shadow-sm">
-                      <RefreshCcw className="w-3.5 h-3.5" />
-                      <span>Devolver p/ Central</span>
                     </button>
                   </div>
                 )}
@@ -242,6 +267,48 @@ export default function EstoqueAlternativoPage() {
           </AnimatePresence>
         )}
       </div>
+
+      {/* Modal Ajustar Saldo */}
+      <AnimatePresence>
+        {ajusteModal && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={() => setAjusteModal(null)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              onClick={e => e.stopPropagation()}
+              className="site-card w-full max-w-sm p-6 relative overflow-hidden bg-white rounded-2xl shadow-2xl flex flex-col"
+            >
+              <h2 className="text-lg font-bold text-slate-900 mb-1">Ajustar Saldo</h2>
+              <p className="text-xs text-slate-500 mb-4">{ajusteModal.item?.nome}</p>
+              
+              <label className="text-[10px] font-bold uppercase text-slate-400 mb-1">Nova Quantidade</label>
+              <input 
+                type="number" 
+                value={novoSaldo} 
+                onChange={e => setNovoSaldo(e.target.value)}
+                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2 text-sm font-bold focus:border-[#1B3A6B] outline-none"
+                autoFocus
+              />
+              
+              <div className="flex gap-2 mt-4">
+                <button 
+                  onClick={() => setAjusteModal(null)}
+                  className="flex-1 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={salvarAjuste}
+                  className="flex-1 py-2 rounded-xl text-xs font-bold text-white bg-[#1B3A6B] hover:bg-[#1B3A6B]/90 transition-colors"
+                >
+                  Salvar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

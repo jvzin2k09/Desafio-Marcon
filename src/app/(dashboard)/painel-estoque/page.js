@@ -26,11 +26,16 @@ export default function PainelEstoquePage() {
   const [audioEnabled, setAudioEnabled] = useState(true);
   const audioCtxRef = useRef(null);
   const prevItemsRef = useRef([]);
+  const [custoRequested, setCustoRequested] = useState({});
 
   // Inicializa permissão de notificações
   useEffect(() => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      setNotifPerm(Notification.permission);
+    if (typeof window !== "undefined") {
+      if ("Notification" in window) setNotifPerm(Notification.permission);
+      try {
+        const saved = localStorage.getItem("custoRequested");
+        if (saved) setCustoRequested(JSON.parse(saved));
+      } catch (e) {}
     }
   }, []);
 
@@ -368,7 +373,14 @@ export default function PainelEstoquePage() {
                 }`}>
                   {/* Linha Superior: Nome + Badge */}
                   <div className="flex justify-between items-center gap-2 mb-2">
-                    <h3 className="font-bold text-sm text-slate-900 truncate max-w-[200px]">{item.nome}</h3>
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <h3 className="font-bold text-sm text-slate-900 truncate max-w-[200px]">{item.nome}</h3>
+                      {custoRequested[item.id] && isZero && (
+                        <span className="text-[10px] text-green-600 font-bold flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Custo Solicitado
+                        </span>
+                      )}
+                    </div>
                     {isZero ? (
                       <span className="shrink-0 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide animate-pulse">Esgotado</span>
                     ) : isLow ? (
@@ -444,7 +456,14 @@ export default function PainelEstoquePage() {
 
                       {/* NOME / UNIDADE */}
                       <td className="py-3.5 px-4">
-                        <div className="font-bold text-slate-900">{item.nome}</div>
+                        <div className="font-bold text-slate-900 flex items-center gap-2">
+                          {item.nome}
+                          {custoRequested[item.id] && isZero && (
+                            <span className="text-[9px] uppercase tracking-wide bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-black flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" /> Solicitado
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[11px] text-slate-400">{item.unidade}</span>
                       </td>
 
