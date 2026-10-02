@@ -255,7 +255,7 @@ export default function HistoricoPage() {
           </div>
           <div>
             <h1 className="text-xl md:text-2xl sm:text-3xl font-display font-black text-slate-900 tracking-tight leading-tight">
-              Histórico de <span className="text-orange-500">Movimentações</span>
+              Histórico de <span className="text-blue-600">Movimentações</span>
             </h1>
             <p className="text-slate-500 text-[11px] md:text-sm mt-0.5 font-medium">
               Suas movimentações passadas
@@ -263,9 +263,7 @@ export default function HistoricoPage() {
           </div>
         </div>
 
-        <div className="hidden lg:flex items-center justify-center p-3 rounded-2xl bg-white border border-slate-200 shadow-sm shrink-0">
-          <ScrollText className="w-7 h-7 text-orange-300" />
-        </div>
+
 
         {/* Botões de Ação */}
         <div className="flex items-center gap-2 shrink-0">

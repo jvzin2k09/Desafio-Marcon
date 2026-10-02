@@ -12,6 +12,8 @@ import SplashScreen from "@/components/SplashScreen";
 export default function DashboardLayout({ children }) {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const [showMobileLogout, setShowMobileLogout] = useState(false);
+  const [showDesktopLogout, setShowDesktopLogout] = useState(false);
 
   if (!session) return null;
 
@@ -41,8 +43,6 @@ export default function DashboardLayout({ children }) {
     ALMOXARIFE: { label: "Almoxarife", color: "#1B3A6B" },
     OPERADOR: { label: "Operador", color: "#16a34a" },
   }[role] || { label: role, color: "#64748b" };
-
-  const [showMobileLogout, setShowMobileLogout] = useState(false);
 
   // Filtramos o "Dashboard" apenas para o menu inferior móvel e definimos a ordem exata
   const mobileOrder = ["/almoxarifado", "/estoque-alternativo", "/solicitante", "/painel-estoque", "/historico"];
@@ -89,8 +89,11 @@ export default function DashboardLayout({ children }) {
         </div>
 
         {/* User Footer */}
-        <div className="p-4 border-t" style={{ borderColor: "var(--border)" }}>
-          <div className="flex items-center gap-3 mb-3">
+        <div className="p-4 border-t relative" style={{ borderColor: "var(--border)" }}>
+          <div 
+            className="flex items-center gap-3 cursor-pointer select-none"
+            onClick={() => setShowDesktopLogout(!showDesktopLogout)}
+          >
             <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm" style={{ background: "var(--primary)" }}>
               {session.user.name?.charAt(0)}
             </div>
@@ -101,13 +104,17 @@ export default function DashboardLayout({ children }) {
               </span>
             </div>
           </div>
-          <button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-bold text-xs uppercase tracking-wider"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Sair
-          </button>
+          {showDesktopLogout && (
+            <div className="mt-3">
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-bold text-xs uppercase tracking-wider"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Sair
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
