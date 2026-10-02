@@ -185,7 +185,7 @@ export default function PainelEstoquePage() {
         <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+              <h1 className="text-xl sm:text-2xl font-display font-black tracking-tight text-slate-900">
                 Painel de Controle de Estoque
               </h1>
             </div>

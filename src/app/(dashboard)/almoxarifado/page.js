@@ -266,7 +266,7 @@ export default function AlmoxarifadoPage() {
 
       {/* Header */}
       <div className="px-4 md:px-0 pt-1 pb-4 shrink-0">
-        <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
+        <h2 className="text-xl md:text-2xl font-display font-black text-slate-900 tracking-tight">
           Fila de Requisições
         </h2>
         <p className="text-slate-400 text-xs mt-0.5 font-medium">

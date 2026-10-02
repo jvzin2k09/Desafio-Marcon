@@ -70,7 +70,7 @@ export default function EstoqueAlternativoPage() {
   return (
     <div className="h-[calc(100vh-80px)] flex flex-col max-w-5xl mx-auto overflow-hidden px-4 md:px-0">
       <div className="pt-2 pb-4 shrink-0">
-        <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+        <h2 className="text-xl md:text-2xl font-display font-black text-slate-900 tracking-tight flex items-center gap-2">
           <Recycle className="w-6 h-6 text-[#1B3A6B]" />
           Estoque Alternativo (Sobras)
         </h2>
