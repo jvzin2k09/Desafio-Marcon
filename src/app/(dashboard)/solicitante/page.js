@@ -598,7 +598,7 @@ export default function SolicitantePage() {
                             onChange={e => setCartQty(c.itemId, e.target.value)}
                             onBlur={() => handleBlurCartQty(c.itemId)}
                             onFocus={e => e.target.select()}
-                            className="w-16 h-7 text-center font-mono font-black text-sm text-slate-800 lg:text-white bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 focus:bg-white border border-slate-200 focus:border-[#1B3A6B] rounded-md focus:outline-none focus:ring-1 focus:ring-[#1B3A6B] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200"
+                            className="w-16 h-7 text-center font-mono font-black text-sm text-slate-800 lg:text-white bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 focus:bg-white focus:text-slate-900 focus:lg:text-slate-900 border border-slate-200 focus:border-[#1B3A6B] rounded-md focus:outline-none focus:ring-1 focus:ring-[#1B3A6B] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200"
                             title={`Digite a quantidade (Disponível: ${c.maxQtd} ${c.unidade})`}
                           />
                           <button
