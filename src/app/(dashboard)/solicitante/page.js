@@ -200,23 +200,23 @@ export default function SolicitantePage() {
   return (
     <div className="h-[calc(100vh-80px)] flex flex-col space-y-2 md:space-y-6 overflow-hidden">
       {/* Header */}
-      <div className="shrink-0">
-        <h2 className="text-lg md:text-2xl font-display font-black text-slate-900 tracking-tight">Módulo Solicitante</h2>
-        <p className="text-slate-500 text-sm mt-1 hidden md:block">Faça suas requisições de materiais de forma digital.</p>
+      <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm shrink-0 lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80">
+        <h2 className="text-lg md:text-2xl font-display font-black text-slate-900 lg:text-white tracking-tight">Módulo Solicitante</h2>
+        <p className="text-slate-500 lg:text-slate-400 text-sm mt-1 hidden md:block">Faça suas requisições de materiais de forma digital.</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 p-1 rounded-xl shrink-0" style={{ background: "var(--surface-3)" }}>
+      <div className="flex gap-1 p-1 rounded-xl shrink-0 bg-slate-100 lg:bg-slate-900/60 lg:border lg:border-slate-800/80 lg:shadow-inner md:max-w-md">
         <button
           onClick={() => setTab("pedido")}
-          className={`flex-1 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-lg transition-all ${tab === "pedido" ? "bg-white text-slate-900 shadow-card" : "text-slate-500 hover:text-slate-700"}`}
+          className={`flex-1 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-lg transition-all ${tab === "pedido" ? "bg-white lg:bg-slate-700 text-slate-900 lg:text-white shadow-card" : "text-slate-500 lg:text-slate-400 hover:text-slate-700 hover:lg:text-slate-300 hover:lg:bg-slate-800/60"}`}
         >
           <ShoppingCart className="w-4 h-4 inline mr-1.5 -mt-0.5" />
           Novo Pedido
         </button>
         <button
           onClick={() => setTab("status")}
-          className={`flex-1 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-lg transition-all ${tab === "status" ? "bg-white text-slate-900 shadow-card" : "text-slate-500 hover:text-slate-700"}`}
+          className={`flex-1 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-lg transition-all ${tab === "status" ? "bg-white lg:bg-slate-700 text-slate-900 lg:text-white shadow-card" : "text-slate-500 lg:text-slate-400 hover:text-slate-700 hover:lg:text-slate-300 hover:lg:bg-slate-800/60"}`}
         >
           <Clock className="w-4 h-4 inline mr-1.5 -mt-0.5" />
           Meus Pedidos
@@ -257,7 +257,7 @@ export default function SolicitantePage() {
                     style={setor === linha.value ? { backgroundColor: linha.color, borderColor: linha.color, color: 'white' } : {}}
                     className={`rounded-lg px-3 py-1.5 md:rounded-xl md:px-2 md:py-3 lg:px-4 lg:py-2 border-2 transition-all duration-200 flex items-center justify-center font-bold text-xs md:text-sm ${setor === linha.value
                         ? "shadow-lg scale-[1.02]"
-                        : "border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:shadow-sm hover:bg-slate-50"
+                        : "border-slate-200 text-slate-600 lg:text-slate-300 bg-white hover:border-slate-300 hover:shadow-sm hover:bg-slate-50 hover:lg:bg-slate-800/60 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200"
                       }`}
                   >
                     {linha.label}
@@ -309,10 +309,10 @@ export default function SolicitantePage() {
                   <motion.div
                     key={item.id}
                     layout
-                    className={`bg-white rounded-xl shadow-sm border border-slate-200 mb-3 relative overflow-hidden flex min-h-[110px] ${(() => {
+                    className={`bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-xl shadow-sm border border-slate-200 mb-3 relative overflow-hidden flex min-h-[110px] ${(() => {
                       const sobras = item.estoques_alt?.reduce((acc, e) => acc + e.quantidade_avulsa, 0) || 0;
                       return (sobras + item.quantidade) === 0;
-                    })() ? 'bg-slate-50/50' : ''}`}
+                    })() ? 'bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200/50' : ''}`}
                   >
                     {/* Barra lateral colorida da linha */}
                     {linhaStyle && (
@@ -333,21 +333,21 @@ export default function SolicitantePage() {
                       <div className="flex justify-between items-start w-full gap-2">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           {logoImg && (
-                            <div className="shrink-0 w-9 h-9 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center shadow-xs">
+                            <div className="shrink-0 w-9 h-9 rounded-lg border border-slate-200 bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 flex items-center justify-center shadow-xs">
                               <img src={logoImg} alt={itemLinha} className="h-6 w-6 object-contain" />
                             </div>
                           )}
-                          <p className="text-sm font-bold text-gray-800 truncate">{item.nome}</p>
+                          <p className="text-sm font-bold text-gray-800 lg:text-white truncate">{item.nome}</p>
                         </div>
-                        <span className="flex items-center gap-1 text-xs text-gray-500 whitespace-nowrap shrink-0">
-                          <MapPin className="w-3 h-3 text-gray-400" />
+                        <span className="flex items-center gap-1 text-xs text-gray-500 lg:text-slate-400 whitespace-nowrap shrink-0">
+                          <MapPin className="w-3 h-3 text-gray-400 lg:text-slate-500" />
                           {item.localizacao || 'S/L'}
                         </span>
                       </div>
 
                       {/* LINHA INTERMEDIÁRIA */}
                       <div className="flex items-start gap-2 mt-2 flex-wrap">
-                        <span className="text-xs font-mono font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded whitespace-nowrap mt-1">
+                        <span className="text-xs font-mono font-medium text-slate-500 lg:text-slate-400 bg-slate-100 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 px-1.5 py-0.5 rounded whitespace-nowrap mt-1">
                           {item.codigo}
                         </span>
 
@@ -362,7 +362,7 @@ export default function SolicitantePage() {
                                 className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium transition-all border ${
                                   infoVisible[item.id] 
                                     ? 'bg-blue-100 text-blue-700 border-blue-200' 
-                                    : 'bg-slate-50 text-slate-400 border-slate-200 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200'
+                                    : 'bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 text-slate-400 border-slate-200 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200'
                                 }`}
                               >
                                 <Info className="w-3 h-3" />
@@ -370,7 +370,7 @@ export default function SolicitantePage() {
                               </button>
                             )}
                           </div>
-                          <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1.5 px-1">
+                          <span className="text-[10px] text-slate-500 lg:text-slate-400 font-medium flex items-center gap-1.5 px-1">
                             <Recycle className="w-3 h-3 shrink-0" /> {saldo_sobras} UN em Sobras • <Package className="w-3 h-3 shrink-0" /> {caixas_central} CX Central
                           </span>
                         </div>
@@ -400,11 +400,11 @@ export default function SolicitantePage() {
                       {/* LINHA INFERIOR (AÇÕES) */}
                       <div className="flex justify-between items-center mt-3 pt-2 border-t border-slate-100">
                         {inCart ? (
-                          <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-lg border border-slate-200 w-full justify-between">
+                          <div className="flex items-center gap-1.5 bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 p-1 rounded-lg border border-slate-200 w-full justify-between">
                             <div className="flex items-center gap-1">
                               <button
                                 onClick={() => updateCartQty(item.id, -1)}
-                                className="w-8 h-8 rounded-md flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
+                                className="w-8 h-8 rounded-md flex items-center justify-center bg-white text-slate-500 lg:text-slate-400 shadow-sm hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"
                               >
                                 <Minus className="w-4 h-4" />
                               </button>
@@ -416,11 +416,11 @@ export default function SolicitantePage() {
                                 onChange={e => setCartQty(item.id, e.target.value)}
                                 onBlur={() => handleBlurCartQty(item.id)}
                                 onFocus={e => e.target.select()}
-                                className="w-12 h-8 text-center font-mono font-black text-sm text-[#1B3A6B] bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                className="w-12 h-8 text-center font-mono font-black text-sm text-[#1B3A6B] lg:text-blue-400 bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                               />
                               <button
                                 onClick={() => updateCartQty(item.id, 1)}
-                                className="w-8 h-8 rounded-md flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
+                                className="w-8 h-8 rounded-md flex items-center justify-center bg-white text-slate-500 lg:text-slate-400 shadow-sm hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"
                               >
                                 <Plus className="w-4 h-4" />
                               </button>
@@ -464,7 +464,7 @@ export default function SolicitantePage() {
                               </button>
                             ) : (
                               <>
-                                <div className="flex items-center gap-1 bg-slate-50 p-1.5 rounded-lg border border-slate-200 shrink-0">
+                                <div className="flex items-center gap-1 bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 p-1.5 rounded-lg border border-slate-200 shrink-0">
                                   <button
                                     onClick={() => {
                                       const defaultStart = Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total));
@@ -473,7 +473,7 @@ export default function SolicitantePage() {
                                       const next = Math.max(1, current - step);
                                       setItemInputs(prev => ({ ...prev, [item.id]: next }));
                                     }}
-                                    className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
+                                    className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 lg:text-slate-400 shadow-sm hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"
                                   >
                                     <Minus className="w-3.5 h-3.5" />
                                   </button>
@@ -508,7 +508,7 @@ export default function SolicitantePage() {
                                     }}
                                     onFocus={e => e.target.select()}
                                     disabled={saldo_total === 0}
-                                    className="w-10 h-7 text-center font-mono font-black text-sm text-slate-800 bg-transparent focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    className="w-10 h-7 text-center font-mono font-black text-sm text-slate-800 lg:text-white bg-transparent focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                     placeholder={Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total)).toString()}
                                   />
                                   <button
@@ -519,7 +519,7 @@ export default function SolicitantePage() {
                                       const next = Math.min(saldo_total, current + step);
                                       setItemInputs(prev => ({ ...prev, [item.id]: next }));
                                     }}
-                                    className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 shadow-sm hover:bg-slate-100 transition-colors"
+                                    className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 lg:text-slate-400 shadow-sm hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"
                                   >
                                     <Plus className="w-3.5 h-3.5" />
                                   </button>
@@ -554,10 +554,10 @@ export default function SolicitantePage() {
 
           {/* Right: Cart */}
           <div className="lg:w-80 xl:w-96 shrink-0 lg:sticky lg:top-0 lg:self-start">
-            <div className="site-card p-5 flex flex-col max-h-[250px] lg:max-h-[calc(100vh-200px)]">
+            <div className="site-card p-5 flex flex-col max-h-[250px] lg:max-h-[calc(100vh-200px)] lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200">
               <div className="flex items-center justify-between mb-4 shrink-0">
-                <h3 className="text-sm font-display font-black text-slate-700 uppercase tracking-wide">Carrinho</h3>
-                <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full" style={{ background: "var(--surface-3)", color: "var(--primary)" }}>
+                <h3 className="text-sm font-display font-black text-slate-700 lg:text-slate-300 uppercase tracking-wide">Carrinho</h3>
+                <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-slate-100 text-[#1B3A6B] lg:bg-slate-800 lg:text-blue-400">
                   {cart.length}
                 </span>
               </div>
@@ -576,16 +576,16 @@ export default function SolicitantePage() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-white"
+                        className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200"
                       >
                         <div className="flex-1 min-w-0 mr-2">
-                          <p className="text-xs font-bold text-slate-700 truncate">{c.nome}</p>
+                          <p className="text-xs font-bold text-slate-700 lg:text-slate-300 truncate">{c.nome}</p>
                           <p className="text-[10px] font-mono text-slate-400">{c.codigo}</p>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <button
                             onClick={() => updateCartQty(c.itemId, -1)}
-                            className="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors"
+                            className="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"
                             title="Diminuir 1"
                           >
                             <Minus className="w-3.5 h-3.5" />
@@ -598,12 +598,12 @@ export default function SolicitantePage() {
                             onChange={e => setCartQty(c.itemId, e.target.value)}
                             onBlur={() => handleBlurCartQty(c.itemId)}
                             onFocus={e => e.target.select()}
-                            className="w-16 h-7 text-center font-mono font-black text-sm text-slate-800 bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 focus:border-[#1B3A6B] rounded-md focus:outline-none focus:ring-1 focus:ring-[#1B3A6B] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner"
+                            className="w-16 h-7 text-center font-mono font-black text-sm text-slate-800 lg:text-white bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 focus:bg-white border border-slate-200 focus:border-[#1B3A6B] rounded-md focus:outline-none focus:ring-1 focus:ring-[#1B3A6B] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200"
                             title={`Digite a quantidade (Disponível: ${c.maxQtd} ${c.unidade})`}
                           />
                           <button
                             onClick={() => updateCartQty(c.itemId, 1)}
-                            className="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors"
+                            className="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"
                             title="Aumentar 1"
                           >
                             <Plus className="w-3.5 h-3.5" />
@@ -695,7 +695,7 @@ export default function SolicitantePage() {
                     <div className="px-4 py-3 flex items-center justify-between border-b" style={{ borderColor: col.border }}>
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${col.dot}`} />
-                        <h3 className="font-display font-black text-sm text-slate-700 uppercase tracking-wide">{col.label}</h3>
+                        <h3 className="font-display font-black text-sm text-slate-700 lg:text-slate-300 uppercase tracking-wide">{col.label}</h3>
                       </div>
                       <span className="text-xs font-mono font-black px-2.5 py-1 rounded-full border" style={{ background: col.bg, color: col.accent, borderColor: col.border }}>
                         {pedidosCol.length}
@@ -713,12 +713,12 @@ export default function SolicitantePage() {
                           <div className="absolute top-0 left-0 w-1 h-full rounded-l-xl" style={{ background: col.accent }} />
                           <div className="flex justify-between items-start mb-2">
                             <span className="text-xs font-mono font-bold text-slate-400">#{pedido.id.toString().padStart(4, '0')}</span>
-                            <span className="flex items-center text-[10px] font-bold px-2 py-1 rounded-md bg-slate-50 border border-slate-100 text-slate-500">
+                            <span className="flex items-center text-[10px] font-bold px-2 py-1 rounded-md bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 border border-slate-100 text-slate-500 lg:text-slate-400">
                               <Clock className="w-3 h-3 mr-1" />
                               {getTempoEspera(pedido.createdAt)}
                             </span>
                           </div>
-                          <p className="text-[11px] text-slate-500 font-medium line-clamp-2 leading-relaxed">
+                          <p className="text-[11px] text-slate-500 lg:text-slate-400 font-medium line-clamp-2 leading-relaxed">
                             {pedido.itens?.slice(0, 3).map(i => `${i.quantidade}× ${i.item.nome}`).join(', ')}
                             {pedido.itens?.length > 3 && ` +${pedido.itens.length - 3}`}
                           </p>
@@ -754,7 +754,7 @@ export default function SolicitantePage() {
               exit={{ opacity: 0, scale: 0.96 }}
               transition={SPRING}
               onClick={e => e.stopPropagation()}
-              className="site-card w-full max-w-md p-8 relative overflow-hidden bg-white rounded-2xl shadow-2xl"
+              className="site-card w-full max-w-md p-8 relative overflow-hidden bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl shadow-2xl"
             >
               <div className="absolute -top-24 -right-24 w-48 h-48 rounded-full mix-blend-multiply filter blur-3xl opacity-20" style={{ background: "var(--primary)" }} />
 
@@ -767,8 +767,8 @@ export default function SolicitantePage() {
                   />
                 </div>
 
-                <h2 className="text-xl font-display font-black text-slate-900 mb-2 text-center">Identificação do Operador</h2>
-                <p className="text-sm text-slate-500 text-center mb-6">
+                <h2 className="text-xl font-display font-black text-slate-900 lg:text-white mb-2 text-center">Identificação do Operador</h2>
+                <p className="text-sm text-slate-500 lg:text-slate-400 text-center mb-6">
                   Informe o nome ou matrícula do operador do chão de fábrica que solicitou esta peça.
                 </p>
 
@@ -804,7 +804,7 @@ export default function SolicitantePage() {
                 </div>
 
                 <div className="flex gap-3 w-full">
-                  <button type="button" onClick={() => setShowOperatorModal(false)} className="flex-1 py-3 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all border border-slate-200">
+                  <button type="button" onClick={() => setShowOperatorModal(false)} className="flex-1 py-3 rounded-xl text-sm font-bold text-slate-500 lg:text-slate-400 hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-all border border-slate-200">
                     Cancelar
                   </button>
                   <motion.button
@@ -835,13 +835,13 @@ export default function SolicitantePage() {
               exit={{ opacity: 0, scale: 0.96 }}
               transition={SPRING}
               onClick={e => e.stopPropagation()}
-              className="site-card w-full max-w-sm p-8 relative overflow-hidden bg-white rounded-2xl shadow-2xl flex flex-col items-center text-center"
+              className="site-card w-full max-w-sm p-8 relative overflow-hidden bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl shadow-2xl flex flex-col items-center text-center"
             >
               <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4 shadow-sm">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h2 className="text-xl font-display font-black text-slate-900 mb-2">Pedido Solicitado!</h2>
-              <p className="text-sm text-slate-500 mb-6">
+              <h2 className="text-xl font-display font-black text-slate-900 lg:text-white mb-2">Pedido Solicitado!</h2>
+              <p className="text-sm text-slate-500 lg:text-slate-400 mb-6">
                 O pedido de custo para a peça <strong>{showCustoModal.nome}</strong> foi enviado ao setor responsável com sucesso.
               </p>
               <button 

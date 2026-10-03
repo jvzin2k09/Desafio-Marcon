@@ -64,10 +64,10 @@ export default function PreBaixaPage() {
     >
       <div className="flex items-center space-x-3 mb-2">
         <ScanLine className="w-8 h-8 text-primary" />
-        <h2 className="text-2xl font-display font-bold text-slate-800">Nova Baixa</h2>
+        <h2 className="text-2xl font-display font-bold text-slate-800 lg:text-white">Nova Baixa</h2>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200">
         <form onSubmit={handleSubmit} className="space-y-5">
           
           {message && (
@@ -78,13 +78,13 @@ export default function PreBaixaPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Selecione o Item</label>
+            <label className="block text-sm font-medium text-slate-700 lg:text-slate-300 mb-2">Selecione o Item</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
               <select
                 value={selectedItem}
                 onChange={(e) => setSelectedItem(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none"
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 border border-slate-200 rounded-lg text-slate-800 lg:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none"
               >
                 <option value="">Selecione...</option>
                 {items.map(item => (
@@ -95,20 +95,20 @@ export default function PreBaixaPage() {
           </div>
 
           {selectedItemData && (
-            <div className="bg-slate-50 p-4 rounded-lg border border-slate-100 flex justify-between items-center">
-              <span className="text-sm text-slate-500 font-medium">Estoque Atual:</span>
+            <div className="bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 p-4 rounded-lg border border-slate-100 flex justify-between items-center">
+              <span className="text-sm text-slate-500 lg:text-slate-400 font-medium">Estoque Atual:</span>
               <span className="text-lg font-bold text-primary">{selectedItemData.quantidade} un</span>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Quantidade a Retirar</label>
+            <label className="block text-sm font-medium text-slate-700 lg:text-slate-300 mb-2">Quantidade a Retirar</label>
             <input
               type="number"
               min="1"
               value={quantidade}
               onChange={(e) => setQuantidade(e.target.value)}
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              className="w-full px-4 py-3 bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 border border-slate-200 rounded-lg text-slate-800 lg:text-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
               placeholder="Ex: 5"
             />
           </div>

@@ -33,7 +33,7 @@ function CardMenu({ onEstornar }) {
     <div ref={ref} className="relative">
       <button
         onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
-        className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+        className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 hover:text-slate-600 lg:text-slate-300 transition-colors"
       >
         <MoreVertical className="w-4 h-4" />
       </button>
@@ -44,7 +44,7 @@ function CardMenu({ onEstornar }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-1 z-20 bg-white rounded-xl shadow-xl border border-slate-200 py-1 min-w-[180px]"
+            className="absolute right-0 top-full mt-1 z-20 bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-xl shadow-xl border border-slate-200 py-1 min-w-[180px]"
           >
             <button
               onClick={(e) => { e.stopPropagation(); setOpen(false); onEstornar(); }}
@@ -87,14 +87,14 @@ function EstornoModal({ pedido, onClose, onSuccess }) {
         exit={{ opacity: 0, scale: 0.96 }}
         transition={SPRING}
         onClick={e => e.stopPropagation()}
-        className="w-full max-w-md p-6 bg-white rounded-2xl shadow-xl"
+        className="w-full max-w-md p-6 bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl shadow-xl"
       >
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
             <AlertTriangle className="w-5 h-5 text-red-500" />
           </div>
           <div>
-            <h2 className="text-base font-black text-slate-900">Estornar Pedido</h2>
+            <h2 className="text-base font-black text-slate-900 lg:text-white">Estornar Pedido</h2>
             <p className="text-xs font-mono text-slate-400">#{pedido.id.toString().padStart(4, '0')} · {pedido.user?.nome}</p>
           </div>
         </div>
@@ -108,7 +108,7 @@ function EstornoModal({ pedido, onClose, onSuccess }) {
         />
         {error && <p className="text-red-600 text-xs font-bold mb-3">{error}</p>}
         <div className="flex gap-3">
-          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 transition-all border border-slate-200">Cancelar</button>
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-500 lg:text-slate-400 hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-all border border-slate-200">Cancelar</button>
           <button onClick={handleEstorno} disabled={loading} className="flex-1 py-2.5 rounded-xl text-sm font-black text-white bg-red-600 hover:bg-red-700 disabled:opacity-40 transition-all flex items-center justify-center gap-2">
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><Undo2 className="w-4 h-4" /> Estornar</>}
           </button>
@@ -131,19 +131,19 @@ const FilaCard = memo(function FilaCard({ pedido, tab, onAction, onEstornar }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -30 }}
       transition={SPRING}
-      className="bg-white rounded-2xl p-4 shadow-sm border-2 border-slate-100 mb-3"
+      className="bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl p-4 shadow-sm border-2 border-slate-100 mb-3"
     >
       {/* Linha 1: N° Pedido + Tempo + Setor + Menu */}
       <div className="flex items-center justify-between mb-1.5">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <span className="font-black text-slate-800 text-sm">
+          <span className="font-black text-slate-800 lg:text-white text-sm">
             #{pedido.id.toString().padStart(4, '0')}
           </span>
           <span className="flex items-center text-[10px] font-bold text-slate-400 gap-0.5">
             <Clock className="w-3 h-3" />
             {getTempoEspera(pedido.createdAt)}
           </span>
-          <span className="px-1.5 py-0.5 rounded bg-slate-100 text-[9px] font-bold text-slate-500 uppercase tracking-wide truncate max-w-[120px]">
+          <span className="px-1.5 py-0.5 rounded bg-slate-100 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 text-[9px] font-bold text-slate-500 lg:text-slate-400 uppercase tracking-wide truncate max-w-[120px]">
             {setor}
           </span>
         </div>
@@ -152,7 +152,7 @@ const FilaCard = memo(function FilaCard({ pedido, tab, onAction, onEstornar }) {
 
       {/* Linha 2: Solicitante */}
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm text-slate-700 font-bold truncate pr-2">{solicitante}</p>
+        <p className="text-sm text-slate-700 lg:text-slate-300 font-bold truncate pr-2">{solicitante}</p>
         <span className="text-xs font-bold text-slate-400 shrink-0">
           {totalItens} {totalItens === 1 ? "Item" : "Itens"}
         </span>
@@ -162,9 +162,9 @@ const FilaCard = memo(function FilaCard({ pedido, tab, onAction, onEstornar }) {
       {totalItens > 0 && (
         <div className="mb-4 space-y-1.5">
           {pedido.itens.filter(pi => pi.qtd_caixas_central > 0).slice(0, 5).map(pi => (
-            <div key={pi.id} className="text-[11px] text-slate-500 truncate flex items-center gap-1.5">
+            <div key={pi.id} className="text-[11px] text-slate-500 lg:text-slate-400 truncate flex items-center gap-1.5">
               <span className="w-1 h-1 bg-slate-300 rounded-full shrink-0" />
-              <span className="font-bold text-slate-700">{pi.qtd_caixas_central} Cx(s)</span> {pi.item?.nome}
+              <span className="font-bold text-slate-700 lg:text-slate-300">{pi.qtd_caixas_central} Cx(s)</span> {pi.item?.nome}
             </div>
           ))}
           {totalItens > 5 && (
@@ -265,8 +265,8 @@ export default function AlmoxarifadoPage() {
     <div className="h-[calc(100vh-80px)] flex flex-col max-w-2xl mx-auto overflow-hidden">
 
       {/* Header */}
-      <div className="px-4 md:px-0 pt-1 pb-4 shrink-0">
-        <h2 className="text-xl md:text-2xl font-display font-black text-slate-900 tracking-tight">
+      <div className="bg-white px-4 md:px-5 py-4 rounded-2xl border border-slate-200 shadow-sm shrink-0 lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80">
+        <h2 className="text-xl md:text-2xl font-display font-black text-slate-900 lg:text-white tracking-tight">
           Fila de Requisições
         </h2>
         <p className="text-slate-400 text-xs mt-0.5 font-medium">
@@ -276,20 +276,20 @@ export default function AlmoxarifadoPage() {
 
       {/* Tabs */}
       <div className="px-4 md:px-0 mb-4 shrink-0">
-        <div className="flex bg-slate-100 p-1 rounded-xl">
+        <div className="flex bg-slate-100 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 p-1 rounded-xl">
           <button
             onClick={() => setActiveTab("PENDENTES")}
             className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
               activeTab === "PENDENTES"
                 ? "bg-white text-blue-700 shadow-sm"
-                : "text-slate-400 hover:text-slate-600"
+                : "text-slate-400 hover:text-slate-600 lg:text-slate-300"
             }`}
           >
             Pendentes
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
               activeTab === "PENDENTES"
                 ? "bg-blue-600 text-white"
-                : "bg-slate-200 text-slate-500"
+                : "bg-slate-200 text-slate-500 lg:text-slate-400"
             }`}>
               {pendentes.length}
             </span>
@@ -299,14 +299,14 @@ export default function AlmoxarifadoPage() {
             className={`flex-1 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
               activeTab === "EM_SEPARACAO"
                 ? "bg-white text-amber-700 shadow-sm"
-                : "text-slate-400 hover:text-slate-600"
+                : "text-slate-400 hover:text-slate-600 lg:text-slate-300"
             }`}
           >
             Em Separação
             <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-black ${
               activeTab === "EM_SEPARACAO"
                 ? "bg-amber-600 text-white"
-                : "bg-slate-200 text-slate-500"
+                : "bg-slate-200 text-slate-500 lg:text-slate-400"
             }`}>
               {emSeparacao.length}
             </span>
