@@ -352,7 +352,7 @@ export default function PainelEstoquePage() {
       </div>
 
       {/* TABELA DE ESTOQUE COM SCROLL E DESTAQUE DE ALERTAS */}
-      <div className="flex-1 lg:bg-white lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm flex flex-col min-h-0 lg:overflow-hidden">
+      <div className="w-full lg:bg-white lg:rounded-2xl lg:border lg:border-slate-200 lg:shadow-sm flex flex-col lg:overflow-hidden">
         
         {/* Visão Mobile (Cards) — scroll contido */}
         <div className="block lg:hidden max-h-[50vh] overflow-y-auto no-scrollbar space-y-3 pb-6">
@@ -408,7 +408,7 @@ export default function PainelEstoquePage() {
         </div>
 
         {/* Visão Desktop (Tabela original) */}
-        <div className="hidden lg:block flex-1 overflow-y-auto custom-scrollbar">
+        <div className="hidden lg:block overflow-y-auto custom-scrollbar max-h-[320px]">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 z-10">
               <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">

@@ -68,7 +68,7 @@ export default function DashboardLayout({ children }) {
         {/* Nav */}
         <div className="p-3 flex-1">
           <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-2">Navegação</p>
-          <nav className="space-y-0.5">
+          <nav className="space-y-0.5 mb-6">
             {navItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
               return (
@@ -85,6 +85,20 @@ export default function DashboardLayout({ children }) {
                 </Link>
               );
             })}
+          </nav>
+
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2 hidden lg:block">GESTÃO & ANALYTICS</p>
+          <nav className="space-y-0.5 hidden lg:block">
+            <Link
+              href="/indicadores"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${pathname === "/indicadores"
+                  ? "bg-[var(--surface-3)] text-[var(--primary)] font-bold"
+                  : "text-slate-600 hover:bg-[var(--surface-2)] hover:text-slate-900"
+                }`}
+            >
+              <BarChart3 className="w-[18px] h-[18px]" style={{ color: pathname === "/indicadores" ? "var(--primary)" : "var(--text-muted)" }} />
+              Indicadores & Gráficos
+            </Link>
           </nav>
         </div>
 

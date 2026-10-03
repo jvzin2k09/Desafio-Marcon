@@ -227,9 +227,9 @@ export default function SolicitantePage() {
       {tab === "pedido" && (
         <div className="flex-1 flex flex-col lg:flex-row gap-4 md:gap-6 min-h-0 overflow-y-auto lg:overflow-hidden custom-scrollbar">
           {/* Left: Search + Items */}
-          <div className="flex-1 flex flex-col min-h-0 lg:overflow-hidden">
+          <div className="flex-1 flex flex-col min-h-0 lg:overflow-y-auto">
             {/* Search + Setor em linha no mobile */}
-            <div className="relative mb-2 md:mb-4 shrink-0">
+            <div className="relative mb-2 md:mb-4 shrink-0 lg:max-w-xl">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 type="text"
@@ -243,7 +243,7 @@ export default function SolicitantePage() {
             {/* Setor Solicitante - Filtros */}
             <div className="mb-2 md:mb-4 shrink-0">
               <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5 block">Setor Solicitante (Filtro)</label>
-              <div className="flex flex-wrap gap-1.5 md:grid md:grid-cols-4 md:gap-2">
+              <div className="flex flex-wrap gap-1.5 md:grid md:grid-cols-4 md:gap-2 lg:flex lg:flex-wrap lg:gap-2">
                 {[
                   { value: "Usinagem", label: "Usinagem", color: "#0072BC" },
                   { value: "Logística", label: "Logística", color: "#008C45" },
@@ -255,7 +255,7 @@ export default function SolicitantePage() {
                     type="button"
                     onClick={() => setSetor(setor === linha.value ? "" : linha.value)}
                     style={setor === linha.value ? { backgroundColor: linha.color, borderColor: linha.color, color: 'white' } : {}}
-                    className={`rounded-lg px-3 py-1.5 md:rounded-xl md:px-2 md:py-3 border-2 transition-all duration-200 flex items-center justify-center font-bold text-xs md:text-sm ${setor === linha.value
+                    className={`rounded-lg px-3 py-1.5 md:rounded-xl md:px-2 md:py-3 lg:px-4 lg:py-2 border-2 transition-all duration-200 flex items-center justify-center font-bold text-xs md:text-sm ${setor === linha.value
                         ? "shadow-lg scale-[1.02]"
                         : "border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:shadow-sm hover:bg-slate-50"
                       }`}
@@ -309,7 +309,7 @@ export default function SolicitantePage() {
                   <motion.div
                     key={item.id}
                     layout
-                    className={`bg-white rounded-xl shadow-sm border border-slate-200 mb-3 relative overflow-visible flex min-h-[110px] ${(() => {
+                    className={`bg-white rounded-xl shadow-sm border border-slate-200 mb-3 relative overflow-hidden flex min-h-[110px] ${(() => {
                       const sobras = item.estoques_alt?.reduce((acc, e) => acc + e.quantidade_avulsa, 0) || 0;
                       return (sobras + item.quantidade) === 0;
                     })() ? 'bg-slate-50/50' : ''}`}
@@ -346,33 +346,34 @@ export default function SolicitantePage() {
                       </div>
 
                       {/* LINHA INTERMEDIÁRIA */}
-                      <div className="flex items-center gap-2 mt-2 flex-wrap">
-                        <span className="text-xs font-mono font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded whitespace-nowrap">
+                      <div className="flex items-start gap-2 mt-2 flex-wrap">
+                        <span className="text-xs font-mono font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded whitespace-nowrap mt-1">
                           {item.codigo}
                         </span>
 
                         <div className="flex flex-col gap-0.5 mt-1 mb-2">
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded-md whitespace-nowrap w-fit ${saldo_total > 0 ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>
-                            {saldo_total} UN Total
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-md whitespace-nowrap w-fit ${saldo_total > 0 ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>
+                              {saldo_total} UN Total
+                            </span>
+                            {item.qtd_por_caixa > 1 && (
+                              <button 
+                                onClick={() => setInfoVisible(prev => ({...prev, [item.id]: !prev[item.id]}))}
+                                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium transition-all border ${
+                                  infoVisible[item.id] 
+                                    ? 'bg-blue-100 text-blue-700 border-blue-200' 
+                                    : 'bg-slate-50 text-slate-400 border-slate-200 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200'
+                                }`}
+                              >
+                                <Info className="w-3 h-3" />
+                                <span className="hidden sm:inline">Saiba mais</span>
+                              </button>
+                            )}
+                          </div>
                           <span className="text-[10px] text-slate-500 font-medium flex items-center gap-1.5 px-1">
                             <Recycle className="w-3 h-3 shrink-0" /> {saldo_sobras} UN em Sobras • <Package className="w-3 h-3 shrink-0" /> {caixas_central} CX Central
                           </span>
                         </div>
-
-                        {item.qtd_por_caixa > 1 && (
-                          <button 
-                            onClick={() => setInfoVisible(prev => ({...prev, [item.id]: !prev[item.id]}))}
-                            className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium transition-all border ${
-                              infoVisible[item.id] 
-                                ? 'bg-blue-100 text-blue-700 border-blue-200' 
-                                : 'bg-slate-50 text-slate-400 border-slate-200 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200'
-                            }`}
-                          >
-                            <Info className="w-3 h-3" />
-                            <span className="hidden sm:inline">Saiba mais</span>
-                          </button>
-                        )}
                       </div>
 
                       {/* INFO INLINE EXPANSÍVEL */}
@@ -552,7 +553,7 @@ export default function SolicitantePage() {
           </div>
 
           {/* Right: Cart */}
-          <div className="lg:w-80 shrink-0">
+          <div className="lg:w-80 xl:w-96 shrink-0 lg:sticky lg:top-0 lg:self-start">
             <div className="site-card p-5 flex flex-col max-h-[250px] lg:max-h-[calc(100vh-200px)]">
               <div className="flex items-center justify-between mb-4 shrink-0">
                 <h3 className="text-sm font-display font-black text-slate-700 uppercase tracking-wide">Carrinho</h3>
