@@ -8,6 +8,7 @@ import { LogOut, Package, ClipboardList, History, BarChart3, Undo2, Boxes, Menu,
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 import SplashScreen from "@/components/SplashScreen";
+import KineticGrid from "@/components/ui/kinetic-grid";
 
 export default function DashboardLayout({ children }) {
   const { data: session } = useSession();
@@ -57,7 +58,8 @@ export default function DashboardLayout({ children }) {
   return (
     <>
       <SplashScreen />
-      <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "var(--background)" }}>
+      <KineticGrid>
+      <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "transparent" }}>
       {/* Sidebar - Desktop Only */}
       <aside className="hidden md:flex w-64 bg-white border-r flex-col shrink-0 min-h-screen" style={{ borderColor: "var(--border)" }}>
         {/* Logo */}
@@ -198,6 +200,7 @@ export default function DashboardLayout({ children }) {
         })}
       </nav>
     </div>
+    </KineticGrid>
     </>
   );
 }

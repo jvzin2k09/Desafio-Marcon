@@ -904,3 +904,60 @@ fiz esse prompt e nao gostei do resultado, por favor volte como era antes, após
 ### 🤖 Resposta do Assistente (Resumo):
 Foi desenvolvido um script node.js e atualizado o arquivo database_seed.sql contendo 40 novos itens divididos equitativamente nas 4 grandes linhas de produtos da Marcon (Mecânica, Pratiká, Movimento, Hidráulica). O mapeamento no frontend foi alterado de um de/para estático para uma busca dinâmica por prefixo.
 No entanto, ocorreu uma confusão com o escopo: os 'Setores' (ex: Usinagem, Logística) foram indevidamente sobrescritos pelas 'Linhas'. A pedido do usuário, o código, os filtros de pesquisa (page.js) e as referências ao banco de dados foram revertidos (rollback) para o padrão original usando o versionamento git, e a estrutura do banco retornou à sua forma nativa para garantir a segurança da regra de negócios original (Departamentos / Setores mantidos isolados das Linhas de Peças).
+
+---
+
+## Interação 39
+
+**📅 Data/Hora:** 02/10/2026, 22:46:00
+**🎯 Finalidade:** Criação e Integração de Novo Dashboard de Indicadores
+
+### 👤 Prompt do Utilizador:
+```text
+Atue como desenvolvedor Frontend Sênior (Next.js, Tailwind CSS e Recharts/Lucide). Inspecione as imagens de referência adicionadas no projeto (cards.png, gráfico.png e gráficobolinha.png) para implementar a nova página de "Indicadores & Gráficos":
+⚠️ REGRA IMPORTANTE DE ESTILIZAÇÃO: NÃO altere a cor de fundo (background) global...
+
+(E logo após):
+A interface da página `/indicadores` ficou excelente visualmente! Agora precisamos transformar esses gráficos e cards em COMPONENTES 100% FUNCIONAIS e DInÂMICOS, integrados aos dados do sistema...
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Foi criada a nova rota `/indicadores` com layout estrito para Desktop, sendo bloqueada e redirecionada no Mobile. A tela foi populada inicialmente com dados estáticos para validar o layout visual (cartões de KPI, gráfico de barras empilhadas e rosca). Em seguida, foi implementada a integração no backend usando Server Actions (Prisma) para buscar os dados reais do WMS: comparativo de volume de requisições, cálculo da Taxa de Reuso Lean em tempo real e distribuição real dos pedidos pelos meses (BarChart) e por Setores (DonutChart).
+
+---
+
+## Interação 40
+
+**📅 Data/Hora:** 02/10/2026, 22:54:00
+**🎯 Finalidade:** Troubleshooting de Cache (Next.js) e Correção de Query
+
+### 👤 Prompt do Utilizador:
+```text
+[Error: UNKNOWN: unknown error, open 'C:\Projetos\Marcon(certo)\Desafio-Marcon\.next\static\chunks\webpack.js']
+...
+Você consegue ver prompts de outros chats? responda isso, após isso veja a imagem, nao aparece nada (gráficos zerados).
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Esclarecido que não há acesso a outros chats. Resolvido o erro de compilação corrigindo o caminho do import da Server Action e instruindo o usuário a limpar o cache (`.next`) do Next.js. O bug dos gráficos zerados foi solucionado: a query do Prisma buscava pela data de finalização (`data_hora_baixa`), que era nula em itens não separados. O código foi corrigido para buscar por `pedido.createdAt`, capturando corretamente as requisições em andamento/pendentes.
+
+---
+
+## Interação 41
+
+**📅 Data/Hora:** 02/10/2026, 23:06:00
+**🎯 Finalidade:** Ajustes Finos de Layout e Legendas em Gráficos (Recharts)
+
+### 👤 Prompt do Utilizador:
+```text
+abaixo do gráfico, 2°imagem, deixe com gramática: "Atendimento, Devoluções, Pendente, Sobras"
+E no gráfico circular coloque todos os setores: "Usinagem (azul), Logística (verde), Manutenção (vermelho), Montagem (amarelo)
+
+(Posteriormente):
+Esse gráfico redondo ta um pouco cortado, só arrumar.
+Centraliza o "total 81" no meio do gráfico.
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Foi adicionado o atributo `name` às barras do Recharts para corrigir a gramática da legenda sem quebrar as chaves do banco de dados. Os 4 setores bases foram fixados no Donut Chart, associados rigidamente às cores exatas solicitadas (Azul, Verde, Vermelho, Amarelo). 
+Para corrigir os "cortes" nas bordas do gráfico de rosca, os atributos `innerRadius` e `outerRadius` foram reduzidos. Para o número do Total que estava descentralizado, o gráfico e o texto foram envelopados numa div relativa limpa, desvinculando o cálculo de alinhamento da legenda e resultando num alinhamento matemático perfeito.
