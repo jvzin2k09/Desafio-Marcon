@@ -12,6 +12,9 @@ export async function GET() {
     // O painel foca apenas em EXIBIR o estado atual do estoque sem mutação de dados
 
     const items = await prisma.item.findMany({
+      include: {
+        estoques_alt: true
+      },
       orderBy: { nome: 'asc' },
     });
 

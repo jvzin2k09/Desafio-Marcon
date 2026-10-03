@@ -12,69 +12,70 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
   }
 
-  let body;
   try {
-    body = await request.json();
-  } catch (e) {
-    return NextResponse.json({ error: 'JSON inválido', detail: e.message }, { status: 400 });
-  }
+    const { itens, setor, observacao, operadorSolicitante, ordem_producao } = await request.json();
 
-  const { itens, setor, observacao, operadorSolicitante, ordem_producao } = body;
+    if (!itens || !Array.isArray(itens) || itens.length === 0) {
+      return NextResponse.json({ error: 'Nenhum item informado' }, { status: 400 });
+    }
 
-  if (!itens || !Array.isArray(itens) || itens.length === 0) {
-    return NextResponse.json({ error: 'Nenhum item informado' }, { status: 400 });
-  }
-
-  // setorFiltro nunca pode ser null/undefined — o upsert depende de uma string válida
-  const setorFiltro = (setor && setor.trim()) ? setor.trim() : "Geral";
-
-  try {
     const pedido = await prisma.$transaction(async (tx) => {
+      // Lógica de Roteamento (Estoque Alternativo vs Central)
+      const setorFiltro = setor || "Geral";
       const itensComRoteamento = [];
 
       for (const reqItem of itens) {
         const itemDb = await tx.item.findUnique({ where: { id: parseInt(reqItem.itemId) } });
         if (!itemDb) continue;
 
-        let estoqueAlt = null;
-        try {
-          estoqueAlt = await tx.estoque_alternativo.findUnique({
-            where: { itemId_setor: { itemId: itemDb.id, setor: setorFiltro } }
-          });
-        } catch (e) {
-          // Se falhar, continua sem estoque alternativo
-          console.error('Erro ao buscar estoque alternativo:', e.message);
-        }
-
-        let qtdPedida = parseInt(reqItem.quantidade) || 1;
+        let estoquesAlt = await tx.estoque_alternativo.findMany({
+          where: { itemId: itemDb.id, quantidade_avulsa: { gt: 0 } },
+          orderBy: { quantidade_avulsa: 'desc' }
+        });
+        
+        let originalQtdPedida = parseInt(reqItem.quantidade);
+        let qtdPedida = originalQtdPedida;
         let qtd_alternativo = 0;
         let qtd_caixas_central = 0;
         let sobra_gerada = 0;
-        let avulsaDisponivel = estoqueAlt ? (estoqueAlt.quantidade_avulsa || 0) : 0;
+        
+        // PASSO 1: Consumir de todas as sobras disponíveis para esvaziar o estoque alternativo
+        for (let alt of estoquesAlt) {
+           if (qtdPedida === 0) break;
+           let consumed = Math.min(qtdPedida, alt.quantidade_avulsa);
+           qtd_alternativo += consumed;
+           qtdPedida -= consumed;
+           await tx.estoque_alternativo.update({
+             where: { id: alt.id },
+             data: { quantidade_avulsa: alt.quantidade_avulsa - consumed }
+           });
+        }
 
-        if (avulsaDisponivel >= qtdPedida) {
-          qtd_alternativo = qtdPedida;
-          avulsaDisponivel -= qtdPedida;
-        } else {
-          qtd_alternativo = avulsaDisponivel;
-          let restante = qtdPedida - qtd_alternativo;
+        // PASSO 2: CÁLCULO DE CAIXAS E SOBRAS CASO AINDA FALTE
+        if (qtdPedida > 0) {
           let qtdPorCaixa = itemDb.qtd_por_caixa || 1;
-          qtd_caixas_central = Math.ceil(restante / qtdPorCaixa);
-          sobra_gerada = (qtd_caixas_central * qtdPorCaixa) - restante;
-          avulsaDisponivel = sobra_gerada;
+          qtd_caixas_central = Math.ceil(qtdPedida / qtdPorCaixa);
+          sobra_gerada = (qtd_caixas_central * qtdPorCaixa) - qtdPedida;
+          
+          // O saldo remanescente será direcionado ao Almoxarifado Alternativo local do solicitante
+          if (sobra_gerada > 0) {
+            let altLocal = await tx.estoque_alternativo.findUnique({
+              where: { itemId_setor: { itemId: itemDb.id, setor: setorFiltro } }
+            });
+            if (altLocal) {
+              await tx.estoque_alternativo.update({
+                where: { id: altLocal.id },
+                data: { quantidade_avulsa: altLocal.quantidade_avulsa + sobra_gerada }
+              });
+            } else {
+              await tx.estoque_alternativo.create({
+                data: { itemId: itemDb.id, setor: setorFiltro, quantidade_avulsa: sobra_gerada }
+              });
+            }
+          }
         }
 
-        try {
-          await tx.estoque_alternativo.upsert({
-            where: { itemId_setor: { itemId: itemDb.id, setor: setorFiltro } },
-            update: { quantidade_avulsa: Math.max(0, avulsaDisponivel) },
-            create: { itemId: itemDb.id, setor: setorFiltro, quantidade_avulsa: Math.max(0, avulsaDisponivel) }
-          });
-        } catch (e) {
-          console.error('Erro no upsert estoque_alternativo:', e.message);
-          // Tenta de outra forma se upsert falhar
-        }
-
+        // Deduct from Central Stock immediately so "Disponível" reflects the pending order
         if (qtd_caixas_central > 0) {
           let qtdPorCaixa = itemDb.qtd_por_caixa || 1;
           let descontoCentral = qtd_caixas_central * qtdPorCaixa;
@@ -87,17 +88,14 @@ export async function POST(request) {
 
         itensComRoteamento.push({
           itemId: itemDb.id,
-          quantidade: qtdPedida,
+          quantidade: originalQtdPedida,
           qtd_alternativo,
           qtd_caixas_central,
           sobra_gerada
         });
       }
 
-      if (itensComRoteamento.length === 0) {
-        throw new Error('Nenhum item válido encontrado no estoque.');
-      }
-
+      // 1. Criar o pedido
       const novoPedido = await tx.pedido.create({
         data: {
           userId: parseInt(session.user.id),
@@ -117,19 +115,11 @@ export async function POST(request) {
       });
 
       return novoPedido;
-    }, {
-      timeout: 15000 // 15 segundos de timeout para a transação
     });
 
     return NextResponse.json(pedido, { status: 201 });
   } catch (error) {
-    console.error('=== Erro ao criar pedido ===');
-    console.error('Mensagem:', error.message);
-    console.error('Código:', error.code);
-    console.error('Stack:', error.stack);
-    return NextResponse.json({ 
-      error: error.message || 'Erro ao criar pedido',
-      code: error.code
-    }, { status: 400 });
+    console.error('Erro ao criar pedido:', error);
+    return NextResponse.json({ error: error.message || 'Erro ao criar pedido' }, { status: 400 });
   }
 }

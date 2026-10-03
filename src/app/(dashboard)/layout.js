@@ -8,12 +8,11 @@ import { LogOut, Package, ClipboardList, History, BarChart3, Undo2, Boxes, Menu,
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 import SplashScreen from "@/components/SplashScreen";
+import KineticGrid from "@/components/ui/kinetic-grid";
 
 export default function DashboardLayout({ children }) {
   const { data: session } = useSession();
   const pathname = usePathname();
-  const [showMobileLogout, setShowMobileLogout] = useState(false);
-  const [showDesktopLogout, setShowDesktopLogout] = useState(false);
 
   if (!session) return null;
 
@@ -44,6 +43,8 @@ export default function DashboardLayout({ children }) {
     OPERADOR: { label: "Operador", color: "#16a34a" },
   }[role] || { label: role, color: "#64748b" };
 
+  const [showMobileLogout, setShowMobileLogout] = useState(false);
+
   // Filtramos o "Dashboard" apenas para o menu inferior móvel e definimos a ordem exata
   const mobileOrder = ["/almoxarifado", "/estoque-alternativo", "/solicitante", "/painel-estoque", "/historico"];
   const mobileNavItems = navItems
@@ -57,18 +58,19 @@ export default function DashboardLayout({ children }) {
   return (
     <>
       <SplashScreen />
-      <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "var(--background)" }}>
+      <KineticGrid>
+      <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "transparent" }}>
       {/* Sidebar - Desktop Only */}
-      <aside className="hidden md:flex w-64 bg-white border-r flex-col shrink-0 h-screen sticky top-0" style={{ borderColor: "var(--border)" }}>
+      <aside className="hidden md:flex w-64 bg-white lg:bg-[#161618]/85 lg:backdrop-blur-md border-r border-[var(--border)] lg:border-white/10 flex-col shrink-0 min-h-screen transition-colors">
         {/* Logo */}
-        <div className="p-5 border-b flex items-center gap-3" style={{ borderColor: "var(--border)" }}>
-          <Image src="/Logo.png" alt="Til Marcon" width={240} height={72} className="h-14 w-auto object-contain" priority />
+        <div className="p-5 border-b border-[var(--border)] lg:border-white/10 flex items-center gap-3">
+          <Image src="/Logo.png" alt="Til Marcon" width={240} height={72} className="h-14 w-auto object-contain lg:brightness-0 lg:invert" priority />
         </div>
 
         {/* Nav */}
         <div className="p-3 flex-1">
-          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 px-3 mb-2">Navegação</p>
-          <nav className="space-y-0.5">
+          <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 lg:text-slate-400 px-3 mb-2">Navegação</p>
+          <nav className="space-y-0.5 mb-6">
             {navItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
               return (
@@ -76,8 +78,8 @@ export default function DashboardLayout({ children }) {
                   key={item.href}
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${isActive
-                      ? "bg-[var(--surface-3)] text-[var(--primary)] font-bold"
-                      : "text-slate-600 hover:bg-[var(--surface-2)] hover:text-slate-900"
+                      ? "bg-[var(--surface-3)] text-[var(--primary)] font-bold lg:bg-blue-600/20 lg:text-blue-400 lg:border lg:border-blue-500/30"
+                      : "text-slate-600 hover:bg-[var(--surface-2)] hover:text-slate-900 lg:text-slate-300 hover:lg:text-white hover:lg:bg-white/5"
                     }`}
                 >
                   <item.icon className="w-[18px] h-[18px]" style={{ color: isActive ? "var(--primary)" : "var(--text-muted)" }} />
@@ -86,35 +88,42 @@ export default function DashboardLayout({ children }) {
               );
             })}
           </nav>
+
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2 hidden lg:block">GESTÃO & ANALYTICS</p>
+          <nav className="space-y-0.5 hidden lg:block">
+            <Link
+              href="/indicadores"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium ${pathname === "/indicadores"
+                  ? "bg-[var(--surface-3)] text-[var(--primary)] font-bold lg:bg-blue-600/20 lg:text-blue-400 lg:border lg:border-blue-500/30"
+                  : "text-slate-600 hover:bg-[var(--surface-2)] hover:text-slate-900 lg:text-slate-300 hover:lg:text-white hover:lg:bg-white/5"
+                }`}
+            >
+              <BarChart3 className="w-[18px] h-[18px]" style={{ color: pathname === "/indicadores" ? "var(--primary)" : "var(--text-muted)" }} />
+              Indicadores & Gráficos
+            </Link>
+          </nav>
         </div>
 
         {/* User Footer */}
-        <div className="p-4 border-t relative" style={{ borderColor: "var(--border)" }}>
-          <div 
-            className="flex items-center gap-3 cursor-pointer select-none"
-            onClick={() => setShowDesktopLogout(!showDesktopLogout)}
-          >
+        <div className="p-4 border-t border-[var(--border)] lg:border-white/10 lg:bg-white/5">
+          <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm" style={{ background: "var(--primary)" }}>
               {session.user.name?.charAt(0)}
             </div>
             <div className="overflow-hidden flex-1">
-              <p className="text-sm font-bold text-slate-800 truncate">{session.user.name}</p>
+              <p className="text-sm font-bold text-slate-800 lg:text-slate-200 truncate">{session.user.name}</p>
               <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-sm" style={{ background: roleBadge.color + "15", color: roleBadge.color }}>
                 {roleBadge.label}
               </span>
             </div>
           </div>
-          {showDesktopLogout && (
-            <div className="mt-3">
-              <button
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors font-bold text-xs uppercase tracking-wider"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                Sair
-              </button>
-            </div>
-          )}
+          <button
+            onClick={() => signOut({ callbackUrl: "/" })}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-red-600 lg:text-red-400 hover:bg-red-50 hover:lg:bg-red-500/10 rounded-lg transition-colors font-bold text-xs uppercase tracking-wider"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            Sair
+          </button>
         </div>
       </aside>
 
@@ -191,6 +200,7 @@ export default function DashboardLayout({ children }) {
         })}
       </nav>
     </div>
+    </KineticGrid>
     </>
   );
 }

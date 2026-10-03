@@ -68,7 +68,7 @@ function InputsSeparacao({ pedido, onQuantidadesChange }) {
       <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-2">Qtd. Separada</p>
       {pedido.itens.map(pi => (
         <div key={pi.id} className="flex items-center justify-between bg-amber-50 border border-amber-100 rounded-md px-2 py-1.5">
-          <p className="text-[11px] font-medium text-slate-600 truncate flex-1 mr-2">
+          <p className="text-[11px] font-medium text-slate-600 lg:text-slate-300 truncate flex-1 mr-2">
             <span className="font-bold text-amber-600 mr-1">[{pi.quantidade}]</span>
             {pi.item.nome}
           </p>
@@ -113,11 +113,11 @@ function InputsSeparacaoModal({ pedido, onQuantidadesChange }) {
     <div className="space-y-3">
       {pedido.itens.map(pi => (
         <div key={pi.id}
-          className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-colors shadow-sm"
+          className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-slate-200 bg-white hover:border-slate-300 transition-colors shadow-sm lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200"
         >
           <div className="flex-1 mb-3 sm:mb-0">
-            <p className="text-base font-bold text-slate-800">{pi.item.nome}</p>
-            <p className="text-sm font-mono text-slate-500 mt-0.5">
+            <p className="text-base font-bold text-slate-800 lg:text-white">{pi.item.nome}</p>
+            <p className="text-sm font-mono text-slate-500 lg:text-slate-400 mt-0.5">
               Cód: {pi.item.codigo} · Solicitado: <span className="text-blue-600 font-bold">{pi.quantidade} un</span>
             </p>
           </div>
@@ -127,7 +127,7 @@ function InputsSeparacaoModal({ pedido, onQuantidadesChange }) {
               type="number" min="0"
               value={quantidades[pi.id]}
               onChange={e => handleChange(pi.id, e.target.value)}
-              className="w-24 text-center text-2xl font-mono font-black rounded-lg py-2 bg-white border-2 border-amber-200 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all text-slate-800"
+              className="w-24 text-center text-2xl font-mono font-black rounded-lg py-2 bg-white border-2 border-amber-200 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all text-slate-800 lg:text-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200"
             />
           </div>
         </div>
@@ -154,7 +154,7 @@ function KanbanCard({ pedido, column, onStatusChange, setQuantidadesEnviadas, on
       transition={SPRING}
       whileHover={{ y: -2, boxShadow: "0 6px 24px rgba(27,58,107,0.12)" }}
       whileTap={{ scale: 0.98 }}
-      className={`relative bg-white rounded-xl border border-slate-200 shadow-card cursor-grab active:cursor-grabbing overflow-hidden group transition-shadow ${updating ? 'pointer-events-none opacity-60' : ''}`}
+      className={`relative bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-xl border border-slate-200 shadow-card cursor-grab active:cursor-grabbing overflow-hidden group transition-shadow ${updating ? 'pointer-events-none opacity-60' : ''}`}
     >
       {/* Barra lateral colorida */}
       <div className="absolute top-0 left-0 w-1 h-full rounded-l-xl" style={{ background: column.accent }} />
@@ -166,7 +166,7 @@ function KanbanCard({ pedido, column, onStatusChange, setQuantidadesEnviadas, on
           onClick={() => column.id === 'SEPARACAO' && onOpenModal(pedido)}
         >
           <span className="text-xs font-mono font-bold text-slate-400">#{pedido.id.toString().padStart(4, '0')}</span>
-          <span className="flex items-center text-[10px] font-bold px-2 py-1 rounded-md bg-slate-50 border border-slate-100 text-slate-500">
+          <span className="flex items-center text-[10px] font-bold px-2 py-1 rounded-md bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 border border-slate-100 text-slate-500 lg:text-slate-400">
             <Clock className="w-3 h-3 mr-1" />
             {getTempoEspera(pedido.createdAt)}
           </span>
@@ -175,7 +175,7 @@ function KanbanCard({ pedido, column, onStatusChange, setQuantidadesEnviadas, on
         {/* Solicitante */}
         <div className="flex items-center mb-3">
           <UserIcon className="w-3.5 h-3.5 mr-1.5 shrink-0" style={{ color: column.accent }} />
-          <span className="text-sm font-bold text-slate-700 truncate">{pedido.user?.nome}</span>
+          <span className="text-sm font-bold text-slate-700 lg:text-slate-300 truncate">{pedido.user?.nome}</span>
         </div>
 
         {/* Itens */}
@@ -193,7 +193,7 @@ function KanbanCard({ pedido, column, onStatusChange, setQuantidadesEnviadas, on
             </button>
           </div>
         ) : (
-          <p className="text-[11px] text-slate-500 font-medium line-clamp-2 leading-relaxed">
+          <p className="text-[11px] text-slate-500 lg:text-slate-400 font-medium line-clamp-2 leading-relaxed">
             {pedido.itens?.slice(0, 2).map(i => `${i.quantidade}× ${i.item.nome}`).join(', ')}
             {pedido.itens?.length > 2 && ` +${pedido.itens.length - 2}`}
           </p>
@@ -336,9 +336,9 @@ export default function PedidosKanban() {
   return (
     <div className="h-full flex flex-col space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-display font-black text-slate-900 tracking-tight">Fluxo de Requisições</h2>
-        <p className="text-slate-500 text-sm mt-1">Arraste os pedidos entre colunas · {filteredPedidos.length} ativos</p>
+      <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80">
+        <h2 className="text-2xl font-display font-black text-slate-900 lg:text-white tracking-tight">Fluxo de Requisições</h2>
+        <p className="text-slate-500 lg:text-slate-400 text-sm mt-1">Arraste os pedidos entre colunas · {filteredPedidos.length} ativos</p>
       </div>
 
       {/* Board */}
@@ -362,7 +362,7 @@ export default function PedidosKanban() {
                   style={{ borderColor: column.accentBorder }}>
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${column.dotClass}`} />
-                    <h3 className="font-display font-black text-sm text-slate-700 uppercase tracking-wide">
+                    <h3 className="font-display font-black text-sm text-slate-700 lg:text-slate-300 uppercase tracking-wide">
                       {column.title}
                     </h3>
                   </div>
@@ -414,19 +414,19 @@ export default function PedidosKanban() {
               exit={{ opacity: 0, scale: 0.96 }}
               transition={SPRING}
               onClick={e => e.stopPropagation()}
-              className="w-full max-w-5xl rounded-2xl bg-white border border-slate-200 overflow-hidden flex flex-col max-h-[88vh] shadow-2xl"
+              className="w-full max-w-5xl rounded-2xl bg-white border border-slate-200 overflow-hidden flex flex-col max-h-[88vh] shadow-2xl lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200"
             >
-              <div className="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <div className="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200">
                 <div>
                   <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-amber-600 mb-1">Separação · Modo Foco</p>
-                  <h3 className="text-2xl font-display font-black text-slate-900">Pedido #{modalPedido.id.toString().padStart(4, '0')}</h3>
-                  <p className="text-sm text-slate-500 mt-0.5">
-                    Solicitante: <span className="font-bold text-slate-700">{modalPedido.user?.nome}</span>
+                  <h3 className="text-2xl font-display font-black text-slate-900 lg:text-white">Pedido #{modalPedido.id.toString().padStart(4, '0')}</h3>
+                  <p className="text-sm text-slate-500 lg:text-slate-400 mt-0.5">
+                    Solicitante: <span className="font-bold text-slate-700 lg:text-slate-300">{modalPedido.user?.nome}</span>
                   </p>
                 </div>
                 <button
                   onClick={() => setModalPedido(null)}
-                  className="p-2.5 rounded-xl hover:bg-slate-200 transition-colors text-slate-400 hover:text-slate-600"
+                  className="p-2.5 rounded-xl hover:bg-slate-200 hover:lg:bg-slate-800/60 transition-colors text-slate-400 hover:text-slate-600 lg:text-slate-300"
                 >
                   <X className="w-6 h-6" />
                 </button>
@@ -442,7 +442,7 @@ export default function PedidosKanban() {
                 />
               </div>
 
-              <div className="px-8 py-5 border-t border-slate-100 bg-slate-50 flex justify-end">
+              <div className="px-8 py-5 border-t border-slate-100 bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 flex justify-end">
                 <motion.button
                   whileHover={{ scale: 1.01, y: -2 }}
                   whileTap={{ scale: 0.98 }}

@@ -84,8 +84,8 @@ export default function SeparacaoPage({ params }) {
 
   if (!pedido) {
     return (
-      <div className="bg-white p-12 rounded-lg border border-border text-center shadow-sm max-w-3xl mx-auto mt-8">
-        <p className="text-slate-500 font-medium text-lg">Pedido não encontrado.</p>
+      <div className="bg-white p-12 rounded-lg border border-border text-center shadow-sm max-w-3xl mx-auto mt-8 lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200">
+        <p className="text-slate-500 lg:text-slate-400 font-medium text-lg">Pedido não encontrado.</p>
       </div>
     );
   }
@@ -99,29 +99,29 @@ export default function SeparacaoPage({ params }) {
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className="max-w-3xl mx-auto space-y-6 pb-20"
     >
-      <Link href="/pedidos" className="inline-flex items-center text-slate-500 hover:text-accent font-bold transition-all hover:-translate-x-1 text-sm mb-2">
+      <Link href="/pedidos" className="inline-flex items-center text-slate-500 lg:text-slate-400 hover:text-accent font-bold transition-all hover:-translate-x-1 text-sm mb-2">
         <ArrowLeft className="w-5 h-5 mr-1.5" />
         Voltar para Pedidos
       </Link>
       
       <div className="flex items-center space-x-4 mb-4">
-        <div className="p-3 bg-white rounded-md shadow-sm border border-border">
+        <div className="p-3 bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-md shadow-sm border border-border">
           <PackageCheck className="w-8 h-8 text-primary" />
         </div>
-        <h2 className="text-3xl font-display font-black text-slate-900 tracking-tight">
+        <h2 className="text-3xl font-display font-black text-slate-900 lg:text-white tracking-tight">
           Separação: #{pedido.id.toString().padStart(4, '0')}
         </h2>
       </div>
 
-      <div className="bg-white border border-border rounded-lg p-6 sm:p-10 shadow-sm">
+      <div className="bg-white border border-border rounded-lg p-6 sm:p-10 shadow-sm lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200">
         <div className="mb-8 pb-6 border-b border-border flex flex-col sm:flex-row justify-between sm:items-center gap-4">
           <div>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Solicitante</p>
-            <p className="font-black text-xl text-slate-900">{pedido.user.nome}</p>
+            <p className="font-black text-xl text-slate-900 lg:text-white">{pedido.user.nome}</p>
           </div>
           <div className="sm:text-right">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Data do Pedido</p>
-            <p className="font-black text-xl text-slate-900">{new Date(pedido.createdAt).toLocaleDateString('pt-BR')}</p>
+            <p className="font-black text-xl text-slate-900 lg:text-white">{new Date(pedido.createdAt).toLocaleDateString('pt-BR')}</p>
           </div>
         </div>
 
@@ -147,7 +147,7 @@ export default function SeparacaoPage({ params }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 key={pedidoItem.id}
-                className={`flex flex-col sm:flex-row sm:items-center justify-between p-5 sm:p-6 rounded-md border-2 transition-all duration-300 ease-out ${isChecked ? 'bg-primary/5 border-primary/20 shadow-sm' : 'bg-slate-50/50 border-border'}`}
+                className={`flex flex-col sm:flex-row sm:items-center justify-between p-5 sm:p-6 rounded-md border-2 transition-all duration-300 ease-out ${isChecked ? 'bg-primary/5 border-primary/20 shadow-sm' : 'bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200/50 border-border'}`}
               >
                 <div 
                   className="flex items-start space-x-5 cursor-pointer flex-1 min-h-[44px]"
@@ -161,17 +161,17 @@ export default function SeparacaoPage({ params }) {
                     )}
                   </div>
                   <div>
-                    <h4 className={`font-black text-lg sm:text-xl transition-colors ${isChecked ? 'text-primary' : 'text-slate-900'}`}>
+                    <h4 className={`font-black text-lg sm:text-xl transition-colors ${isChecked ? 'text-primary' : 'text-slate-900 lg:text-white'}`}>
                       {pedidoItem.item.nome}
                     </h4>
-                    <p className="text-sm font-medium text-slate-500 mb-2">Cód: {pedidoItem.item.codigo}</p>
-                    <div className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-black uppercase tracking-wider text-slate-500">
-                      Solicitado: <span className="text-slate-800 ml-1.5 text-sm">{pedidoItem.quantidade} un</span>
+                    <p className="text-sm font-medium text-slate-500 lg:text-slate-400 mb-2">Cód: {pedidoItem.item.codigo}</p>
+                    <div className="inline-flex items-center px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-black uppercase tracking-wider text-slate-500 lg:text-slate-400 lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200">
+                      Solicitado: <span className="text-slate-800 lg:text-white ml-1.5 text-sm">{pedidoItem.quantidade} un</span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="mt-6 sm:mt-0 flex items-center justify-end bg-white p-3 sm:p-4 rounded-md border border-slate-200 ml-[48px] sm:ml-4 shadow-sm min-h-[44px]">
+                <div className="mt-6 sm:mt-0 flex items-center justify-end bg-white p-3 sm:p-4 rounded-md border border-slate-200 ml-[48px] sm:ml-4 shadow-sm min-h-[44px] lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200">
                   <div className="text-right">
                     <label className="text-[10px] font-black text-primary block uppercase tracking-widest mb-1.5 opacity-80">
                       Enviado (un)
@@ -181,7 +181,7 @@ export default function SeparacaoPage({ params }) {
                       min="0"
                       value={qtdeEnviada}
                       onChange={(e) => handleQuantidadeEnviadaChange(pedidoItem.id, e.target.value)}
-                      className={`w-28 text-right font-black text-2xl py-1 px-2 border-b-2 bg-transparent focus:outline-none transition-colors ${diff !== 0 ? 'border-accent text-accent' : 'border-slate-200 text-slate-800 focus:border-primary focus:text-primary'}`}
+                      className={`w-28 text-right font-black text-2xl py-1 px-2 border-b-2 bg-transparent focus:outline-none transition-colors ${diff !== 0 ? 'border-accent text-accent' : 'border-slate-200 text-slate-800 lg:text-white focus:border-primary focus:text-primary'}`}
                       disabled={isChecked}
                     />
                   </div>
