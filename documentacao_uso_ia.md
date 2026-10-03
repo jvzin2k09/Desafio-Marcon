@@ -1080,3 +1080,60 @@ Foram corrigidas as anomalias do layout Dark Mode que mantinham resquícios de `
 2. No Módulo Solicitante, os botões das abas superiores receberam limite de largura (`max-w-md`) para evitar distorção, e ganharam estados ativos e inativos escuros (`lg:bg-slate-700`), tornando-os legíveis.
 3. O nome das peças nos cards de produtos recebeu `lg:text-white`.
 4. O container lateral do "Carrinho" que estava totalmente branco recebeu o design padrão Glassmorphism Translúcido (`lg:bg-slate-900/80`), resolvendo a visibilidade e combinando com o resto da tela.
+
+---
+
+## Interação 34
+
+**📅 Data/Hora:** 03/10/2026, 14:00:00
+**🎯 Finalidade:** Desenvolvimento de Funcionalidade (Entrada de Ativos Modal)
+
+### 👤 Prompt do Utilizador:
+``text
+Em 'novo pedido', quando você digita a quantidade que quer no carrinho, fica tudo branco prejudicando a visão, corrija
+Um erro comum que acontece na maioria das páginas é esse, após recarregar a pagina da esse erro, tem como corrigir? 
+Atue como desenvolvedor Frontend Sênior (Next.js, Tailwind CSS e TypeScript). Atualize a Sidebar e a modal "Entrada de Ativos" com RESTRIÇÃO EXCLUSIVA PARA O CARGO DE ADMINISTRADOR EM DESKTOP:
+1. REGRA DE PERMISSÃO RIGOROSA (Exclusivo Administrador)
+2. REGRAS DE RENDERIZAÇÃO NA SIDEBAR
+...
+``
+
+### 🤖 Resposta do Assistente (Resumo):
+Corrigi o erro de hooks no layout e o problema de legibilidade no input de quantidade do modo escuro. Adicionei a opção "Entrada de Ativos" restrita ao Administrador em desktop, criando uma modal Dark Glassmorphism com formulário manual e importador CSV conectada à rota /api/items/criar.
+
+---
+
+## Interação 35
+
+**📅 Data/Hora:** 03/10/2026, 14:53:33
+**🎯 Finalidade:** Desenvolvimento de Funcionalidade (Página de Entrada de Ativos)
+
+### 👤 Prompt do Utilizador:
+``text
+Atue como desenvolvedor Frontend Sênior (Next.js, Tailwind CSS e TypeScript). Converta a funcionalidade de "Entrada de Ativos" de modal para uma PÁGINA DEDICADA com salvamento no Banco de Dados, mantendo as restrições exclusivas para o ADMINISTRADOR em COMPUTADOR:
+1. PERMISSÃO E ROTEAMENTO
+2. NA SIDEBAR (Sidebar.tsx)
+3. ESTRUTURA DA PÁGINA DEDICADA (/entrada-ativos)
+4. PERSISTÊNCIA NO BANCO DE DADOS (DB)
+5. DESIGN DARK GLASSMORPHISM
+``
+
+### 🤖 Resposta do Assistente (Resumo):
+Removi a modal do layout e criei uma nova rota dedicada (/entrada-ativos) exclusiva para Administradores no Desktop. Adicionei guards de redirecionamento, uma tabela estilizada para exibir os itens em tempo real e integrei o salvamento manual e em lote (CSV) com animações, notificações Toast e o banco de dados.
+
+---
+
+## Interação 36
+
+**📅 Data/Hora:** 03/10/2026, 15:22:55
+**🎯 Finalidade:** Validação e Ajustes Visuais da Tabela
+
+### 👤 Prompt do Utilizador:
+``text
+Atue como desenvolvedor Frontend Sênior (Next.js, Tailwind CSS e TypeScript). Realize ajustes visuais de tipografia/alinhamento e adicione validação de ID ÚNICO na página de "Entrada de Ativos":
+1. VALIDAÇÃO DE ID DUPLICADO (Banco de Dados / Estado)
+2. CORREÇÃO DA TABELA DE PEÇAS CADASTRADAS (Ajustes de Largura e Quebra de Linha)
+``
+
+### 🤖 Resposta do Assistente (Resumo):
+Implementei validação de ID duplicado no Frontend (borda vermelha de erro) e alterei o processamento CSV no Backend para ignorar e contabilizar os itens duplicados em vez de atualizar sua quantidade. Na tabela, fixei larguras de coluna e apliquei whitespace-nowrap para evitar quebras de texto indesejadas, com um layout resposivo via scroll horizontal automático.
