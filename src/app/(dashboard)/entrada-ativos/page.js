@@ -6,10 +6,22 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   PackagePlus, Upload, CheckCircle2, AlertCircle, Loader2,
-  Search, Calendar, Hash, FileText, Package, RefreshCw
+  Search, Calendar, Hash, FileText, Package, RefreshCw, Building2
 } from "lucide-react";
 
 const SPRING = { type: "spring", stiffness: 280, damping: 24 };
+
+const SETORES = [
+  { value: "Geral", label: "Geral (Disponível para Todos)" },
+  { value: "Usinagem", label: "Usinagem" },
+  { value: "Logística", label: "Logística" },
+  { value: "Manutenção", label: "Manutenção" },
+  { value: "Montagem", label: "Montagem" },
+];
+
+function normalizarTexto(str) {
+  return (str || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
 
 export default function EntradaAtivosPage() {
   const { data: session, status } = useSession();
@@ -18,9 +30,11 @@ export default function EntradaAtivosPage() {
   // ── Form state ──────────────────────────────────────
   const [codigo, setCodigo] = useState("");
   const [nome, setNome] = useState("");
+  const [setor, setSetor] = useState("Geral");
   const [formLoading, setFormLoading] = useState(false);
   const [formStatus, setFormStatus] = useState(null);
   const [idDuplicado, setIdDuplicado] = useState(false);
+  const [nomeDuplicado, setNomeDuplicado] = useState(false);
 
   // ── CSV state ───────────────────────────────────────
   const [csvLoading, setCsvLoading] = useState(false);
@@ -70,7 +84,7 @@ export default function EntradaAtivosPage() {
   // ── Show toast ──────────────────────────────────────
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
-    setTimeout(() => setToast(null), 4000);
+    setTimeout(() => setToast(null), 5000);
   };
 
   // ── Submit form ─────────────────────────────────────
@@ -78,33 +92,50 @@ export default function EntradaAtivosPage() {
     e.preventDefault();
     if (!codigo.trim() || !nome.trim()) return;
     
-    // Validar duplicado
+    // Validar duplicado por código
     const c = codigo.trim().toLowerCase();
     if (itens.some(i => i.codigo.toLowerCase() === c)) {
       setIdDuplicado(true);
-      showToast(`❌ O código ID '${codigo.trim()}' já está cadastrado no sistema!`, "error");
+      setNomeDuplicado(false);
+      showToast(`❌ Erro: Já existe uma peça cadastrada com este código!`, "error");
+      return;
+    }
+
+    // Validar duplicado por descrição
+    const nomeNorm = normalizarTexto(nome);
+    if (itens.some(i => normalizarTexto(i.nome) === nomeNorm)) {
+      setNomeDuplicado(true);
+      setIdDuplicado(false);
+      showToast(`❌ Erro: Já existe uma peça cadastrada com esta descrição!`, "error");
       return;
     }
     
     setIdDuplicado(false);
+    setNomeDuplicado(false);
     setFormLoading(true);
     setFormStatus(null);
     try {
       const res = await fetch("/api/items/criar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ codigo: codigo.trim(), nome: nome.trim() }),
+        body: JSON.stringify({ codigo: codigo.trim(), nome: nome.trim(), setor }),
       });
       const data = await res.json();
       if (res.ok) {
         setFormStatus({ type: "success", msg: `Peça "${data.codigo}" cadastrada!` });
         setCodigo("");
         setNome("");
+        setSetor("Geral");
         setIdDuplicado(false);
-        showToast(`Peça "${data.codigo}" cadastrada com sucesso no banco de dados!`);
+        setNomeDuplicado(false);
+        showToast(`✅ Peça "${data.codigo}" cadastrada com sucesso no banco de dados!`);
         fetchItens();
       } else {
+        // Marcar campo duplicado se backend retornar
+        if (data.campo === 'codigo') setIdDuplicado(true);
+        if (data.campo === 'nome') setNomeDuplicado(true);
         setFormStatus({ type: "error", msg: data.error || "Erro ao cadastrar." });
+        showToast(`❌ ${data.error || "Erro ao cadastrar."}`, "error");
       }
     } catch {
       setFormStatus({ type: "error", msg: "Falha de conexão. Tente novamente." });
@@ -142,6 +173,7 @@ export default function EntradaAtivosPage() {
       const caixaIdx = cols.findIndex(c => c.includes("caixa") || c.includes("qtd_por_caixa"));
       const unidIdx = cols.findIndex(c => c.includes("unidade") || c === "un");
       const locIdx = cols.findIndex(c => c.includes("local") || c.includes("localizacao") || c.includes("localização"));
+      const setorIdx = cols.findIndex(c => c.includes("setor") || c.includes("categoria") || c.includes("departamento"));
 
       const parsedItens = [];
       for (let i = 1; i < lines.length; i++) {
@@ -154,6 +186,7 @@ export default function EntradaAtivosPage() {
           qtd_por_caixa: caixaIdx !== -1 ? vals[caixaIdx] : "1",
           unidade: unidIdx !== -1 ? vals[unidIdx] : "UN",
           localizacao: locIdx !== -1 ? vals[locIdx] : "",
+          setor: setorIdx !== -1 ? (vals[setorIdx] || "Geral") : "Geral",
         });
       }
 
@@ -173,7 +206,11 @@ export default function EntradaAtivosPage() {
         const criados = data.criados || 0;
         const ignorados = data.ignorados || 0;
         setCsvResult({ type: "success", msg: `Processamento CSV concluído.` });
-        showToast(`${criados} peças novas importadas. ${ignorados} peças foram ignoradas por já existirem.`);
+        if (ignorados > 0) {
+          showToast(`✅ ${criados} peças cadastradas com sucesso! ⚠️ ${ignorados} itens foram ignorados por duplicidade de ID ou Descrição.`);
+        } else {
+          showToast(`✅ ${criados} peças cadastradas com sucesso!`);
+        }
         fetchItens();
       } else {
         setCsvResult({ type: "error", msg: data.error || "Erro na importação." });
@@ -204,6 +241,14 @@ export default function EntradaAtivosPage() {
     );
   }
 
+  const SETOR_BADGE_COLORS = {
+    "Geral": "bg-slate-500/10 text-slate-400 border-slate-500/20",
+    "Usinagem": "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    "Logística": "bg-amber-500/10 text-amber-400 border-amber-500/20",
+    "Manutenção": "bg-purple-500/10 text-purple-400 border-purple-500/20",
+    "Montagem": "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  };
+
   return (
     <>
       {/* ── Toast Notification ───────────────────────────── */}
@@ -213,10 +258,18 @@ export default function EntradaAtivosPage() {
             initial={{ opacity: 0, y: -40, x: "-50%" }}
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: -40 }}
-            className="fixed top-6 left-1/2 z-[100] px-6 py-3.5 rounded-2xl shadow-2xl backdrop-blur-md border flex items-center gap-3 bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
-            style={{ minWidth: 320 }}
+            className={`fixed top-6 left-1/2 z-[100] px-6 py-3.5 rounded-2xl shadow-2xl backdrop-blur-md border flex items-center gap-3 ${
+              toast.type === "error"
+                ? "bg-red-500/15 border-red-500/30 text-red-300"
+                : "bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
+            }`}
+            style={{ minWidth: 320, maxWidth: 600 }}
           >
-            <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
+            {toast.type === "error" ? (
+              <AlertCircle className="w-5 h-5 shrink-0 text-red-400" />
+            ) : (
+              <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-400" />
+            )}
             <span className="text-sm font-bold">{toast.msg}</span>
           </motion.div>
         )}
@@ -297,11 +350,41 @@ export default function EntradaAtivosPage() {
                   <input
                     type="text"
                     value={nome}
-                    onChange={e => setNome(e.target.value)}
+                    onChange={e => {
+                      setNome(e.target.value);
+                      if (nomeDuplicado) setNomeDuplicado(false);
+                    }}
                     placeholder="Ex: Broca de Aço HSS 10mm"
-                    className="w-full bg-slate-800/80 border border-slate-700/80 text-white placeholder-slate-500 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all"
+                    className={`w-full bg-slate-800/80 border text-white placeholder-slate-500 rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 transition-all ${
+                      nomeDuplicado
+                        ? "border-red-500 focus:ring-red-500/50 focus:border-red-500/50"
+                        : "border-slate-700/80 focus:ring-orange-500/50 focus:border-orange-500/50"
+                    }`}
                     required
                   />
+                </div>
+              </div>
+              <div>
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 block">
+                  Setor Destino / Aplicação *
+                </label>
+                <div className="relative">
+                  <Building2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <select
+                    value={setor}
+                    onChange={e => setSetor(e.target.value)}
+                    className="w-full bg-slate-800/80 border border-slate-700/80 text-white rounded-xl pl-10 pr-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all appearance-none cursor-pointer"
+                    required
+                  >
+                    {SETORES.map(s => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
               </div>
               <motion.button
@@ -350,7 +433,7 @@ export default function EntradaAtivosPage() {
             <div className="relative z-10">
               <div className="mb-3">
                 <h2 className="text-sm font-black text-white uppercase tracking-wide">Importar Planilha</h2>
-                <p className="text-[10px] text-slate-500 mt-0.5">Envie um arquivo CSV com colunas "codigo" e "nome"</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">Envie um arquivo CSV com colunas &quot;codigo&quot;, &quot;descricao&quot;, &quot;setor&quot;, &quot;quantidade&quot;</p>
               </div>
               <input
                 ref={csvInputRef}
@@ -457,6 +540,7 @@ export default function EntradaAtivosPage() {
                     <tr className="border-b border-slate-800/80">
                       <th className="text-left whitespace-nowrap w-28 min-w-[110px] text-[10px] font-bold uppercase tracking-wider text-slate-500 px-5 py-3">Código ID</th>
                       <th className="text-left whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-slate-500 px-5 py-3">Descrição</th>
+                      <th className="text-left whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-slate-500 px-5 py-3">Setor</th>
                       <th className="text-left whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-slate-500 px-5 py-3">Qtd</th>
                       <th className="text-left whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-slate-500 px-5 py-3">Data de Cadastro</th>
                       <th className="text-left whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-slate-500 px-5 py-3">Status</th>
@@ -482,6 +566,13 @@ export default function EntradaAtivosPage() {
                           </span>
                         </td>
                         <td className="px-5 py-3 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 rounded-md text-xs font-medium border ${
+                            SETOR_BADGE_COLORS[item.setor] || SETOR_BADGE_COLORS["Geral"]
+                          }`}>
+                            {item.setor || "Geral"}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 whitespace-nowrap">
                           <span className="text-xs font-mono font-bold text-slate-300">
                             {item.quantidade} {item.unidade}
                           </span>
@@ -491,6 +582,8 @@ export default function EntradaAtivosPage() {
                             <Calendar className="w-3 h-3" />
                             {new Date(item.createdAt).toLocaleDateString("pt-BR", {
                               day: "2-digit", month: "2-digit", year: "numeric"
+                            })} {new Date(item.createdAt).toLocaleTimeString("pt-BR", {
+                              hour: "2-digit", minute: "2-digit"
                             })}
                           </span>
                         </td>

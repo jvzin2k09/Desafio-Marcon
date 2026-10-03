@@ -68,11 +68,20 @@ export default function SolicitantePage() {
     return sobras + item.quantidade;
   };
 
+  const userSetor = session?.user?.setor || "";
+
   const filteredItems = items
-    .filter(item =>
-      item.nome.toLowerCase().includes(search.toLowerCase()) ||
-      item.codigo.toLowerCase().includes(search.toLowerCase())
-    )
+    .filter(item => {
+      // Filtro por setor: mostrar itens do setor do usuário + itens "Geral"
+      const itemSetor = item.setor || "Geral";
+      if (userSetor && itemSetor !== "Geral" && itemSetor !== userSetor) return false;
+
+      // Filtro de busca textual
+      return (
+        item.nome.toLowerCase().includes(search.toLowerCase()) ||
+        item.codigo.toLowerCase().includes(search.toLowerCase())
+      );
+    })
     .sort((a, b) => {
       const saldoA = getSaldoTotal(a);
       const saldoB = getSaldoTotal(b);
