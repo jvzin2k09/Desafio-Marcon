@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Package, ClipboardList, History, BarChart3, Undo2, Boxes, Menu, X, Recycle } from "lucide-react";
+import { LogOut, Package, ClipboardList, History, BarChart3, Undo2, Boxes, Menu, X, Recycle, PackagePlus } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Image from "next/image";
 import SplashScreen from "@/components/SplashScreen";
@@ -13,6 +13,7 @@ import KineticGrid from "@/components/ui/kinetic-grid";
 export default function DashboardLayout({ children }) {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const [showMobileLogout, setShowMobileLogout] = useState(false);
 
   if (!session) return null;
 
@@ -43,7 +44,7 @@ export default function DashboardLayout({ children }) {
     OPERADOR: { label: "Operador", color: "#16a34a" },
   }[role] || { label: role, color: "#64748b" };
 
-  const [showMobileLogout, setShowMobileLogout] = useState(false);
+
 
   // Filtramos o "Dashboard" apenas para o menu inferior móvel e definimos a ordem exata
   const mobileOrder = ["/almoxarifado", "/estoque-alternativo", "/solicitante", "/painel-estoque", "/historico"];
@@ -101,6 +102,18 @@ export default function DashboardLayout({ children }) {
               <BarChart3 className="w-[18px] h-[18px]" style={{ color: pathname === "/indicadores" ? "var(--primary)" : "var(--text-muted)" }} />
               Indicadores & Gráficos
             </Link>
+            {role === "ADMIN" && (
+              <Link
+                href="/entrada-ativos"
+                className={`hidden lg:flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm font-medium w-full ${pathname === "/entrada-ativos"
+                  ? "bg-[var(--surface-3)] text-[var(--primary)] font-bold lg:bg-blue-600/20 lg:text-blue-400 lg:border lg:border-blue-500/30"
+                  : "text-slate-300 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <PackagePlus className="w-[18px] h-[18px]" style={{ color: pathname === "/entrada-ativos" ? "var(--primary)" : "var(--text-muted)" }} />
+                Entrada de Ativos
+              </Link>
+            )}
           </nav>
         </div>
 
