@@ -10,6 +10,11 @@ export default withAuth(
       return NextResponse.redirect(new URL("/", req.url));
     }
 
+    // Acesso de Admin
+    if (path.startsWith("/admin") && token.role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    }
+
     // Acesso de Almoxarife
     if (path.startsWith("/almoxarifado") && !["ALMOXARIFE", "ADMIN"].includes(token.role)) {
       return NextResponse.redirect(new URL("/unauthorized", req.url));
@@ -35,5 +40,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/almoxarifado/:path*", "/solicitante/:path*", "/historico/:path*", "/painel-estoque/:path*"],
+  matcher: ["/admin/:path*", "/almoxarifado/:path*", "/solicitante/:path*", "/historico/:path*"],
 };

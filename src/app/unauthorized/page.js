@@ -10,7 +10,7 @@ export default function UnauthorizedPage() {
   const router = useRouter();
 
   const getHomeRoute = (role) => {
-    if (role === "ADMIN") return "/painel-estoque";
+    if (role === "ADMIN") return "/admin";
     if (role === "ALMOXARIFE") return "/almoxarifado";
     return "/solicitante";
   };

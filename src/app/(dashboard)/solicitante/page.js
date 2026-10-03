@@ -188,12 +188,9 @@ export default function SolicitantePage() {
         fetch("/api/items", { cache: "no-store" }).then(r => r.json()).then(setItems).catch(() => { });
         setTimeout(() => setSubmitStatus(null), 3000);
       } else {
-        const errData = await res.json().catch(() => ({}));
-        console.error("Erro ao criar pedido:", errData);
         setSubmitStatus("error");
       }
-    } catch (e) {
-      console.error("Erro de rede ao criar pedido:", e);
+    } catch {
       setSubmitStatus("error");
     } finally {
       setLoading(false);
