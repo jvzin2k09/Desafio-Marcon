@@ -1083,7 +1083,7 @@ Foram corrigidas as anomalias do layout Dark Mode que mantinham resquícios de `
 
 ---
 
-## Interação 34
+## Interação 48
 
 **📅 Data/Hora:** 03/10/2026, 14:00:00
 **🎯 Finalidade:** Desenvolvimento de Funcionalidade (Entrada de Ativos Modal)
@@ -1103,7 +1103,7 @@ Corrigi o erro de hooks no layout e o problema de legibilidade no input de quant
 
 ---
 
-## Interação 35
+## Interação 49
 
 **📅 Data/Hora:** 03/10/2026, 14:53:33
 **🎯 Finalidade:** Desenvolvimento de Funcionalidade (Página de Entrada de Ativos)
@@ -1123,7 +1123,7 @@ Removi a modal do layout e criei uma nova rota dedicada (/entrada-ativos) exclus
 
 ---
 
-## Interação 36
+## Interação 50
 
 **📅 Data/Hora:** 03/10/2026, 15:22:55
 **🎯 Finalidade:** Validação e Ajustes Visuais da Tabela
@@ -1137,3 +1137,55 @@ Atue como desenvolvedor Frontend Sênior (Next.js, Tailwind CSS e TypeScript). R
 
 ### 🤖 Resposta do Assistente (Resumo):
 Implementei validação de ID duplicado no Frontend (borda vermelha de erro) e alterei o processamento CSV no Backend para ignorar e contabilizar os itens duplicados em vez de atualizar sua quantidade. Na tabela, fixei larguras de coluna e apliquei whitespace-nowrap para evitar quebras de texto indesejadas, com um layout resposivo via scroll horizontal automático.
+
+---
+
+## Interação 51
+
+**📅 Data/Hora:** 03/10/2026, 19:20:00
+**🎯 Finalidade:** Correção de Bug e Ajustes Visuais (Histórico)
+
+### 👤 Prompt do Utilizador:
+```text
+Atue como desenvolvedor Frontend Sênior (Next.js, Tailwind CSS e TypeScript). Ajuste a altura, o scroll e o layout da área de "Detalhes" da tela de Histórico, EXCLUSIVAMENTE PARA A VERÃO COMPUTADOR / DESKTOP (lg: / >= 1024px):
+...
+Continua pequeno o card
+...
+Continua pequeno! Tem 3 pedidos mas ali no card só aparece 2, ta muito errado
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Padronizei o visual da tela "Histórico de Movimentações" aplicando o mesmo estilo de cartão escuro da tela de "Estoque". Corrigi as limitações de altura (`overflow-hidden`) que espremiam os itens, introduzindo um scroll inteligente que expande naturalmente com poucos itens e rola suavemente após passar de 5 pedidos, melhorando consideravelmente a legibilidade na versão desktop sem quebrar o layout mobile.
+
+---
+
+## Interação 52
+
+**📅 Data/Hora:** 03/10/2026, 19:33:00
+**🎯 Finalidade:** Desenvolvimento de Funcionalidade e Refatoração (Entrada de Ativos)
+
+### 👤 Prompt do Utilizador:
+```text
+Atue como desenvolvedor Frontend Sênior (Next.js, Tailwind CSS e TypeScript). Adicione a atribuição de SETOR/CATEGORIA e a VALIDAÇÃO ANTI-DUPLICAÇÃO (por ID e Descrição) na página `/entrada-ativos`:
+1. NOVO CAMPO NO FORMULÁRIO DE CADASTRO MANUAL...
+2. ATUALIZAÇÃO DA TABELA DE PEÇAS CADASTRADAS...
+3. ATUALIZAÇÃO DA LEITURA DO CSV...
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Atualizei o modelo do Prisma (banco de dados) para incluir o campo `setor`. Modifiquei a API `/api/items/criar` para suportar validações rígidas de anti-duplicação (código e descrição). Refatorei a interface para incluir o *Select* de setores (Geral, Usinagem, Logística, Manutenção, Montagem), badges estilizadas de setor na tabela e o mapeamento adequado do CSV. Além disso, a lista de requisições no módulo Solicitante passou a filtrar os itens pelo setor correspondente ao utilizador (mais os itens da categoria "Geral").
+
+---
+
+## Interação 53
+
+**📅 Data/Hora:** 03/10/2026, 19:53:38
+**🎯 Finalidade:** Ajuste de Formatação de Data
+
+### 👤 Prompt do Utilizador:
+```text
+Ali em "data de cadastro" em entrada de ativos, gostaria que mostrasse as horas e minutos também, exemplo: 19:53
+```
+
+### 🤖 Resposta do Assistente (Resumo):
+Ajustei a renderização da coluna "Data de Cadastro" no frontend (Entrada de Ativos) para formatar e exibir também o horário (horas e minutos) ao lado da data, através dos métodos nativos do JavaScript (`toLocaleDateString` e `toLocaleTimeString` configurados para "pt-BR").
