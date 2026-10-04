@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   PackagePlus, Upload, CheckCircle2, AlertCircle, Loader2,
-  Search, Calendar, Hash, FileText, Package, RefreshCw, Building2
+  Search, Calendar, Hash, FileText, Package, RefreshCw, Building2,
+  X, Plus, Minus
 } from "lucide-react";
 
 const SPRING = { type: "spring", stiffness: 280, damping: 24 };
@@ -48,6 +49,13 @@ export default function EntradaAtivosPage() {
 
   // ── Toast state ─────────────────────────────────────
   const [toast, setToast] = useState(null);
+
+  // ── Modal Reposição ─────────────────────────────────
+  const [modalOpen, setModalOpen] = useState(false);
+  const [itemSelecionado, setItemSelecionado] = useState(null);
+  const [qtdReposicao, setQtdReposicao] = useState(1);
+  const [motivoReposicao, setMotivoReposicao] = useState("Compra / Nota Fiscal");
+  const [modalLoading, setModalLoading] = useState(false);
 
   // ── Guard: ADMIN only, desktop only ─────────────────
   useEffect(() => {
@@ -220,6 +228,35 @@ export default function EntradaAtivosPage() {
     } finally {
       setCsvLoading(false);
       if (csvInputRef.current) csvInputRef.current.value = "";
+    }
+  };
+
+  // ── Modal Submit ────────────────────────────────────
+  const handleEntrada = async () => {
+    if (!itemSelecionado || qtdReposicao <= 0) return;
+    setModalLoading(true);
+    try {
+      const res = await fetch("/api/items/entrada", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          itemId: itemSelecionado.id,
+          quantidade: qtdReposicao,
+          motivo: motivoReposicao
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`✅ Saldo de ${data.codigo} atualizado para ${data.novoSaldo} UN!`);
+        setModalOpen(false);
+        fetchItens();
+      } else {
+        showToast(`❌ ${data.error || "Erro ao registrar entrada."}`, "error");
+      }
+    } catch {
+      showToast("❌ Erro de conexão.", "error");
+    } finally {
+      setModalLoading(false);
     }
   };
 
@@ -601,6 +638,12 @@ export default function EntradaAtivosPage() {
                         <td className="px-5 py-3 whitespace-nowrap">
                           <button
                             type="button"
+                            onClick={() => {
+                              setItemSelecionado(item);
+                              setQtdReposicao(1);
+                              setMotivoReposicao("Compra / Nota Fiscal");
+                              setModalOpen(true);
+                            }}
                             className="lg:bg-emerald-600/20 hover:lg:bg-emerald-600 lg:text-emerald-400 hover:lg:text-white lg:border lg:border-emerald-500/30 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1"
                           >
                             <PackagePlus className="w-3.5 h-3.5" />
@@ -621,6 +664,117 @@ export default function EntradaAtivosPage() {
       <div className="flex lg:hidden items-center justify-center h-[60vh] text-slate-400">
         <p className="text-sm font-medium">Esta página está disponível apenas no computador.</p>
       </div>
+
+      {/* ── Modal de Reposição ───────────────────────────── */}
+      <AnimatePresence>
+        {modalOpen && itemSelecionado && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-slate-900/90 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-500 to-emerald-400" />
+              
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-black text-white">
+                      Reposição de Estoque - <span className="text-emerald-400">{itemSelecionado.codigo}</span>
+                    </h3>
+                    <p className="text-sm font-medium text-slate-400 mt-1">
+                      Item: {itemSelecionado.nome}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setModalOpen(false)}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800/50 text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 mb-6 flex items-center justify-between">
+                  <span className="text-sm font-bold text-slate-400">Saldo Atual:</span>
+                  <span className="text-2xl font-black text-white">
+                    {itemSelecionado.quantidade} <span className="text-base text-slate-500">{itemSelecionado.unidade}</span>
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 block">
+                      Quantidade a Adicionar *
+                    </label>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setQtdReposicao(Math.max(1, qtdReposicao - 1))}
+                        className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                      >
+                        <Minus className="w-5 h-5" />
+                      </button>
+                      <input
+                        type="number"
+                        min="1"
+                        value={qtdReposicao}
+                        onChange={(e) => setQtdReposicao(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="flex-1 h-12 bg-slate-800/80 border border-slate-700/80 text-white text-center text-lg font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setQtdReposicao(qtdReposicao + 1)}
+                        className="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                      >
+                        <Plus className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 block">
+                      Origem / Motivo *
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={motivoReposicao}
+                        onChange={(e) => setMotivoReposicao(e.target.value)}
+                        className="w-full h-12 bg-slate-800/80 border border-slate-700/80 text-white rounded-xl px-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all appearance-none cursor-pointer"
+                      >
+                        <option value="Compra / Nota Fiscal">Compra / Nota Fiscal</option>
+                        <option value="Devolução de Sobra">Devolução de Sobra</option>
+                        <option value="Ajuste de Inventário">Ajuste de Inventário</option>
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleEntrada}
+                  disabled={modalLoading}
+                  className="mt-6 w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {modalLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "CONFIRMAR ENTRADA"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

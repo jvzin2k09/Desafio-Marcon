@@ -30,7 +30,7 @@ export async function GET(request) {
     const pedidos = await prisma.pedido.findMany({
       where: {
         status: {
-          in: ['CONCLUIDO', 'ESTORNADO']
+          in: ['CONCLUIDO', 'ESTORNADO', 'ENTRADA']
         }
       },
       include: {
@@ -54,7 +54,11 @@ export async function GET(request) {
     // Mapear movimentações estruturadas
     let movimentacoes = pedidos.map(p => {
       const isEstorno = p.status === 'ESTORNADO';
-      const tipoMovimentacao = isEstorno ? 'ESTORNO' : 'SAIDA';
+      const isEntrada = p.status === 'ENTRADA';
+      let tipoMovimentacao = 'SAIDA';
+      if (isEstorno) tipoMovimentacao = 'ESTORNO';
+      else if (isEntrada) tipoMovimentacao = 'ENTRADA';
+
       const dataMovimentacao = isEstorno 
         ? (p.estornos[0]?.createdAt || p.updatedAt)
         : (p.entregueEm || p.updatedAt);
