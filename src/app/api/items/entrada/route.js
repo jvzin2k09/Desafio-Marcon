@@ -30,9 +30,10 @@ export async function POST(request) {
       });
 
       // 2. Registrar no histórico como um "pedido" do tipo ENTRADA
+      const userIdInt = parseInt(session.user.id, 10);
       const pedido = await tx.pedido.create({
         data: {
-          userId: session.user.id,
+          userId: userIdInt,
           setor: 'Administração',
           operadorSolicitante: session.user.nome,
           status: 'ENTRADA',
@@ -46,7 +47,7 @@ export async function POST(request) {
                 quantidadeEnviada: quantidade,
                 separado: true,
                 tipo_baixa: 'MANUAL',
-                almoxarife_id: session.user.id,
+                almoxarife_id: userIdInt,
                 data_hora_baixa: new Date()
               }
             ]
