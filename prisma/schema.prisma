@@ -36,6 +36,7 @@ model item {
   quantidade      Int                   @default(0)
   qtd_por_caixa   Int                   @default(1)
   localizacao     String?
+  setor           String                @default("Geral") @db.VarChar(100)
   armazem         Armazem               @default(ALMOXARIFADO)
   createdAt       DateTime              @default(now())
   updatedAt       DateTime              @default(now())

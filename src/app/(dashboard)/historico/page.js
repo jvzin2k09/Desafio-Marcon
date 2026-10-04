@@ -41,7 +41,7 @@ export default function HistoricoPage() {
 
   // Paginação
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 50;
 
   // Feedback de exportação
   const [exporting, setExporting] = useState(false);
@@ -246,7 +246,7 @@ export default function HistoricoPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] lg:h-[calc(100vh-80px)] overflow-y-auto lg:overflow-hidden custom-scrollbar flex flex-col space-y-4 md:space-y-6 max-w-7xl mx-auto pb-4 p-4 md:p-6">
+    <div className="min-h-[calc(100vh-80px)] overflow-y-auto custom-scrollbar flex flex-col space-y-4 md:space-y-6 max-w-7xl mx-auto pb-4 p-4 md:p-6">
       {/* ─── Topo: Título e Ação de Exportar ─────────────────────────────── */}
       <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm shrink-0 lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80">
         <div className="flex flex-row items-center justify-between gap-2 md:gap-4">
@@ -493,7 +493,7 @@ export default function HistoricoPage() {
       </div>
 
       {/* ─── Tabela de Movimentações / Lista de Cards ─────────────────────────────────────── */}
-      <div className="lg:site-card flex-1 flex flex-col lg:overflow-hidden lg:shadow-sm lg:min-h-0 lg:min-h-[400px]">
+      <div className="bg-white lg:bg-[#111827]/80 border border-slate-200 lg:border-slate-800/80 rounded-2xl shadow-sm lg:shadow-xl lg:backdrop-blur-md flex flex-col shrink-0 lg:max-h-[420px] lg:overflow-y-auto custom-scrollbar">
         {loading ? (
           <div className="flex flex-col items-center justify-center flex-1 text-slate-400">
             <RefreshCw className="w-8 h-8 animate-spin text-[#1B3A6B] lg:text-blue-400 mb-3" />
@@ -601,29 +601,30 @@ export default function HistoricoPage() {
             </div>
 
             {/* ─── Visão Desktop (Tabela original) ─── */}
-            <table className="hidden lg:table w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200/80 text-[10px] font-black uppercase tracking-wider text-slate-500 lg:text-slate-400">
-                  <th className="py-3 px-5 lg:bg-slate-800/80 lg:text-slate-300 lg:border-slate-700">Pedido</th>
-                  <th className="py-3 px-4 lg:bg-slate-800/80 lg:text-slate-300 lg:border-slate-700">Data / Hora</th>
-                  <th className="py-3 px-4 lg:bg-slate-800/80 lg:text-slate-300 lg:border-slate-700">Tipo</th>
-                  <th className="py-3 px-4 lg:bg-slate-800/80 lg:text-slate-300 lg:border-slate-700">Solicitante / Setor</th>
-                  <th className="py-3 px-4 text-center lg:bg-slate-800/80 lg:text-slate-300 lg:border-slate-700">Itens / Qtd</th>
-                  <th className="py-3 px-4 lg:bg-slate-800/80 lg:text-slate-300 lg:border-slate-700">Motivo / Observação</th>
-                  <th className="py-3 px-4 text-right lg:bg-slate-800/80 lg:text-slate-300 lg:border-slate-700">Detalhes</th>
+            <div className="hidden lg:block w-full">
+              <table className="w-full text-left border-collapse">
+              <thead className="sticky top-0 z-10 bg-slate-50 lg:bg-[#111827]">
+                <tr className="border-b border-slate-200 lg:border-slate-800 lg:text-slate-200/80 text-[10px] font-black uppercase tracking-wider text-slate-500 lg:text-slate-400">
+                  <th className="py-3 px-5 lg:text-slate-300 lg:border-slate-800">Pedido</th>
+                  <th className="py-3 px-4 lg:text-slate-300 lg:border-slate-800">Data / Hora</th>
+                  <th className="py-3 px-4 lg:text-slate-300 lg:border-slate-800">Tipo</th>
+                  <th className="py-3 px-4 lg:text-slate-300 lg:border-slate-800">Solicitante / Setor</th>
+                  <th className="py-3 px-4 text-center lg:text-slate-300 lg:border-slate-800">Itens / Qtd</th>
+                  <th className="py-3 px-4 lg:text-slate-300 lg:border-slate-800">Motivo / Observação</th>
+                  <th className="py-3 px-4 text-right lg:text-slate-300 lg:border-slate-800">Detalhes</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs">
-                {paginatedItems.map((m) => {
+              <tbody className="divide-y divide-slate-100 lg:divide-slate-800/60 text-xs">
+                {paginatedItems.map((m, index) => {
                   const isExpanded = expandedId === m.id;
                   const isEstorno = m.tipo === "ESTORNO";
 
                   return (
-                    <React.Fragment key={m.id}>
+                    <React.Fragment key={`${m.id}-${index}`}>
                       <tr 
                         onClick={() => setExpandedId(isExpanded ? null : m.id)}
-                        className={`hover:bg-slate-50 hover:lg:bg-blue-950/50 lg:border-slate-700 lg:text-slate-200/80 transition-colors cursor-pointer ${
-                          isExpanded ? "bg-slate-50 lg:bg-blue-950/40 lg:border-slate-700 lg:text-slate-200/60" : ""
+                        className={`hover:bg-slate-50 hover:lg:bg-white/5 lg:text-slate-300 transition-colors cursor-pointer bg-white lg:bg-transparent border-b border-slate-100 lg:border-slate-800/60 ${
+                          isExpanded ? "bg-slate-50 lg:bg-white/5 lg:text-white" : ""
                         }`}
                       >
                         {/* ID Pedido */}
@@ -659,7 +660,7 @@ export default function HistoricoPage() {
                         </td>
 
                         {/* Solicitante / Setor */}
-                        <td className="py-3.5 px-4">
+                        <td className="py-3.5 px-4 whitespace-nowrap">
                           <div className="font-bold text-slate-800 lg:text-white">{m.solicitante.nome}</div>
                           <div className="text-[11px] text-slate-400 flex items-center gap-1">
                             <span className="px-1.5 py-0.5 rounded bg-slate-100 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 text-slate-600 lg:text-slate-300 font-medium">
@@ -705,78 +706,85 @@ export default function HistoricoPage() {
                       <AnimatePresence>
                         {isExpanded && (
                           <tr>
-                            <td colSpan="7" className="p-0 bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200/70 border-b border-slate-200">
+                            <td colSpan="7" className="p-0 bg-slate-50 lg:bg-transparent border-b border-slate-200 lg:border-none">
                               <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: "auto" }}
                                 exit={{ opacity: 0, height: 0 }}
                                 transition={{ duration: 0.2 }}
-                                className="p-4 sm:p-5 space-y-3"
+                                className="p-4 sm:p-5 space-y-3 lg:w-full lg:bg-slate-950/60 lg:p-4 lg:border-t lg:border-slate-800/80 lg:rounded-b-xl"
                               >
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs border-b border-slate-200/80 pb-2">
-                                  <div className="font-bold text-slate-700 lg:text-slate-300 flex items-center gap-2">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs border-b border-slate-200/80 pb-2 lg:text-xs lg:font-semibold lg:text-slate-400 lg:uppercase lg:mb-3 lg:flex lg:items-center lg:justify-between lg:border-b lg:border-slate-800/60 lg:pb-2">
+                                  <div className="font-bold text-slate-700 lg:text-slate-400 flex items-center gap-2">
                                     <span>Itens da Movimentação · {m.itens.length} SKUs</span>
                                     <span className="text-slate-400">|</span>
-                                    <span className="text-slate-500 lg:text-slate-400">Responsável: <strong>{m.responsavel}</strong></span>
+                                    <span className="text-slate-500 lg:text-slate-400 lg:normal-case">Responsável: <strong className="lg:uppercase">{m.responsavel}</strong></span>
                                   </div>
                                   {m.motivo && (
-                                    <div className="mt-1 sm:mt-0 text-[11px] text-slate-600 lg:text-slate-300">
-                                      <strong>Motivo/Nota:</strong> {m.motivo}
+                                    <div className="mt-1 sm:mt-0 text-[11px] text-slate-600 lg:text-slate-400 lg:normal-case">
+                                      <strong className="lg:uppercase">Motivo/Nota:</strong> {m.motivo}
                                     </div>
                                   )}
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-2.5 lg:gap-3 lg:w-full">
                                   {m.itens.map((item) => (
                                     <div
                                       key={item.id}
-                                      className="p-3 rounded-lg bg-white border border-slate-200 shadow-2xs flex flex-col justify-between lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200"
+                                      className="p-3 rounded-lg bg-white border border-slate-200 shadow-2xs flex flex-col justify-between lg:bg-slate-800/60 lg:border lg:border-slate-700/60 lg:rounded-xl lg:p-3.5 lg:flex-row lg:items-center lg:justify-between lg:shadow-sm lg:hover:bg-slate-800/90 lg:transition-all lg:w-full"
                                     >
-                                      <div className="flex justify-between items-start mb-2">
-                                        <div className="min-w-0 pr-2">
-                                          <p className="font-bold text-slate-800 lg:text-white text-xs truncate">{item.nome}</p>
-                                          <div className="flex items-center gap-2 mt-0.5 text-[10px] text-slate-400 font-mono">
+                                      <div className="flex justify-between items-start mb-2 lg:mb-0 lg:flex-col lg:items-start lg:flex-1 lg:min-w-0">
+                                        <div className="min-w-0 pr-2 lg:pr-0">
+                                          <p className="font-bold text-slate-800 lg:text-white text-xs lg:text-sm lg:font-semibold truncate">{item.nome}</p>
+                                          <div className="flex items-center gap-2 mt-0.5 text-[10px] lg:text-xs text-slate-400 font-mono lg:font-sans lg:flex lg:gap-2 lg:mt-1">
                                             <span>Cód: {item.codigo}</span>
                                             <span>•</span>
                                             <span className="flex items-center gap-0.5">
-                                              <MapPin className="w-2.5 h-2.5" />
+                                              <MapPin className="w-2.5 h-2.5 lg:hidden" />
                                               {item.localizacao}
                                             </span>
                                           </div>
                                         </div>
-                                        <div className="text-right shrink-0">
+                                        <div className="text-right shrink-0 lg:hidden">
                                           <p className="text-[9px] font-black uppercase text-slate-400">Qtd</p>
-                                          <p className={`font-mono font-black text-sm ${isEstorno ? "text-red-600" : "text-[#1B3A6B] lg:text-blue-400"}`}>
-                                            {item.quantidadeEfetiva} <span className="text-[10px] font-normal text-slate-500 lg:text-slate-400">{item.unidade}</span>
+                                          <p className={`font-mono font-black text-sm ${isEstorno ? "text-red-600" : "text-[#1B3A6B]"}`}>
+                                            {item.quantidadeEfetiva} <span className="text-[10px] font-normal text-slate-500">{item.unidade}</span>
                                           </p>
                                         </div>
                                       </div>
 
-                                      {/* Detalhes da Baixa (QR Code) */}
+                                      {/* Quantidade Desktop */}
+                                      <div className="hidden lg:block text-right shrink-0">
+                                        <p className="text-base font-bold text-blue-400">
+                                          {item.quantidadeEfetiva} <span className="text-xs text-slate-400 ml-1">{item.unidade}</span>
+                                        </p>
+                                      </div>
+
+                                      {/* Detalhes da Baixa (QR Code) - Apenas Mobile */}
                                       {!isEstorno && (
-                                        <div className="mt-2 pt-2 border-t border-slate-100 flex flex-col gap-1.5">
+                                        <div className="mt-2 pt-2 border-t border-slate-100 flex flex-col gap-1.5 lg:hidden">
                                           <div className="flex justify-between items-center text-[10px]">
-                                            <span className="font-bold text-slate-500 lg:text-slate-400 uppercase flex items-center gap-1">
+                                            <span className="font-bold text-slate-500 uppercase flex items-center gap-1">
                                               <Tag className="w-3 h-3 text-indigo-500" /> Baixa:
                                             </span>
-                                            <span className={`px-1.5 py-0.5 rounded font-black ${item.tipo_baixa === 'QR_CODE' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 text-slate-600 lg:text-slate-300'}`}>
+                                            <span className={`px-1.5 py-0.5 rounded font-black ${item.tipo_baixa === 'QR_CODE' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 text-slate-600'}`}>
                                               {item.tipo_baixa === 'QR_CODE' ? 'QR Code' : 'Manual'}
                                             </span>
                                           </div>
                                           {item.data_hora_baixa && (
-                                            <div className="text-[10px] text-slate-500 lg:text-slate-400 flex justify-between">
+                                            <div className="text-[10px] text-slate-500 flex justify-between">
                                               <span className="font-medium">Data:</span>
                                               <span>{new Date(item.data_hora_baixa).toLocaleString('pt-BR')}</span>
                                             </div>
                                           )}
                                           {item.almoxarifeNome && (
-                                            <div className="text-[10px] text-slate-500 lg:text-slate-400 flex justify-between">
+                                            <div className="text-[10px] text-slate-500 flex justify-between">
                                               <span className="font-medium">Almoxarife:</span>
                                               <span>{item.almoxarifeNome}</span>
                                             </div>
                                           )}
                                           {item.observacao_baixa && (
-                                            <div className="text-[10px] text-slate-600 lg:text-slate-300 bg-amber-50 p-1.5 rounded border border-amber-100 mt-1">
+                                            <div className="text-[10px] text-slate-600 bg-amber-50 p-1.5 rounded border border-amber-100 mt-1">
                                               <strong className="text-amber-800">Obs:</strong> {item.observacao_baixa}
                                             </div>
                                           )}
@@ -794,44 +802,11 @@ export default function HistoricoPage() {
                   );
                 })}
               </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* ── Paginação ── */}
-        {!loading && movimentacoesFiltradas.length > itemsPerPage && (
-          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-200 bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200/60 text-xs text-slate-500 lg:text-slate-400">
-            <div>
-              Mostrando <strong>{(currentPage - 1) * itemsPerPage + 1}</strong> a{" "}
-              <strong>{Math.min(currentPage * itemsPerPage, movimentacoesFiltradas.length)}</strong> de{" "}
-              <strong>{movimentacoesFiltradas.length}</strong> registros
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 disabled:opacity-40 transition-colors"
-                title="Página Anterior"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-
-              <span className="font-mono font-bold text-slate-700 lg:text-slate-300 px-2">
-                {currentPage} / {totalPages}
-              </span>
-
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 disabled:opacity-40 transition-colors"
-                title="Próxima Página"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              </table>
             </div>
           </div>
         )}
+
       </div>
       {/* Modal de Auditoria Mobile */}
       <AnimatePresence>
