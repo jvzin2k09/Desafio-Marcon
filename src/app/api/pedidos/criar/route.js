@@ -86,13 +86,24 @@ export async function POST(request) {
           });
         }
 
-        itensComRoteamento.push({
-          itemId: itemDb.id,
-          quantidade: originalQtdPedida,
-          qtd_alternativo,
-          qtd_caixas_central,
-          sobra_gerada
-        });
+        if (qtd_alternativo > 0) {
+          itensComRoteamento.push({
+            itemId: itemDb.id,
+            quantidade: qtd_alternativo,
+            qtd_alternativo,
+            qtd_caixas_central: 0,
+            sobra_gerada: 0
+          });
+        }
+        if (qtdPedida > 0) {
+          itensComRoteamento.push({
+            itemId: itemDb.id,
+            quantidade: qtdPedida,
+            qtd_alternativo: 0,
+            qtd_caixas_central,
+            sobra_gerada
+          });
+        }
       }
 
       // 1. Criar o pedido

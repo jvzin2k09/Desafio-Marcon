@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Boxes, Recycle, Loader2, MapPin, Package, Edit2, RefreshCcw } from "lucide-react";
+import { Search, Boxes, Recycle, Loader2, MapPin, Package, Edit2, RefreshCcw, Undo2 } from "lucide-react";
 
 export default function EstoqueAlternativoPage() {
   const { data: session } = useSession();
@@ -233,7 +233,7 @@ export default function EstoqueAlternativoPage() {
                   key={pedido.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col gap-4"
+                  className="bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-200 flex flex-col gap-4 lg:gap-6"
                 >
                   <div className="flex justify-between items-center">
                     <h3 className="font-black text-slate-800 lg:text-white text-base">Pedido #{pedido.id.toString().padStart(4, "0")}</h3>
@@ -255,12 +255,33 @@ export default function EstoqueAlternativoPage() {
                     ))}
                   </div>
 
-                  <button 
-                    onClick={() => handleSepararEntregar(pedido)}
-                    className="w-full mt-2 bg-indigo-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all active:scale-[0.98]"
-                  >
-                    <RefreshCcw className="w-4 h-4" /> Separar e Entregar
-                  </button>
+                  <div className="flex gap-2 w-full mt-2 lg:mt-4 pt-4 lg:pt-5 border-t border-slate-100 lg:border-slate-800/60">
+                    <button 
+                      onClick={() => handleSepararEntregar(pedido)}
+                      className="flex-1 bg-indigo-600 text-white font-bold py-3 lg:py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all active:scale-[0.98] shadow-md shadow-indigo-600/20 lg:text-xs uppercase tracking-wide"
+                    >
+                      <RefreshCcw className="w-4 h-4" /> Separar e Entregar
+                    </button>
+                    <button 
+                      onClick={async () => {
+                        if(!confirm("Deseja cancelar e estornar esta requisição?")) return;
+                        try {
+                          const res = await fetch("/api/estornos", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ pedidoId: pedido.id, motivo: "Cancelado via Estoque Alternativo" })
+                          });
+                          if (res.ok) {
+                            setPedidos(pedidos.filter(p => p.id !== pedido.id));
+                            fetch("/api/estoque-alternativo").then(r=>r.json()).then(setEstoque);
+                          }
+                        } catch (e) { console.error(e); }
+                      }}
+                      className="flex-1 bg-white lg:bg-slate-800 text-red-600 border border-slate-200 lg:border-slate-700 font-bold py-3 lg:py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-red-50 hover:lg:bg-red-900/40 transition-all active:scale-[0.98] lg:text-xs uppercase tracking-wide"
+                    >
+                      <Undo2 className="w-4 h-4" /> Cancelar / Estornar
+                    </button>
+                  </div>
                 </motion.div>
               ))
             )}

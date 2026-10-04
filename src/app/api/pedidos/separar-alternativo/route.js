@@ -52,7 +52,8 @@ export async function POST(request) {
         where: { id: parseInt(pedidoId) },
         data: { 
           status: 'CONCLUIDO',
-          entregueEm: new Date()
+          entregueEm: new Date(),
+          observacao: 'Atendimento via Estoque Alternativo'
         }
       });
     });

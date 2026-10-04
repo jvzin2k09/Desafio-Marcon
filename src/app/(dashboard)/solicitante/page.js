@@ -90,33 +90,46 @@ export default function SolicitantePage() {
       return a.codigo.localeCompare(b.codigo, undefined, { numeric: true, sensitivity: 'base' });
     });
 
-  const addToCart = (item, initialQty) => {
+  const addToCart = (item, inputQty) => {
+    const isCaixa = item.qtd_por_caixa > 1;
     const maxDisponivel = getSaldoTotal(item);
-    let qtyToAdd = initialQty ? parseInt(initialQty, 10) : 1;
-    if (isNaN(qtyToAdd) || qtyToAdd <= 0) qtyToAdd = 1;
-    qtyToAdd = Math.max(1, Math.min(qtyToAdd, maxDisponivel));
+    
+    let requestedUnits = parseInt(inputQty, 10) || 1;
+    if (isCaixa) requestedUnits = requestedUnits * item.qtd_por_caixa;
+    
+    requestedUnits = Math.max(1, Math.min(requestedUnits, maxDisponivel));
 
     const existing = cart.find(c => c.itemId === item.id);
     if (existing) {
       setCart(cart.map(c => {
         if (c.itemId === item.id) {
-          let newQty = c.quantidade + qtyToAdd;
+          let newQty = c.quantidade + requestedUnits;
           return { ...c, quantidade: Math.min(newQty, c.maxQtd) };
         }
         return c;
       }));
     } else {
-      setCart([...cart, { itemId: item.id, nome: item.nome, codigo: item.codigo, unidade: item.unidade, quantidade: qtyToAdd, maxQtd: maxDisponivel }]);
+      setCart([...cart, { 
+        itemId: item.id, 
+        nome: item.nome, 
+        codigo: item.codigo, 
+        unidade: item.unidade, 
+        quantidade: requestedUnits, 
+        maxQtd: maxDisponivel,
+        isCaixa,
+        qtd_por_caixa: item.qtd_por_caixa || 1
+      }]);
     }
   };
 
   const updateCartQty = (itemId, deltaMultiplier) => {
     setCart(cart.map(c => {
       if (c.itemId === itemId) {
-        const delta = deltaMultiplier;
+        const step = c.isCaixa ? c.qtd_por_caixa : 1;
+        const delta = deltaMultiplier * step;
         const currentQty = parseInt(c.quantidade, 10) || 0;
         let newQty = currentQty + delta;
-        newQty = Math.max(1, newQty);
+        newQty = Math.max(step, newQty);
         return { ...c, quantidade: Math.min(newQty, c.maxQtd) };
       }
       return c;
@@ -130,10 +143,9 @@ export default function SolicitantePage() {
           return { ...c, quantidade: "" };
         }
         const num = parseInt(val, 10);
-        if (isNaN(num)) {
-          return { ...c, quantidade: "" };
-        }
-        return { ...c, quantidade: Math.min(Math.max(1, num), c.maxQtd || 999999) };
+        if (isNaN(num)) return { ...c, quantidade: "" };
+        const qtyInUnits = c.isCaixa ? num * c.qtd_por_caixa : num;
+        return { ...c, quantidade: Math.min(Math.max(c.isCaixa ? c.qtd_por_caixa : 1, qtyInUnits), c.maxQtd || 999999) };
       }
       return c;
     }));
@@ -142,11 +154,14 @@ export default function SolicitantePage() {
   const handleBlurCartQty = (itemId) => {
     setCart(cart.map(c => {
       if (c.itemId === itemId) {
+        const step = c.isCaixa ? c.qtd_por_caixa : 1;
         const num = parseInt(c.quantidade, 10);
         if (isNaN(num) || num <= 0) {
-          return { ...c, quantidade: 1 };
+          return { ...c, quantidade: step };
         }
-        return { ...c, quantidade: Math.min(num, c.maxQtd || 999999) };
+        // ensure multiple of step
+        let normalized = Math.ceil(num / step) * step;
+        return { ...c, quantidade: Math.min(normalized, c.maxQtd || 999999) };
       }
       return c;
     }));
@@ -335,6 +350,9 @@ export default function SolicitantePage() {
                         const saldo_sobras = item.estoques_alt?.reduce((acc, e) => acc + e.quantidade_avulsa, 0) || 0;
                         const caixas_central = Math.floor(item.quantidade / (item.qtd_por_caixa || 1));
                         const saldo_total = saldo_sobras + item.quantidade;
+                        const isCaixa = item.qtd_por_caixa > 1;
+                        const maxInput = isCaixa ? Math.floor(saldo_total / item.qtd_por_caixa) : saldo_total;
+                        const displayUnit = isCaixa ? "CX" : "UN";
 
                         return (
                           <>
@@ -363,7 +381,7 @@ export default function SolicitantePage() {
                         <div className="flex flex-col gap-0.5 mt-1 mb-2">
                           <div className="flex items-center gap-2">
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-md whitespace-nowrap w-fit ${saldo_total > 0 ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>
-                              {saldo_total} UN Total
+                              {isCaixa ? `${maxInput} CX Total` : `${saldo_total} UN Total`}
                             </span>
                             {item.qtd_por_caixa > 1 && (
                               <button 
@@ -380,7 +398,7 @@ export default function SolicitantePage() {
                             )}
                           </div>
                           <span className="text-[10px] text-slate-500 lg:text-slate-400 font-medium flex items-center gap-1.5 px-1">
-                            <Recycle className="w-3 h-3 shrink-0" /> {saldo_sobras} UN em Sobras • <Package className="w-3 h-3 shrink-0" /> {caixas_central} CX Central
+                            <Recycle className="w-3 h-3 shrink-0" /> {saldo_sobras} UN em Sobras {(!item.qtd_por_caixa || item.qtd_por_caixa <= 1) ? "" : <>• <Package className="w-3 h-3 shrink-0" /> {caixas_central} CX Central</>}
                           </span>
                         </div>
                       </div>
@@ -476,10 +494,9 @@ export default function SolicitantePage() {
                                 <div className="flex items-center gap-1 bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 p-1.5 rounded-lg border border-slate-200 shrink-0">
                                   <button
                                     onClick={() => {
-                                      const defaultStart = Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total));
+                                      const defaultStart = 1;
                                       const current = parseInt(itemInputs[item.id], 10) || defaultStart;
-                                      const step = item.qtd_por_caixa || 1;
-                                      const next = Math.max(1, current - step);
+                                      const next = Math.max(1, current - 1);
                                       setItemInputs(prev => ({ ...prev, [item.id]: next }));
                                     }}
                                     className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 lg:text-slate-400 shadow-sm hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"
@@ -489,8 +506,8 @@ export default function SolicitantePage() {
                                   <input
                                     type="number"
                                     min={1}
-                                    max={saldo_total}
-                                    value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total))}
+                                    max={maxInput}
+                                    value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : 1}
                                     onChange={e => {
                                       const val = e.target.value;
                                       if (val === "") {
@@ -499,33 +516,28 @@ export default function SolicitantePage() {
                                         const num = parseInt(val, 10);
                                         setItemInputs(prev => ({
                                           ...prev,
-                                          [item.id]: isNaN(num) ? (item.qtd_por_caixa || 1) : Math.max(1, Math.min(num, saldo_total))
+                                          [item.id]: isNaN(num) ? 1 : Math.max(1, Math.min(num, maxInput))
                                         }));
                                       }
                                     }}
                                     onBlur={() => {
-                                      const step = item.qtd_por_caixa || 1;
                                       const current = itemInputs[item.id];
                                       if (!current || parseInt(current, 10) <= 0) {
-                                        setItemInputs(prev => ({ ...prev, [item.id]: step }));
+                                        setItemInputs(prev => ({ ...prev, [item.id]: 1 }));
                                       } else {
-                                        const num = parseInt(current, 10);
-                                        let newQty = Math.ceil(num / step) * step;
-                                        newQty = Math.min(newQty, saldo_total);
-                                        setItemInputs(prev => ({ ...prev, [item.id]: newQty }));
+                                        setItemInputs(prev => ({ ...prev, [item.id]: Math.min(parseInt(current, 10), maxInput) }));
                                       }
                                     }}
                                     onFocus={e => e.target.select()}
-                                    disabled={saldo_total === 0}
+                                    disabled={maxInput === 0}
                                     className="w-10 h-7 text-center font-mono font-black text-sm text-slate-800 lg:text-white bg-transparent focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    placeholder={Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total)).toString()}
+                                    placeholder="1"
                                   />
                                   <button
                                     onClick={() => {
-                                      const defaultStart = Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total));
+                                      const defaultStart = 1;
                                       const current = parseInt(itemInputs[item.id], 10) || defaultStart;
-                                      const step = item.qtd_por_caixa || 1;
-                                      const next = Math.min(saldo_total, current + step);
+                                      const next = Math.min(maxInput, current + 1);
                                       setItemInputs(prev => ({ ...prev, [item.id]: next }));
                                     }}
                                     className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 lg:text-slate-400 shadow-sm hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"
@@ -536,11 +548,11 @@ export default function SolicitantePage() {
 
                                 <button
                                   onClick={() => {
-                                    const defaultStart = Math.max(1, Math.min(item.qtd_por_caixa || 1, saldo_total));
+                                    const defaultStart = 1;
                                     const qty = parseInt(itemInputs[item.id], 10) || defaultStart;
                                     addToCart(item, qty);
                                   }}
-                                  disabled={saldo_total === 0}
+                                  disabled={maxInput === 0}
                                   className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5 flex-1 disabled:opacity-50 disabled:pointer-events-none shadow-sm h-10"
                                 >
                                   <Plus className="w-4 h-4" />
@@ -602,14 +614,15 @@ export default function SolicitantePage() {
                           <input
                             type="number"
                             min={1}
-                            max={c.maxQtd}
-                            value={c.quantidade}
+                            max={c.isCaixa ? Math.floor(c.maxQtd / c.qtd_por_caixa) : c.maxQtd}
+                            value={c.isCaixa ? (c.quantidade !== "" ? Math.floor(c.quantidade / c.qtd_por_caixa) : "") : c.quantidade}
                             onChange={e => setCartQty(c.itemId, e.target.value)}
                             onBlur={() => handleBlurCartQty(c.itemId)}
                             onFocus={e => e.target.select()}
                             className="w-16 h-7 text-center font-mono font-black text-sm text-slate-800 lg:text-white bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 focus:bg-white focus:text-slate-900 focus:lg:text-slate-900 border border-slate-200 focus:border-[#1B3A6B] rounded-md focus:outline-none focus:ring-1 focus:ring-[#1B3A6B] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200"
-                            title={`Digite a quantidade (Disponível: ${c.maxQtd} ${c.unidade})`}
+                            title={`Digite a quantidade (Disponível: ${c.isCaixa ? Math.floor(c.maxQtd / c.qtd_por_caixa) + " CX" : c.maxQtd + " " + c.unidade})`}
                           />
+                          <span className="text-xs font-bold text-slate-500 mr-2">{c.isCaixa ? "CX" : "UN"}</span>
                           <button
                             onClick={() => updateCartQty(c.itemId, 1)}
                             className="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"
@@ -717,9 +730,9 @@ export default function SolicitantePage() {
                           layout
                           initial={{ opacity: 0, y: 12 }}
                           animate={{ opacity: 1, y: 0 }}
-                          className="site-card p-4 pl-5 relative overflow-hidden"
+                          className="site-card p-4 pl-5 relative overflow-hidden lg:bg-[#0f172a] lg:border-slate-800 lg:shadow-xl"
                         >
-                          <div className="absolute top-0 left-0 w-1 h-full rounded-l-xl" style={{ background: col.accent }} />
+                          <div className="absolute top-0 left-0 w-1 h-full rounded-l-xl lg:w-full lg:h-1 lg:rounded-t-xl lg:rounded-bl-none" style={{ background: col.accent }} />
                           <div className="flex justify-between items-start mb-2">
                             <span className="text-xs font-mono font-bold text-slate-400">#{pedido.id.toString().padStart(4, '0')}</span>
                             <span className="flex items-center text-[10px] font-bold px-2 py-1 rounded-md bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 border border-slate-100 text-slate-500 lg:text-slate-400">

@@ -27,6 +27,7 @@ export default function PainelEstoquePage() {
   const audioCtxRef = useRef(null);
   const prevItemsRef = useRef([]);
   const [custoRequested, setCustoRequested] = useState({});
+  const [showCriticalModal, setShowCriticalModal] = useState(false);
 
   // Inicializa permissão de notificações
   useEffect(() => {
@@ -149,9 +150,10 @@ export default function PainelEstoquePage() {
 
   // Contagens e KPIs — limiteMinimo padrão = 10 quando não existir no banco
   const getMin = (item) => item.limiteMinimo ?? 10;
-  const emptyItems = items.filter(i => i.quantidade === 0);
-  const lowItems = items.filter(i => i.quantidade > 0 && i.quantidade <= getMin(i));
-  const okItems = items.filter(i => i.quantidade > getMin(i));
+  const getTotal = (item) => item.quantidade + (item.estoques_alt?.reduce((sum, e) => sum + (e.quantidade_avulsa || 0), 0) || 0);
+  const emptyItems = items.filter(i => getTotal(i) === 0);
+  const lowItems = items.filter(i => getTotal(i) > 0 && getTotal(i) <= getMin(i));
+  const okItems = items.filter(i => getTotal(i) > getMin(i));
   const allCritical = [...emptyItems, ...lowItems];
 
   // Itens filtrados
@@ -164,9 +166,9 @@ export default function PainelEstoquePage() {
 
     if (!matchesSearch) return false;
 
-    if (filter === "low") return item.quantidade > 0 && item.quantidade <= getMin(item);
-    if (filter === "empty") return item.quantidade === 0;
-    if (filter === "ok") return item.quantidade > getMin(item);
+    if (filter === "low") return getTotal(item) > 0 && getTotal(item) <= getMin(item);
+    if (filter === "empty") return getTotal(item) === 0;
+    if (filter === "ok") return getTotal(item) > getMin(item);
     return true;
   });
 
@@ -238,7 +240,7 @@ export default function PainelEstoquePage() {
           </div>
 
           <div className="flex flex-wrap gap-2 pt-1">
-            {allCritical.map(item => (
+            {allCritical.slice(0, 4).map(item => (
               <button
                 key={item.id}
                 onClick={() => {
@@ -248,16 +250,24 @@ export default function PainelEstoquePage() {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-100/80 hover:bg-red-200 border border-red-300 text-xs font-medium text-red-900 transition-all hover:scale-105"
                 title="Filtrar esta peça na tabela"
               >
-                {item.quantidade === 0 
+                {getTotal(item) === 0 
                   ? <XCircle className="w-3.5 h-3.5 shrink-0 text-red-700" />
                   : <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-600" />}
                 <span className="font-mono font-bold">{item.codigo}</span>
                 <span className="truncate max-w-[160px]">{item.nome}</span>
                 <span className="font-mono font-bold text-red-700 bg-white/70 px-1.5 py-0.5 rounded">
-                  {item.quantidade}/{getMin(item)} {item.unidade}
+                  {getTotal(item)}/{getMin(item)} {item.unidade}
                 </span>
               </button>
             ))}
+            {allCritical.length > 4 && (
+              <button
+                onClick={() => setShowCriticalModal(true)}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-bold transition-all hover:bg-red-700 shadow-sm"
+              >
+                Ver todas ({allCritical.length})
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -408,7 +418,7 @@ export default function PainelEstoquePage() {
         </div>
 
         {/* Visão Desktop (Tabela original) */}
-        <div className="hidden lg:block overflow-y-auto custom-scrollbar max-h-[320px]">
+        <div className="hidden lg:block overflow-y-auto custom-scrollbar max-h-[320px] rounded-2xl relative overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead className="sticky top-0 z-10 lg:bg-slate-800/80 lg:text-slate-300 lg:border-slate-700">
               <tr className="bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 border-b border-slate-200 text-[11px] font-bold text-slate-500 lg:text-slate-400 uppercase tracking-wider">
@@ -431,24 +441,28 @@ export default function PainelEstoquePage() {
                 </tr>
               ) : (
                 filteredItems.map((item) => {
-                  const isZero = item.quantidade === 0;
-                  const isLow = item.quantidade > 0 && item.quantidade <= getMin(item);
-                  const maxCap = Math.max(getMin(item) * 2, item.quantidade, 1);
-                  const percent = Math.min(100, Math.round((item.quantidade / maxCap) * 100));
+                  const total = getTotal(item);
+                  const isZero = total === 0;
+                  const isLow = total > 0 && total <= getMin(item);
+                  const isSobras = item.quantidade === 0 && total > 0;
+                  const maxCap = Math.max(getMin(item) * 2, total, 1);
+                  const percent = Math.min(100, Math.round((total / maxCap) * 100));
 
                   return (
                     <tr
                       key={item.id}
-                      className={`transition-colors ${
+                      className={`transition-colors relative ${
                         isZero
-                          ? "bg-red-50/70 lg:bg-red-950/40 border-l-4 border-l-red-600 hover:bg-red-100/60 hover:lg:bg-red-900/60"
-                          : isLow
-                          ? "bg-amber-50/60 lg:bg-amber-950/40 border-l-4 border-l-amber-500 hover:bg-amber-100/50 hover:lg:bg-amber-900/50"
+                          ? "bg-red-50/70 lg:bg-red-950/40 hover:bg-red-100/60 hover:lg:bg-red-900/60"
+                          : isLow || isSobras
+                          ? "bg-amber-50/60 lg:bg-amber-950/40 hover:bg-amber-100/50 hover:lg:bg-amber-900/50"
                           : "hover:bg-slate-50 hover:lg:bg-slate-800/60 lg:bg-transparent lg:border-slate-700 lg:text-slate-200"
                       }`}
                     >
                       {/* CÓDIGO */}
-                      <td className="py-3.5 px-4 font-mono font-bold text-xs text-blue-900 lg:text-blue-300">
+                      <td className="py-3.5 px-4 font-mono font-bold text-xs text-blue-900 lg:text-blue-300 relative">
+                        {isZero && <div className="absolute left-0 top-0 w-1 h-full bg-red-600" />}
+                        {(isLow || isSobras) && <div className="absolute left-0 top-0 w-1 h-full bg-amber-500" />}
                         <span className="bg-blue-50 lg:bg-blue-950/60 lg:border-blue-800/50 px-2 py-1 rounded border border-blue-200/60">
                           {item.codigo}
                         </span>
@@ -477,11 +491,11 @@ export default function PainelEstoquePage() {
 
                       {/* DISPONÍVEL */}
                       <td className="py-3.5 px-4 font-mono font-black text-base">
-                        <span className={isZero ? "text-red-600" : isLow ? "text-amber-600" : "text-slate-800 lg:text-white"}>
-                          {item.quantidade}
+                        <span className={isZero ? "text-red-600" : (isLow || isSobras) ? "text-amber-600" : "text-slate-800 lg:text-white"}>
+                          {total}
                         </span>
                         <span className="text-xs font-medium text-slate-400 ml-1">
-                          {item.unidade} {item.qtd_por_caixa > 1 ? `(${Math.floor(item.quantidade / item.qtd_por_caixa)} Cxs)` : ''}
+                          {item.unidade} {item.qtd_por_caixa > 1 ? `(${Math.floor(total / item.qtd_por_caixa)} Cxs)` : ''}
                         </span>
                       </td>
 
@@ -517,6 +531,10 @@ export default function PainelEstoquePage() {
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200 animate-pulse">
                             <XCircle className="w-3.5 h-3.5" /> Esgotado
                           </span>
+                        ) : isSobras ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                            <AlertTriangle className="w-3.5 h-3.5" /> Disponível em Sobras
+                          </span>
                         ) : isLow ? (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
                             <AlertTriangle className="w-3.5 h-3.5" /> Estoque Baixo
@@ -540,6 +558,40 @@ export default function PainelEstoquePage() {
           </table>
         </div>
       </div>
+
+      {showCriticalModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white lg:bg-slate-900 rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col border border-slate-200 lg:border-slate-700">
+            <div className="flex justify-between items-center p-4 border-b border-slate-100 lg:border-slate-800">
+              <h2 className="text-lg font-bold text-slate-900 lg:text-white flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-red-500" />
+                Peças em Nível Crítico ({allCritical.length})
+              </h2>
+              <button onClick={() => setShowCriticalModal(false)} className="text-slate-400 hover:text-slate-600">
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-4 space-y-2">
+              {allCritical.map((item) => (
+                <div key={item.id} className="flex justify-between items-center bg-slate-50 lg:bg-slate-800 p-3 rounded-xl border border-slate-200 lg:border-slate-700">
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-xs font-bold text-blue-900 lg:text-blue-300 bg-blue-50 lg:bg-blue-900/30 px-2 py-1 rounded border border-blue-200 lg:border-blue-800/50">
+                      {item.codigo}
+                    </span>
+                    <span className="text-sm font-bold text-slate-800 lg:text-slate-200">{item.nome}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className={`font-mono text-sm font-black ${getTotal(item) === 0 ? 'text-red-600' : 'text-amber-500'}`}>
+                      {getTotal(item)} / {getMin(item)} {item.unidade}
+                    </div>
+                    <div className="text-[10px] text-slate-500 uppercase font-bold">{getTotal(item) === 0 ? 'Esgotado' : 'Baixo'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

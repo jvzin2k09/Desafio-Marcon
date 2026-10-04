@@ -32,7 +32,7 @@ export default function HistoricoPage() {
 
   // Filtros
   const [search, setSearch] = useState("");
-  const [tipoFiltro, setTipoFiltro] = useState("TODOS"); // 'TODOS' | 'SAIDA' | 'ESTORNO'
+  const [tipoFiltro, setTipoFiltro] = useState("TODOS"); // 'TODOS' | 'SAIDA' | 'ESTORNO' | 'ENTRADA'
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
 
@@ -379,6 +379,17 @@ export default function HistoricoPage() {
               Saídas
             </button>
             <button
+              onClick={() => { setTipoFiltro("ENTRADA"); setCurrentPage(1); }}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+                tipoFiltro === "ENTRADA"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-blue-700 hover:bg-blue-50 hover:lg:bg-blue-900/40"
+              }`}
+            >
+              <ArrowUpRight className="w-3.5 h-3.5" />
+              Entradas
+            </button>
+            <button
               onClick={() => { setTipoFiltro("ESTORNO"); setCurrentPage(1); }}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
                 tipoFiltro === "ESTORNO"
@@ -556,8 +567,8 @@ export default function HistoricoPage() {
                         <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider mb-1 ${item.tipo_baixa === 'QR_CODE' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700 lg:text-slate-300'}`}>
                           {item.tipo_baixa === 'QR_CODE' ? '[QR CODE VERIFICADO]' : '[MANUAL]'}
                         </span>
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${isEstorno ? 'bg-red-100 text-red-800 border border-red-200' : 'bg-blue-100 text-blue-900 border border-blue-200'}`}>
-                          {isEstorno ? "ESTORNO" : "SAÍDA"}
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${m.tipo === 'ESTORNO' ? 'bg-red-100 text-red-800 border border-red-200' : m.tipo === 'ENTRADA' ? 'bg-blue-100 text-blue-900 border border-blue-200' : 'bg-emerald-100 text-emerald-900 border border-emerald-200'}`}>
+                          {m.tipo === 'ESTORNO' ? "ESTORNO" : m.tipo === 'ENTRADA' ? "ENTRADA" : "SAÍDA"}
                         </span>
                       </div>
                     </div>
@@ -646,10 +657,15 @@ export default function HistoricoPage() {
 
                         {/* Tipo de Movimentação */}
                         <td className="py-3.5 px-4 whitespace-nowrap">
-                          {isEstorno ? (
+                          {m.tipo === "ESTORNO" ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-black tracking-wider uppercase bg-red-50 text-red-700 border border-red-200">
                               <Undo2 className="w-3 h-3" />
                               Estorno
+                            </span>
+                          ) : m.tipo === "ENTRADA" ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-black tracking-wider uppercase bg-blue-50 text-blue-700 border border-blue-200">
+                              <ArrowUpRight className="w-3 h-3" />
+                              Entrada
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-black tracking-wider uppercase bg-emerald-50 text-emerald-700 border border-emerald-200">
