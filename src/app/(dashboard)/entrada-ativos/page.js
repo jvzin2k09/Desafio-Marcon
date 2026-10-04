@@ -544,6 +544,7 @@ export default function EntradaAtivosPage() {
                       <th className="text-left whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-slate-500 px-5 py-3">Qtd</th>
                       <th className="text-left whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-slate-500 px-5 py-3">Data de Cadastro</th>
                       <th className="text-left whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-slate-500 px-5 py-3">Status</th>
+                      <th className="text-left whitespace-nowrap text-[10px] font-bold uppercase tracking-wider text-slate-500 px-5 py-3">Ações</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -596,6 +597,15 @@ export default function EntradaAtivosPage() {
                             <span className={`w-1.5 h-1.5 rounded-full ${item.quantidade > 0 ? "bg-emerald-400" : "bg-red-400"}`} />
                             {item.quantidade > 0 ? "Em Estoque" : "Sem Estoque"}
                           </span>
+                        </td>
+                        <td className="px-5 py-3 whitespace-nowrap">
+                          <button
+                            type="button"
+                            className="lg:bg-emerald-600/20 hover:lg:bg-emerald-600 lg:text-emerald-400 hover:lg:text-white lg:border lg:border-emerald-500/30 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1"
+                          >
+                            <PackagePlus className="w-3.5 h-3.5" />
+                            + Entrada
+                          </button>
                         </td>
                       </motion.tr>
                     ))}
