@@ -131,7 +131,7 @@ const FilaCard = memo(function FilaCard({ pedido, tab, onAction, onEstornar }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -30 }}
       transition={SPRING}
-      className="bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl p-4 shadow-sm border-2 border-slate-100 mb-3"
+      className="bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl p-4 shadow-sm border-2 border-slate-100"
     >
       {/* Linha 1: N° Pedido + Tempo + Setor + Menu */}
       <div className="flex items-center justify-between mb-1.5">
@@ -262,7 +262,7 @@ export default function AlmoxarifadoPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-80px)] flex flex-col max-w-2xl mx-auto overflow-hidden">
+    <div className="h-[calc(100vh-80px)] flex flex-col w-full max-w-7xl mx-auto overflow-hidden px-4 lg:px-6">
 
       {/* Header */}
       <div className="bg-white px-4 md:px-5 py-4 rounded-2xl border border-slate-200 shadow-sm shrink-0 lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80">
@@ -322,7 +322,7 @@ export default function AlmoxarifadoPage() {
               key="empty"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="py-16 flex flex-col items-center justify-center text-slate-300"
+              className="py-16 flex flex-col items-center justify-center text-slate-300 w-full"
             >
               <ClipboardList className="w-12 h-12 mb-3 opacity-40" />
               <p className="font-bold text-sm text-slate-400">
@@ -332,7 +332,8 @@ export default function AlmoxarifadoPage() {
               </p>
             </motion.div>
           ) : (
-            currentList.map(pedido => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 w-full mt-4">
+            {currentList.map(pedido => (
               <FilaCard
                 key={pedido.id}
                 pedido={pedido}
@@ -340,7 +341,8 @@ export default function AlmoxarifadoPage() {
                 onAction={handleIniciarSeparacao}
                 onEstornar={setEstornoModal}
               />
-            ))
+            ))}
+            </div>
           )}
         </AnimatePresence>
       </div>

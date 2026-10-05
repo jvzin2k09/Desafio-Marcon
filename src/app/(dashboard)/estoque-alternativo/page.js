@@ -106,7 +106,7 @@ export default function EstoqueAlternativoPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-80px)] flex flex-col max-w-5xl mx-auto overflow-hidden px-4 md:px-0">
+    <div className="h-[calc(100vh-80px)] flex flex-col w-full max-w-7xl mx-auto overflow-hidden px-4 lg:px-6">
       <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm shrink-0 lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80">
         <h2 className="text-xl md:text-2xl font-display font-black text-slate-900 lg:text-white tracking-tight flex items-center gap-2">
           <Recycle className="w-6 h-6 text-[#1B3A6B] lg:text-blue-400" />
@@ -154,20 +154,21 @@ export default function EstoqueAlternativoPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-8 custom-scrollbar space-y-3">
+      <div className="flex-1 overflow-y-auto pb-8 custom-scrollbar">
         {tab === "itens" ? (
           <AnimatePresence>
             {filtrados.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="py-16 flex flex-col items-center justify-center text-slate-300"
+                className="py-16 flex flex-col items-center justify-center text-slate-300 w-full"
               >
                 <Boxes className="w-12 h-12 mb-3 opacity-40" />
                 <p className="font-bold text-sm text-slate-400">Nenhum estoque alternativo encontrado</p>
               </motion.div>
             ) : (
-              filtrados.map((item) => {
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 w-full mt-4">
+              {filtrados.map((item) => {
                 const semSobras = item.quantidade_avulsa === 0;
                 return (
                 <motion.div
@@ -228,7 +229,9 @@ export default function EstoqueAlternativoPage() {
                   </div>
                 )}
               </motion.div>
-            )})
+              );
+              })}
+              </div>
           )}
           </AnimatePresence>
         ) : (
@@ -237,13 +240,14 @@ export default function EstoqueAlternativoPage() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="py-16 flex flex-col items-center justify-center text-slate-300"
+                className="py-16 flex flex-col items-center justify-center text-slate-300 w-full"
               >
                 <Package className="w-12 h-12 mb-3 opacity-40" />
                 <p className="font-bold text-sm text-slate-400">Nenhuma requisição pendente</p>
               </motion.div>
             ) : (
-              pedidos.map((pedido) => (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 w-full mt-4">
+              {pedidos.map((pedido) => (
                 <motion.div
                   key={pedido.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -292,7 +296,8 @@ export default function EstoqueAlternativoPage() {
                     </button>
                   </div>
                 </motion.div>
-              ))
+              ))}
+              </div>
             )}
           </AnimatePresence>
         )}

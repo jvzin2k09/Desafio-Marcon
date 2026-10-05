@@ -93,12 +93,11 @@ export default function SolicitantePage() {
   const addToCart = (item, inputQty) => {
     const isCaixa = item.qtd_por_caixa > 1;
     const maxDisponivel = getSaldoTotal(item);
-    const tamanhoCx = isCaixa ? item.qtd_por_caixa : 1;
     
-    // inputQty já vem em UN (mínimo = tamanhoCaixa)
-    let requestedUnits = parseInt(inputQty, 10) || tamanhoCx;
+    // inputQty já vem em UN (mínimo = 1)
+    let requestedUnits = parseInt(inputQty, 10) || 1;
     
-    requestedUnits = Math.max(tamanhoCx, Math.min(requestedUnits, maxDisponivel));
+    requestedUnits = Math.max(1, Math.min(requestedUnits, maxDisponivel));
 
     const existing = cart.find(c => c.itemId === item.id);
     if (existing) {
@@ -126,11 +125,9 @@ export default function SolicitantePage() {
   const updateCartQty = (itemId, deltaMultiplier) => {
     setCart(cart.map(c => {
       if (c.itemId === itemId) {
-        const step = c.isCaixa ? c.qtd_por_caixa : 1;
-        const delta = deltaMultiplier * step;
         const currentQty = parseInt(c.quantidade, 10) || 0;
-        let newQty = currentQty + delta;
-        newQty = Math.max(step, newQty);
+        let newQty = currentQty + deltaMultiplier;
+        newQty = Math.max(1, newQty);
         return { ...c, quantidade: Math.min(newQty, c.maxQtd) };
       }
       return c;
@@ -145,7 +142,8 @@ export default function SolicitantePage() {
         }
         const num = parseInt(val, 10);
         if (isNaN(num)) return { ...c, quantidade: "" };
-        return { ...c, quantidade: Math.min(Math.max(c.isCaixa ? c.qtd_por_caixa : 1, num), c.maxQtd || 999999) };
+        // Permite digitação livre — validação/arredondamento acontece no onBlur (handleBlurCartQty)
+        return { ...c, quantidade: num };
       }
       return c;
     }));
@@ -154,14 +152,12 @@ export default function SolicitantePage() {
   const handleBlurCartQty = (itemId) => {
     setCart(cart.map(c => {
       if (c.itemId === itemId) {
-        const step = c.isCaixa ? c.qtd_por_caixa : 1;
         const num = parseInt(c.quantidade, 10);
         if (isNaN(num) || num <= 0) {
-          return { ...c, quantidade: step };
+          return { ...c, quantidade: 1 };
         }
-        // ensure multiple of step
-        let normalized = Math.ceil(num / step) * step;
-        return { ...c, quantidade: Math.min(normalized, c.maxQtd || 999999) };
+        // Clampar entre 1 e o máximo disponível
+        return { ...c, quantidade: Math.min(Math.max(1, num), c.maxQtd || 999999) };
       }
       return c;
     }));
@@ -491,9 +487,8 @@ export default function SolicitantePage() {
                                 <div className="flex items-center gap-1 bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 p-1.5 rounded-lg border border-slate-200 shrink-0">
                                   <button
                                     onClick={() => {
-                                      const step = isCaixa ? tamanhoCaixa : 1;
-                                      const current = parseInt(itemInputs[item.id], 10) || step;
-                                      const next = Math.max(step, current - step);
+                                      const current = parseInt(itemInputs[item.id], 10) || 1;
+                                      const next = Math.max(1, current - 1);
                                       setItemInputs(prev => ({ ...prev, [item.id]: next }));
                                     }}
                                     className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 lg:text-slate-400 shadow-sm hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"
@@ -502,45 +497,43 @@ export default function SolicitantePage() {
                                   </button>
                                   <input
                                     type="number"
-                                    min={isCaixa ? tamanhoCaixa : 1}
-                                    step={isCaixa ? tamanhoCaixa : 1}
+                                    min={1}
+                                    step={1}
                                     max={maxInput}
-                                    value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : (isCaixa ? tamanhoCaixa : 1)}
+                                    value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : 1}
                                     onChange={e => {
                                       const val = e.target.value;
                                       if (val === "") {
                                         setItemInputs(prev => ({ ...prev, [item.id]: "" }));
                                       } else {
                                         const num = parseInt(val, 10);
-                                        const minVal = isCaixa ? tamanhoCaixa : 1;
+                                        // Permite digitação livre — validação/arredondamento acontece no onBlur
                                         setItemInputs(prev => ({
                                           ...prev,
-                                          [item.id]: isNaN(num) ? minVal : Math.max(minVal, Math.min(num, maxInput))
+                                          [item.id]: isNaN(num) ? "" : num
                                         }));
                                       }
                                     }}
                                     onBlur={() => {
                                       const current = itemInputs[item.id];
-                                      const step = isCaixa ? tamanhoCaixa : 1;
                                       if (!current || parseInt(current, 10) <= 0) {
-                                        setItemInputs(prev => ({ ...prev, [item.id]: step }));
+                                        setItemInputs(prev => ({ ...prev, [item.id]: 1 }));
                                       } else {
                                         let val = parseInt(current, 10);
-                                        // Arredondar para o múltiplo de step mais próximo
-                                        val = Math.ceil(val / step) * step;
-                                        setItemInputs(prev => ({ ...prev, [item.id]: Math.min(val, maxInput) }));
+                                        // Clampar entre 1 e o máximo disponível
+                                        val = Math.max(1, Math.min(val, maxInput));
+                                        setItemInputs(prev => ({ ...prev, [item.id]: val }));
                                       }
                                     }}
                                     onFocus={e => e.target.select()}
                                     disabled={maxInput === 0}
                                     className="w-14 h-7 text-center font-mono font-black text-sm text-slate-800 lg:text-white bg-transparent focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    placeholder={isCaixa ? tamanhoCaixa.toString() : "1"}
+                                    placeholder="1"
                                   />
                                   <button
                                     onClick={() => {
-                                      const step = isCaixa ? tamanhoCaixa : 1;
-                                      const current = parseInt(itemInputs[item.id], 10) || step;
-                                      const next = Math.min(maxInput, current + step);
+                                      const current = parseInt(itemInputs[item.id], 10) || 1;
+                                      const next = Math.min(maxInput, current + 1);
                                       setItemInputs(prev => ({ ...prev, [item.id]: next }));
                                     }}
                                     className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 lg:text-slate-400 shadow-sm hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"
@@ -551,8 +544,7 @@ export default function SolicitantePage() {
 
                                 <button
                                   onClick={() => {
-                                    const step = isCaixa ? tamanhoCaixa : 1;
-                                    const qty = parseInt(itemInputs[item.id], 10) || step;
+                                    const qty = parseInt(itemInputs[item.id], 10) || 1;
                                     addToCart(item, qty);
                                   }}
                                   disabled={maxInput === 0}
@@ -616,8 +608,8 @@ export default function SolicitantePage() {
                           </button>
                           <input
                             type="number"
-                            min={c.isCaixa ? c.qtd_por_caixa : 1}
-                            step={c.isCaixa ? c.qtd_por_caixa : 1}
+                            min={1}
+                            step={1}
                             max={c.maxQtd}
                             value={c.quantidade}
                             onChange={e => setCartQty(c.itemId, e.target.value)}
