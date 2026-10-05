@@ -348,11 +348,17 @@ export default function SolicitantePage() {
                       {/* CALCULOS DE ESTOQUE UNIFICADO */}
                       {(() => {
                         const saldo_sobras = item.estoques_alt?.reduce((acc, e) => acc + e.quantidade_avulsa, 0) || 0;
-                        const caixas_central = Math.floor(item.quantidade / (item.qtd_por_caixa || 1));
-                        const saldo_total = saldo_sobras + item.quantidade;
-                        const isCaixa = item.qtd_por_caixa > 1;
-                        const maxInput = isCaixa ? Math.floor(saldo_total / item.qtd_por_caixa) : saldo_total;
-                        const displayUnit = isCaixa ? "CX" : "UN";
+                        const totalUN = saldo_sobras + item.quantidade;
+                        // Mock de 100 se o DB não tiver um tamanho de caixa > 1 configurado para demonstrar a feature
+                        const tamanhoCaixa = item.qtd_por_caixa > 1 ? item.qtd_por_caixa : 100; 
+                        const cxConvertidas = Math.floor(totalUN / tamanhoCaixa);
+                        const unRestantes = totalUN % tamanhoCaixa;
+                        
+                        const loteAberto = infoVisible[item.id];
+                        const setLoteAberto = () => setInfoVisible(prev => ({...prev, [item.id]: !prev[item.id]}));
+                        
+                        const isCaixa = tamanhoCaixa > 1;
+                        const maxInput = isCaixa ? Math.floor(totalUN / tamanhoCaixa) : totalUN;
 
                         return (
                           <>
@@ -380,44 +386,35 @@ export default function SolicitantePage() {
 
                         <div className="flex flex-col gap-0.5 mt-1 mb-2">
                           <div className="flex items-center gap-2">
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-md whitespace-nowrap w-fit ${saldo_total > 0 ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-700'}`}>
-                              {isCaixa ? `${maxInput} CX Total` : `${saldo_total} UN Total`}
+                            <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              {totalUN} UN Total
                             </span>
-                            {item.qtd_por_caixa > 1 && (
-                              <button 
-                                onClick={() => setInfoVisible(prev => ({...prev, [item.id]: !prev[item.id]}))}
-                                className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium transition-all border ${
-                                  infoVisible[item.id] 
-                                    ? 'bg-blue-100 text-blue-700 border-blue-200' 
-                                    : 'bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 text-slate-400 border-slate-200 hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200'
-                                }`}
-                              >
-                                <Info className="w-3 h-3" />
-                                <span className="hidden sm:inline">Saiba mais</span>
-                              </button>
-                            )}
+                            <button 
+                              onClick={setLoteAberto}
+                              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-blue-400 border border-blue-500/30 hover:bg-blue-500/10 transition-all"
+                            >
+                              <Info className="w-3.5 h-3.5" /> Saiba mais
+                            </button>
                           </div>
-                          <span className="text-[10px] text-slate-500 lg:text-slate-400 font-medium flex items-center gap-1.5 px-1">
-                            <Recycle className="w-3 h-3 shrink-0" /> {saldo_sobras} UN em Sobras {(!item.qtd_por_caixa || item.qtd_por_caixa <= 1) ? "" : <>• <Package className="w-3 h-3 shrink-0" /> {caixas_central} CX Central</>}
+                          <span className="text-xs text-slate-400 flex items-center gap-1.5 mt-1">
+                            <Recycle className="w-3.5 h-3.5" /> {unRestantes} UN em Sobras • <Package className="w-3.5 h-3.5" /> {cxConvertidas} Caixa(s) Central(is)
                           </span>
                         </div>
                       </div>
 
                       {/* INFO INLINE EXPANSÍVEL */}
                       <AnimatePresence>
-                        {infoVisible[item.id] && (
+                        {loteAberto && (
                           <motion.div 
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
                             className="overflow-hidden"
                           >
-                            <div className="mt-2 p-2.5 bg-gradient-to-r from-blue-50 to-sky-50 border border-blue-100 rounded-lg flex items-start gap-2">
-                              <div className="shrink-0 w-6 h-6 rounded-md bg-blue-100 flex items-center justify-center mt-0.5">
-                                <Package className="w-3.5 h-3.5 text-blue-600" />
-                              </div>
-                              <p className="text-[11px] text-blue-800 leading-relaxed">
-                                <strong className="text-blue-900">Lote de Fornecimento:</strong> Este item é entregue em caixas de <strong>{item.qtd_por_caixa} UN</strong>. O saldo sobressalente vai diretamente para o seu Estoque Alternativo.
+                            <div className="bg-slate-100 text-slate-800 border border-slate-200 rounded-xl p-3 text-xs my-3 flex items-start gap-2.5 shadow-sm transition-all">
+                              <Package className="w-4 h-4 text-slate-600 mt-0.5 shrink-0" />
+                              <p className="leading-relaxed">
+                                <strong>Lote de Fornecimento:</strong> Este item é fornecido em caixas de <strong>{tamanhoCaixa} UN</strong>. O saldo remanescente (sobras) vai para o seu Estoque Alternativo.
                               </p>
                             </div>
                           </motion.div>
@@ -438,7 +435,7 @@ export default function SolicitantePage() {
                               <input
                                 type="number"
                                 min={1}
-                                max={saldo_total}
+                                max={totalUN}
                                 value={inCart.quantidade}
                                 onChange={e => setCartQty(item.id, e.target.value)}
                                 onBlur={() => handleBlurCartQty(item.id)}
@@ -461,7 +458,7 @@ export default function SolicitantePage() {
                           </div>
                         ) : (
                           <div className="flex items-center justify-between w-full gap-2">
-                            {saldo_total === 0 ? (
+                            {totalUN === 0 ? (
                               <button
                                 onClick={() => {
                                   setCustoRequested(prev => {
