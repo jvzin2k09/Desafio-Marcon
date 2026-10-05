@@ -70,7 +70,7 @@ export default function SolicitantePage() {
 
   const userSetor = session?.user?.setor || "";
 
-  const filteredItems = items
+  const filteredItems = (Array.isArray(items) ? items : [])
     .filter(item => {
       // Filtro por setor: mostrar itens do setor do usuário + itens "Geral"
       const itemSetor = item.setor || "Geral";
@@ -93,11 +93,12 @@ export default function SolicitantePage() {
   const addToCart = (item, inputQty) => {
     const isCaixa = item.qtd_por_caixa > 1;
     const maxDisponivel = getSaldoTotal(item);
+    const tamanhoCx = isCaixa ? item.qtd_por_caixa : 1;
     
-    let requestedUnits = parseInt(inputQty, 10) || 1;
-    if (isCaixa) requestedUnits = requestedUnits * item.qtd_por_caixa;
+    // inputQty já vem em UN (mínimo = tamanhoCaixa)
+    let requestedUnits = parseInt(inputQty, 10) || tamanhoCx;
     
-    requestedUnits = Math.max(1, Math.min(requestedUnits, maxDisponivel));
+    requestedUnits = Math.max(tamanhoCx, Math.min(requestedUnits, maxDisponivel));
 
     const existing = cart.find(c => c.itemId === item.id);
     if (existing) {
@@ -144,8 +145,7 @@ export default function SolicitantePage() {
         }
         const num = parseInt(val, 10);
         if (isNaN(num)) return { ...c, quantidade: "" };
-        const qtyInUnits = c.isCaixa ? num * c.qtd_por_caixa : num;
-        return { ...c, quantidade: Math.min(Math.max(c.isCaixa ? c.qtd_por_caixa : 1, qtyInUnits), c.maxQtd || 999999) };
+        return { ...c, quantidade: Math.min(Math.max(c.isCaixa ? c.qtd_por_caixa : 1, num), c.maxQtd || 999999) };
       }
       return c;
     }));
@@ -222,7 +222,7 @@ export default function SolicitantePage() {
   };
 
   return (
-    <div className="h-[calc(100vh-80px)] flex flex-col space-y-2 md:space-y-6 overflow-hidden">
+    <div className="h-[calc(100vh-80px)] flex flex-col space-y-2 md:space-y-6 overflow-hidden lg:max-w-7xl lg:mx-auto w-full px-4 lg:px-0">
       {/* Header */}
       <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm shrink-0 lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80">
         <h2 className="text-lg md:text-2xl font-display font-black text-slate-900 lg:text-white tracking-tight">Módulo Solicitante</h2>
@@ -251,7 +251,7 @@ export default function SolicitantePage() {
       {tab === "pedido" && (
         <div className="flex-1 flex flex-col lg:flex-row gap-4 md:gap-6 min-h-0 overflow-y-auto lg:overflow-hidden custom-scrollbar">
           {/* Left: Search + Items */}
-          <div className="flex-1 flex flex-col min-h-0 lg:overflow-y-auto">
+          <div className="flex-1 flex flex-col min-h-0 lg:overflow-y-auto lg:max-w-4xl">
             {/* Search + Setor em linha no mobile */}
             <div className="relative mb-2 md:mb-4 shrink-0 lg:max-w-xl">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -349,8 +349,8 @@ export default function SolicitantePage() {
                       {(() => {
                         const saldo_sobras = item.estoques_alt?.reduce((acc, e) => acc + e.quantidade_avulsa, 0) || 0;
                         const totalUN = saldo_sobras + item.quantidade;
-                        // Mock de 100 se o DB não tiver um tamanho de caixa > 1 configurado para demonstrar a feature
-                        const tamanhoCaixa = item.qtd_por_caixa > 1 ? item.qtd_por_caixa : 100; 
+                        // Usar o tamanhoCaixa real de cada item do banco (sem fallback fixo)
+                        const tamanhoCaixa = item.qtd_por_caixa || 1; 
                         const cxConvertidas = Math.floor(totalUN / tamanhoCaixa);
                         const unRestantes = totalUN % tamanhoCaixa;
                         
@@ -358,7 +358,7 @@ export default function SolicitantePage() {
                         const setLoteAberto = () => setInfoVisible(prev => ({...prev, [item.id]: !prev[item.id]}));
                         
                         const isCaixa = tamanhoCaixa > 1;
-                        const maxInput = isCaixa ? Math.floor(totalUN / tamanhoCaixa) : totalUN;
+                        const maxInput = totalUN;
 
                         return (
                           <>
@@ -397,7 +397,7 @@ export default function SolicitantePage() {
                             </button>
                           </div>
                           <span className="text-xs text-slate-400 flex items-center gap-1.5 mt-1">
-                            <Recycle className="w-3.5 h-3.5" /> {unRestantes} UN em Sobras • <Package className="w-3.5 h-3.5" /> {cxConvertidas} Caixa(s) Central(is)
+                            <Recycle className="w-3.5 h-3.5" /> {saldo_sobras} UN em Sobras • <Package className="w-3.5 h-3.5" /> {cxConvertidas} {cxConvertidas === 1 ? "caixa central" : "caixas centrais"}
                           </span>
                         </div>
                       </div>
@@ -491,9 +491,9 @@ export default function SolicitantePage() {
                                 <div className="flex items-center gap-1 bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 p-1.5 rounded-lg border border-slate-200 shrink-0">
                                   <button
                                     onClick={() => {
-                                      const defaultStart = 1;
-                                      const current = parseInt(itemInputs[item.id], 10) || defaultStart;
-                                      const next = Math.max(1, current - 1);
+                                      const step = isCaixa ? tamanhoCaixa : 1;
+                                      const current = parseInt(itemInputs[item.id], 10) || step;
+                                      const next = Math.max(step, current - step);
                                       setItemInputs(prev => ({ ...prev, [item.id]: next }));
                                     }}
                                     className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 lg:text-slate-400 shadow-sm hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"
@@ -502,39 +502,45 @@ export default function SolicitantePage() {
                                   </button>
                                   <input
                                     type="number"
-                                    min={1}
+                                    min={isCaixa ? tamanhoCaixa : 1}
+                                    step={isCaixa ? tamanhoCaixa : 1}
                                     max={maxInput}
-                                    value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : 1}
+                                    value={itemInputs[item.id] !== undefined ? itemInputs[item.id] : (isCaixa ? tamanhoCaixa : 1)}
                                     onChange={e => {
                                       const val = e.target.value;
                                       if (val === "") {
                                         setItemInputs(prev => ({ ...prev, [item.id]: "" }));
                                       } else {
                                         const num = parseInt(val, 10);
+                                        const minVal = isCaixa ? tamanhoCaixa : 1;
                                         setItemInputs(prev => ({
                                           ...prev,
-                                          [item.id]: isNaN(num) ? 1 : Math.max(1, Math.min(num, maxInput))
+                                          [item.id]: isNaN(num) ? minVal : Math.max(minVal, Math.min(num, maxInput))
                                         }));
                                       }
                                     }}
                                     onBlur={() => {
                                       const current = itemInputs[item.id];
+                                      const step = isCaixa ? tamanhoCaixa : 1;
                                       if (!current || parseInt(current, 10) <= 0) {
-                                        setItemInputs(prev => ({ ...prev, [item.id]: 1 }));
+                                        setItemInputs(prev => ({ ...prev, [item.id]: step }));
                                       } else {
-                                        setItemInputs(prev => ({ ...prev, [item.id]: Math.min(parseInt(current, 10), maxInput) }));
+                                        let val = parseInt(current, 10);
+                                        // Arredondar para o múltiplo de step mais próximo
+                                        val = Math.ceil(val / step) * step;
+                                        setItemInputs(prev => ({ ...prev, [item.id]: Math.min(val, maxInput) }));
                                       }
                                     }}
                                     onFocus={e => e.target.select()}
                                     disabled={maxInput === 0}
-                                    className="w-10 h-7 text-center font-mono font-black text-sm text-slate-800 lg:text-white bg-transparent focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    placeholder="1"
+                                    className="w-14 h-7 text-center font-mono font-black text-sm text-slate-800 lg:text-white bg-transparent focus:outline-none disabled:opacity-30 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                    placeholder={isCaixa ? tamanhoCaixa.toString() : "1"}
                                   />
                                   <button
                                     onClick={() => {
-                                      const defaultStart = 1;
-                                      const current = parseInt(itemInputs[item.id], 10) || defaultStart;
-                                      const next = Math.min(maxInput, current + 1);
+                                      const step = isCaixa ? tamanhoCaixa : 1;
+                                      const current = parseInt(itemInputs[item.id], 10) || step;
+                                      const next = Math.min(maxInput, current + step);
                                       setItemInputs(prev => ({ ...prev, [item.id]: next }));
                                     }}
                                     className="w-7 h-7 rounded flex items-center justify-center bg-white text-slate-500 lg:text-slate-400 shadow-sm hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"
@@ -545,8 +551,8 @@ export default function SolicitantePage() {
 
                                 <button
                                   onClick={() => {
-                                    const defaultStart = 1;
-                                    const qty = parseInt(itemInputs[item.id], 10) || defaultStart;
+                                    const step = isCaixa ? tamanhoCaixa : 1;
+                                    const qty = parseInt(itemInputs[item.id], 10) || step;
                                     addToCart(item, qty);
                                   }}
                                   disabled={maxInput === 0}
@@ -610,16 +616,17 @@ export default function SolicitantePage() {
                           </button>
                           <input
                             type="number"
-                            min={1}
-                            max={c.isCaixa ? Math.floor(c.maxQtd / c.qtd_por_caixa) : c.maxQtd}
-                            value={c.isCaixa ? (c.quantidade !== "" ? Math.floor(c.quantidade / c.qtd_por_caixa) : "") : c.quantidade}
+                            min={c.isCaixa ? c.qtd_por_caixa : 1}
+                            step={c.isCaixa ? c.qtd_por_caixa : 1}
+                            max={c.maxQtd}
+                            value={c.quantidade}
                             onChange={e => setCartQty(c.itemId, e.target.value)}
                             onBlur={() => handleBlurCartQty(c.itemId)}
                             onFocus={e => e.target.select()}
                             className="w-16 h-7 text-center font-mono font-black text-sm text-slate-800 lg:text-white bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 focus:bg-white focus:text-slate-900 focus:lg:text-slate-900 border border-slate-200 focus:border-[#1B3A6B] rounded-md focus:outline-none focus:ring-1 focus:ring-[#1B3A6B] transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none shadow-inner lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200"
-                            title={`Digite a quantidade (Disponível: ${c.isCaixa ? Math.floor(c.maxQtd / c.qtd_por_caixa) + " CX" : c.maxQtd + " " + c.unidade})`}
+                            title={`Digite a quantidade (Disponível: ${c.maxQtd} UN)`}
                           />
-                          <span className="text-xs font-bold text-slate-500 mr-2">{c.isCaixa ? "CX" : "UN"}</span>
+                          <span className="text-xs font-bold text-slate-500 mr-2">UN</span>
                           <button
                             onClick={() => updateCartQty(c.itemId, 1)}
                             className="w-7 h-7 rounded-md flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 transition-colors"

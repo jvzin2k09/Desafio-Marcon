@@ -44,6 +44,21 @@ export default function EstoqueAlternativoPage() {
 
   const [ajusteModal, setAjusteModal] = useState(null);
   const [novoSaldo, setNovoSaldo] = useState("");
+  const [estornoModal, setEstornoModal] = useState(null);
+
+  const executarEstorno = async (pedidoToEstornar) => {
+    try {
+      const res = await fetch("/api/estornos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pedidoId: pedidoToEstornar.id, motivo: "Cancelado via Estoque Alternativo" })
+      });
+      if (res.ok) {
+        setPedidos(prev => prev.filter(p => p.id !== pedidoToEstornar.id));
+        fetch("/api/estoque-alternativo").then(r=>r.json()).then(setEstoque);
+      }
+    } catch (e) { console.error(e); }
+  };
 
   const salvarAjuste = async () => {
     if (!ajusteModal || novoSaldo === "") return;
@@ -263,19 +278,13 @@ export default function EstoqueAlternativoPage() {
                       <RefreshCcw className="w-4 h-4" /> Separar e Entregar
                     </button>
                     <button 
-                      onClick={async () => {
-                        if(!confirm("Deseja cancelar e estornar esta requisição?")) return;
-                        try {
-                          const res = await fetch("/api/estornos", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ pedidoId: pedido.id, motivo: "Cancelado via Estoque Alternativo" })
-                          });
-                          if (res.ok) {
-                            setPedidos(pedidos.filter(p => p.id !== pedido.id));
-                            fetch("/api/estoque-alternativo").then(r=>r.json()).then(setEstoque);
-                          }
-                        } catch (e) { console.error(e); }
+                      onClick={() => {
+                        if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+                          setEstornoModal(pedido);
+                        } else {
+                          if(!confirm("Deseja cancelar e estornar esta requisição?")) return;
+                          executarEstorno(pedido);
+                        }
                       }}
                       className="flex-1 bg-white lg:bg-slate-800 text-red-600 border border-slate-200 lg:border-slate-700 font-bold py-3 lg:py-2.5 rounded-xl flex items-center justify-center gap-2 hover:bg-red-50 hover:lg:bg-red-900/40 transition-all active:scale-[0.98] lg:text-xs uppercase tracking-wide"
                     >
@@ -324,6 +333,46 @@ export default function EstoqueAlternativoPage() {
                   className="flex-1 py-2 rounded-xl text-xs font-bold text-white bg-[#1B3A6B] hover:bg-[#1B3A6B]/90 transition-colors"
                 >
                   Salvar
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Estorno (Apenas Desktop) */}
+      <AnimatePresence>
+        {estornoModal && (
+          <div className="fixed inset-0 z-[70] hidden lg:flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={() => setEstornoModal(null)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 16 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              onClick={e => e.stopPropagation()}
+              className="w-full max-w-md bg-slate-900/95 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl shadow-2xl flex flex-col"
+            >
+              <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                ⚠️ Confirmar Estorno
+              </h2>
+              <p className="text-sm text-slate-300 mb-6 leading-relaxed">
+                Tem a certeza de que deseja cancelar e estornar esta requisição? O saldo voltará para o estoque.
+              </p>
+              
+              <div className="flex justify-end gap-3">
+                <button 
+                  onClick={() => setEstornoModal(null)}
+                  className="px-4 py-2.5 rounded-xl text-sm font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                >
+                  Voltar
+                </button>
+                <button 
+                  onClick={() => {
+                    executarEstorno(estornoModal);
+                    setEstornoModal(null);
+                  }}
+                  className="px-4 py-2.5 rounded-xl text-sm font-bold bg-red-600 hover:bg-red-500 text-white transition-colors"
+                >
+                  Confirmar Estorno
                 </button>
               </div>
             </motion.div>

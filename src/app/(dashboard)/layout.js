@@ -174,7 +174,9 @@ export default function DashboardLayout({ children }) {
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto p-4 md:p-8 pb-28 md:pb-8">
-        {children}
+        <div className="w-full max-w-7xl mx-auto h-full flex flex-col">
+          {children}
+        </div>
       </main>
 
       {/* Mobile Bottom Navigation Bar */}
