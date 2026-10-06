@@ -54,12 +54,11 @@ export async function POST(request) {
         // O estoque já foi reduzido na criação do pedido, não deduzir novamente.
       }
 
-      // Atualiza o pedido
+      // Atualiza o pedido para PRONTO_RETIRADA
       await tx.pedido.update({
         where: { id: parseInt(pedidoId) },
         data: {
-          status: isAnyPartial ? 'ATENDIDO_PARCIALMENTE' : 'CONCLUIDO',
-          entregueEm: new Date()
+          status: 'PRONTO_RETIRADA'
         }
       });
     });

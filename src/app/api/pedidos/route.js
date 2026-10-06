@@ -18,7 +18,14 @@ export async function GET(request) {
         user: true,
         itens: {
           include: {
-            item: true
+            item: true,
+            almoxarife: {
+              select: {
+                id: true,
+                nome: true,
+                email: true
+              }
+            }
           }
         }
       },
@@ -71,11 +78,24 @@ export async function PUT(request) {
       });
       return NextResponse.json({ success: true });
     } else if (status) {
-      // Caso não haja itens, mas haja status (ex: Movendo para Em Separação)
+      // Caso não haja itens, mas haja status (ex: Movendo para Em Separação ou Marcando como Entregue)
+      const updateData = { status };
+      if (status === 'ENTREGUE' || status === 'CONCLUIDO') {
+        updateData.entregueEm = new Date();
+      }
       const pedido = await prisma.pedido.update({
         where: { id: parseInt(id) },
-        data: { status }
+        data: updateData
       });
+
+      // Se moveu para EM_SEPARACAO, associa o almoxarife que iniciou a separação aos itens
+      if (status === 'EM_SEPARACAO' && session?.user?.id) {
+        await prisma.pedidoitem.updateMany({
+          where: { pedidoId: parseInt(id) },
+          data: { almoxarife_id: parseInt(session.user.id) }
+        });
+      }
+
       return NextResponse.json(pedido);
     } else {
       return NextResponse.json({ error: 'Nenhuma alteração enviada' }, { status: 400 });

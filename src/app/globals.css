@@ -124,6 +124,15 @@ body {
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #c5d4e8; border-radius: 2px; }
 
+/* Scroll dark industrial das colunas do kanban (desktop >= 1024px) */
+@media (min-width: 1024px) {
+  .kanban-scroll { scrollbar-width: thin; scrollbar-color: rgba(51, 65, 85, 0.8) rgba(15, 23, 42, 0.3); }
+  .kanban-scroll::-webkit-scrollbar { width: 6px; }
+  .kanban-scroll::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.3); border-radius: 3px; }
+  .kanban-scroll::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.8); border-radius: 3px; }
+  .kanban-scroll::-webkit-scrollbar-thumb:hover { background: #475569; }
+}
+
 /* Utilitário para esconder scrollbar mantendo funcionalidade de scroll */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

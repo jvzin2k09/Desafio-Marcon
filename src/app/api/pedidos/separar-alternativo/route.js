@@ -47,12 +47,11 @@ export async function POST(request) {
         }
       }
 
-      // Mark the order as completed
+      // Move o pedido para PRONTO_RETIRADA
       await tx.pedido.update({
         where: { id: parseInt(pedidoId) },
         data: { 
-          status: 'CONCLUIDO',
-          entregueEm: new Date(),
+          status: 'PRONTO_RETIRADA',
           observacao: 'Atendimento via Estoque Alternativo'
         }
       });

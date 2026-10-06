@@ -63,8 +63,7 @@ export async function POST(request) {
         await tx.pedido.update({
           where: { id: parseInt(pedidoId) },
           data: {
-            status: isAnyPartial ? 'ATENDIDO_PARCIALMENTE' : 'CONCLUIDO',
-            entregueEm: new Date()
+            status: 'PRONTO_RETIRADA'
           }
         });
       }

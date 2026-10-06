@@ -167,7 +167,7 @@ export default function EstoqueAlternativoPage() {
                 <p className="font-bold text-sm text-slate-400">Nenhum estoque alternativo encontrado</p>
               </motion.div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 w-full mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-6">
               {filtrados.map((item) => {
                 const semSobras = item.quantidade_avulsa === 0;
                 return (
@@ -175,7 +175,7 @@ export default function EstoqueAlternativoPage() {
                   key={`${item.itemId}-${item.setor}`}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col gap-4"
+                  className="bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-col gap-4 w-full"
                 >
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="flex-1">
@@ -246,13 +246,13 @@ export default function EstoqueAlternativoPage() {
                 <p className="font-bold text-sm text-slate-400">Nenhuma requisição pendente</p>
               </motion.div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 w-full mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-6">
               {pedidos.map((pedido) => (
                 <motion.div
                   key={pedido.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-200 flex flex-col gap-4 lg:gap-6"
+                  className="bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl p-4 lg:p-6 shadow-sm border border-slate-200 flex flex-col gap-4 lg:gap-6 w-full"
                 >
                   <div className="flex justify-between items-center">
                     <h3 className="font-black text-slate-800 lg:text-white text-base">Pedido #{pedido.id.toString().padStart(4, "0")}</h3>
@@ -262,14 +262,14 @@ export default function EstoqueAlternativoPage() {
                     <p>Solicitante: {pedido.operadorSolicitante || pedido.user?.nome}</p>
                   </div>
                   
-                  <div className="space-y-2 mt-2">
+                  <div className="space-y-2 mt-2 w-full">
                     {pedido.itens.filter(i => i.qtd_alternativo > 0).map(pi => (
-                      <div key={pi.id} className="flex justify-between items-center bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 p-2 rounded-lg border border-slate-100">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-700 lg:text-slate-300 text-sm">{pi.item.nome}</span>
-                          <span className="bg-white border border-slate-200 text-slate-500 lg:text-slate-400 px-1.5 py-0.5 rounded text-[10px] font-mono">{pi.item.codigo}</span>
+                      <div key={pi.id} className="flex items-center justify-between gap-2 w-full p-3 bg-slate-50 lg:bg-slate-900/60 rounded-lg border border-slate-100 lg:border-slate-700 lg:text-slate-200">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="font-bold text-slate-700 lg:text-slate-300 text-sm truncate">{pi.item.nome}</span>
+                          <span className="shrink-0 bg-white lg:bg-slate-800 border border-slate-200 lg:border-slate-700 text-slate-500 lg:text-slate-400 px-1.5 py-0.5 rounded text-[10px] font-mono">{pi.item.codigo}</span>
                         </div>
-                        <span className="font-black text-emerald-600 text-sm">{pi.qtd_alternativo} {pi.item.unidade}</span>
+                        <span className="shrink-0 font-black text-emerald-600 text-sm text-right">{pi.qtd_alternativo} {pi.item.unidade}</span>
                       </div>
                     ))}
                   </div>

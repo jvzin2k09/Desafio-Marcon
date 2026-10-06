@@ -246,7 +246,7 @@ export default function HistoricoPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] overflow-y-auto custom-scrollbar flex flex-col space-y-4 md:space-y-6 max-w-7xl mx-auto pb-4 p-4 md:p-6">
+    <div className="w-full max-w-7xl mx-auto px-6 py-8 min-h-[calc(100vh-80px)] overflow-y-auto custom-scrollbar flex flex-col space-y-4 md:space-y-6 pb-4">
       {/* ─── Topo: Título e Ação de Exportar ─────────────────────────────── */}
       <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm shrink-0 lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80">
         <div className="flex flex-row items-center justify-between gap-2 md:gap-4">
@@ -310,7 +310,7 @@ export default function HistoricoPage() {
       </AnimatePresence>
 
       {/* ─── Cards de Métricas (KPIs) ─────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 shrink-0">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full shrink-0">
         <div className="p-3 md:p-5 rounded-2xl bg-[var(--primary)] text-white shadow-md border border-transparent relative overflow-hidden">
           <div className="absolute top-0 right-0 w-16 h-16 md:w-24 md:h-24 bg-white opacity-5 rounded-full -mr-8 -mt-8 md:-mr-12 md:-mt-12 lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200" />
           <div className="flex justify-between items-center text-slate-300 mb-1 md:mb-2 relative z-10">
@@ -504,7 +504,7 @@ export default function HistoricoPage() {
       </div>
 
       {/* ─── Tabela de Movimentações / Lista de Cards ─────────────────────────────────────── */}
-      <div className="bg-white lg:bg-[#111827]/80 border border-slate-200 lg:border-slate-800/80 rounded-2xl shadow-sm lg:shadow-xl lg:backdrop-blur-md flex flex-col shrink-0 lg:max-h-[calc(100vh-520px)] lg:min-h-[300px] lg:overflow-y-auto custom-scrollbar">
+      <div className="w-full bg-white lg:bg-[#111827]/80 border border-slate-200 lg:border-slate-800/80 rounded-2xl shadow-sm lg:shadow-xl lg:backdrop-blur-md flex flex-col shrink-0 lg:max-h-[calc(100vh-520px)] lg:min-h-[300px] lg:overflow-y-auto custom-scrollbar">
         {loading ? (
           <div className="flex flex-col items-center justify-center flex-1 text-slate-400">
             <RefreshCw className="w-8 h-8 animate-spin text-[#1B3A6B] lg:text-blue-400 mb-3" />

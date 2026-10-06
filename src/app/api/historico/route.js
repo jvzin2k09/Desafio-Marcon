@@ -30,7 +30,7 @@ export async function GET(request) {
     const pedidos = await prisma.pedido.findMany({
       where: {
         status: {
-          in: ['CONCLUIDO', 'ESTORNADO', 'ENTRADA']
+          in: ['CONCLUIDO', 'ENTREGUE', 'ESTORNADO', 'ENTRADA']
         }
       },
       include: {

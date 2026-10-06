@@ -131,7 +131,7 @@ const FilaCard = memo(function FilaCard({ pedido, tab, onAction, onEstornar }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -30 }}
       transition={SPRING}
-      className="bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl p-4 shadow-sm border-2 border-slate-100"
+      className="bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl p-4 shadow-sm border-2 border-slate-100 w-full"
     >
       {/* Linha 1: N° Pedido + Tempo + Setor + Menu */}
       <div className="flex items-center justify-between mb-1.5">
@@ -332,7 +332,7 @@ export default function AlmoxarifadoPage() {
               </p>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 w-full mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-6">
             {currentList.map(pedido => (
               <FilaCard
                 key={pedido.id}
