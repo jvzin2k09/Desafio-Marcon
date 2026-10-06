@@ -248,7 +248,7 @@ export default function SolicitantePage() {
   };
 
   return (
-    <div className="flex-1 flex flex-col space-y-2 md:space-y-4 lg:max-w-7xl lg:mx-auto w-full px-4 lg:px-0">
+    <div className="flex-1 min-h-0 flex flex-col space-y-2 md:space-y-4 lg:max-w-7xl lg:mx-auto w-full px-4 lg:px-0 h-full">
       {/* Header */}
       <div className="bg-white p-4 md:p-5 rounded-2xl border border-slate-200 shadow-sm shrink-0 lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80">
         <h2 className="text-lg md:text-2xl font-display font-black text-slate-900 lg:text-white tracking-tight">Módulo Solicitante</h2>
@@ -275,9 +275,9 @@ export default function SolicitantePage() {
 
       {/* ─── Tab: Novo Pedido ─────────────────────────────────────── */}
       {tab === "pedido" && (
-        <div className="flex-1 flex flex-col lg:flex-row gap-4 md:gap-6 min-h-0 overflow-y-auto lg:overflow-hidden custom-scrollbar">
+        <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-4 md:gap-6 overflow-hidden">
           {/* Left: Search + Items */}
-          <div className="flex-1 flex flex-col min-h-0 lg:overflow-y-auto lg:max-w-4xl">
+          <div className="flex-1 flex flex-col min-h-0 lg:max-w-4xl overflow-hidden">
             {/* Search + Setor em linha no mobile */}
             <div className="relative mb-2 md:mb-4 shrink-0 lg:max-w-xl">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -599,8 +599,8 @@ export default function SolicitantePage() {
           </div>
 
           {/* Right: Cart */}
-          <div className="lg:w-80 xl:w-96 shrink-0 lg:sticky lg:top-0 lg:self-start">
-            <div className="site-card p-5 flex flex-col max-h-[250px] lg:max-h-[calc(100vh-200px)] lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200">
+          <div className="lg:w-80 xl:w-96 shrink-0 flex flex-col min-h-0 h-full">
+            <div className="site-card p-5 flex flex-col flex-1 min-h-0 lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200">
               <div className="flex items-center justify-between mb-4 shrink-0">
                 <h3 className="text-sm font-display font-black text-slate-700 lg:text-slate-300 uppercase tracking-wide">Carrinho</h3>
                 <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-slate-100 text-[#1B3A6B] lg:bg-slate-800 lg:text-blue-400">

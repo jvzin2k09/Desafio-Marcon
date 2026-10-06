@@ -60,16 +60,16 @@ export default function DashboardLayout({ children }) {
     <>
       <SplashScreen />
       <KineticGrid>
-      <div className="min-h-screen flex flex-col md:flex-row" style={{ background: "transparent" }}>
+      <div className="min-h-screen md:h-screen md:overflow-hidden flex flex-col md:flex-row" style={{ background: "transparent" }}>
       {/* Sidebar - Desktop Only */}
-      <aside className="hidden md:flex w-64 bg-white lg:bg-[#161618]/85 lg:backdrop-blur-md border-r border-[var(--border)] lg:border-white/10 flex-col shrink-0 min-h-screen transition-colors">
+      <aside className="hidden md:flex w-64 bg-white lg:bg-[#161618]/85 lg:backdrop-blur-md border-r border-[var(--border)] lg:border-white/10 flex-col shrink-0 md:h-screen transition-colors">
         {/* Logo */}
         <div className="p-5 border-b border-[var(--border)] lg:border-white/10 flex items-center gap-3">
           <Image src="/Logo.png" alt="Til Marcon" width={240} height={72} className="h-14 w-auto object-contain lg:brightness-0 lg:invert" priority />
         </div>
 
         {/* Nav */}
-        <div className="p-3 flex-1">
+        <div className="p-3 flex-1 overflow-y-auto custom-scrollbar">
           <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 lg:text-slate-400 px-3 mb-2">Navegação</p>
           <nav className="space-y-0.5 mb-6">
             {navItems.map((item) => {
@@ -173,8 +173,8 @@ export default function DashboardLayout({ children }) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto p-4 md:p-8 pb-28 md:pb-8">
-        <div className="w-full max-w-7xl mx-auto h-full flex flex-col">
+      <main className="flex-1 overflow-y-auto md:overflow-hidden p-4 md:p-6 pb-28 md:pb-6 h-full flex flex-col min-h-0">
+        <div className="w-full max-w-7xl mx-auto h-full flex flex-col min-h-0 flex-1">
           {children}
         </div>
       </main>

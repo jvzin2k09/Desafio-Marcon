@@ -20,8 +20,8 @@ export default withAuth(
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
 
-    // Acesso de Responsavel
-    if (path.startsWith("/solicitante") && !["RESPONSAVEL", "ADMIN"].includes(token.role)) {
+    // Acesso de Responsavel / Solicitante
+    if (path.startsWith("/solicitante") && !token?.role) {
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
 
