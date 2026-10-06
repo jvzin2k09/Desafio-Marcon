@@ -17,6 +17,34 @@ function getTempoEspera(ds) {
   return `${Math.floor(diff / 1440)}d`;
 }
 
+function getUrgencia(ds) {
+  const diffMin = Math.floor((new Date() - new Date(ds)) / 60000);
+  const tempoTexto = getTempoEspera(ds);
+
+  if (diffMin >= 45) {
+    return {
+      nivel: "urgente",
+      borderClass: "lg:border-rose-500 lg:shadow-lg lg:shadow-rose-950/20",
+      badgeClass: "bg-rose-50 text-rose-700 border border-rose-200 lg:bg-rose-500/15 lg:border-rose-500/30 lg:text-rose-400 font-bold",
+      badgeText: `🚨 Urgente (${tempoTexto})`
+    };
+  }
+  if (diffMin >= 15) {
+    return {
+      nivel: "atencao",
+      borderClass: "lg:border-amber-500/50 lg:bg-amber-950/10",
+      badgeClass: "bg-amber-50 text-amber-700 border border-amber-200 lg:bg-amber-500/15 lg:border-amber-500/30 lg:text-amber-400 font-bold",
+      badgeText: `⚠️ Atenção (${tempoTexto})`
+    };
+  }
+  return {
+    nivel: "normal",
+    borderClass: "lg:border-slate-800",
+    badgeClass: "bg-slate-100 text-slate-600 border border-slate-200 lg:bg-slate-800 lg:text-slate-300 lg:border-slate-700/60 font-medium",
+    badgeText: tempoTexto
+  };
+}
+
 // ─── Menu de 3 pontos (Ações Secundárias) ─────────────────────────────────────
 function CardMenu({ onEstornar }) {
   const [open, setOpen] = useState(false);
@@ -118,11 +146,12 @@ function EstornoModal({ pedido, onClose, onSuccess }) {
   );
 }
 
-// ─── Card Compacto de Requisição ──────────────────────────────────────────────
+// ─── Card de Requisição (Estilo Dark Industrial) ──────────────────────────────
 const FilaCard = memo(function FilaCard({ pedido, tab, onAction, onEstornar }) {
   const totalItens = pedido.itens?.length || 0;
   const setor = pedido.setor || "Geral";
   const solicitante = pedido.operadorSolicitante || pedido.user?.nome || "—";
+  const urgencia = getUrgencia(pedido.createdAt);
 
   return (
     <motion.div
@@ -131,63 +160,76 @@ const FilaCard = memo(function FilaCard({ pedido, tab, onAction, onEstornar }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -30 }}
       transition={SPRING}
-      className="bg-white lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 rounded-2xl p-4 shadow-sm border-2 border-slate-100 w-full"
+      className={`bg-white lg:bg-slate-900/80 lg:backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-sm border-2 border-slate-100 w-full flex flex-col justify-between transition-all ${urgencia.borderClass}`}
     >
-      {/* Linha 1: N° Pedido + Tempo + Setor + Menu */}
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <span className="font-black text-slate-800 lg:text-white text-sm">
-            #{pedido.id.toString().padStart(4, '0')}
-          </span>
-          <span className="flex items-center text-[10px] font-bold text-slate-400 gap-0.5">
-            <Clock className="w-3 h-3" />
-            {getTempoEspera(pedido.createdAt)}
-          </span>
-          <span className="px-1.5 py-0.5 rounded bg-slate-100 lg:bg-slate-800/60 lg:border lg:border-slate-700/50 text-[9px] font-bold text-slate-500 lg:text-slate-400 uppercase tracking-wide truncate max-w-[120px]">
-            {setor}
+      <div>
+        {/* Cabeçalho do Card: N° Pedido + Badge Setor à esquerda, Tempo de Espera com Badge de Urgência à direita */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-mono font-black text-slate-900 lg:text-white text-base">
+              #{pedido.id.toString().padStart(4, '0')}
+            </span>
+            <span className="px-2 py-0.5 rounded bg-slate-100 lg:bg-slate-800/80 lg:border lg:border-slate-700/60 text-[10px] font-bold text-slate-500 lg:text-slate-300 uppercase tracking-wide truncate max-w-[120px]">
+              {setor}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className={`px-2 py-0.5 rounded-md text-[10px] flex items-center gap-1 ${urgencia.badgeClass}`}>
+              <Clock className="w-3 h-3" />
+              {urgencia.badgeText}
+            </span>
+            <CardMenu onEstornar={() => onEstornar(pedido)} />
+          </div>
+        </div>
+
+        {/* Corpo do Card: Nome do Solicitante/Operador em destaque */}
+        <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100 lg:border-slate-800/60">
+          <div className="min-w-0 pr-2">
+            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Solicitante</p>
+            <p className="text-sm font-semibold text-slate-800 lg:text-slate-100 truncate">{solicitante}</p>
+          </div>
+          <span className="text-xs font-bold text-slate-400 shrink-0 bg-slate-50 lg:bg-slate-800/60 px-2 py-1 rounded-md border border-slate-100 lg:border-slate-700/50">
+            {totalItens} {totalItens === 1 ? "Item" : "Itens"}
           </span>
         </div>
-        <CardMenu onEstornar={() => onEstornar(pedido)} />
+
+        {/* Lista limpa de Itens Solicitados */}
+        {totalItens > 0 && (
+          <div className="space-y-1.5 mb-2">
+            {pedido.itens.filter(pi => pi.qtd_caixas_central > 0).slice(0, 5).map(pi => (
+              <div key={pi.id} className="text-xs text-slate-600 lg:text-slate-300 truncate flex items-center justify-between gap-2 p-1.5 rounded-lg bg-slate-50/60 lg:bg-slate-950/40 border border-slate-100/80 lg:border-slate-800/40">
+                <div className="flex items-center gap-1.5 min-w-0 truncate">
+                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full shrink-0" />
+                  <span className="truncate">{pi.item?.nome}</span>
+                </div>
+                <span className="font-mono font-bold text-slate-800 lg:text-slate-200 shrink-0 text-[11px] bg-white lg:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 lg:border-slate-700">
+                  {pi.qtd_caixas_central} Cx(s)
+                </span>
+              </div>
+            ))}
+            {totalItens > 5 && (
+              <p className="text-[10px] font-bold text-slate-400 pl-2">
+                + {totalItens - 5} {totalItens - 5 === 1 ? "item adicional" : "itens adicionais"} (ver no checklist)
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Linha 2: Solicitante */}
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-sm text-slate-700 lg:text-slate-300 font-bold truncate pr-2">{solicitante}</p>
-        <span className="text-xs font-bold text-slate-400 shrink-0">
-          {totalItens} {totalItens === 1 ? "Item" : "Itens"}
-        </span>
-      </div>
-
-      {/* Lista curta de Itens */}
-      {totalItens > 0 && (
-        <div className="mb-4 space-y-1.5">
-          {pedido.itens.filter(pi => pi.qtd_caixas_central > 0).slice(0, 5).map(pi => (
-            <div key={pi.id} className="text-[11px] text-slate-500 lg:text-slate-400 truncate flex items-center gap-1.5">
-              <span className="w-1 h-1 bg-slate-300 rounded-full shrink-0" />
-              <span className="font-bold text-slate-700 lg:text-slate-300">{pi.qtd_caixas_central} Cx(s)</span> {pi.item?.nome}
-            </div>
-          ))}
-          {totalItens > 5 && (
-            <p className="text-[10px] font-bold text-slate-400 mt-1 pl-2.5">
-              + {totalItens - 5} {totalItens - 5 === 1 ? "item" : "itens"} (ver no checklist)
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Botões de Ação */}
-      <div className="flex justify-end mt-2">
+      {/* Rodapé do Card: Botão de Ação ocupando a largura total (w-full mt-4) */}
+      <div className="mt-4 pt-2 border-t border-slate-100 lg:border-slate-800/40">
         {tab === "PENDENTES" ? (
           <button
             onClick={() => onAction(pedido)}
-            className="w-full sm:w-auto px-5 py-2.5 bg-blue-600 text-white font-bold text-xs uppercase tracking-wide rounded-lg flex items-center justify-center gap-2 hover:bg-blue-700 active:scale-[0.97] transition-all shadow-md shadow-blue-600/20"
+            className="w-full py-2.5 bg-blue-600 text-white font-bold text-xs uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 hover:bg-blue-500 active:scale-[0.98] transition-all shadow-md shadow-blue-600/20 cursor-pointer"
           >
             Iniciar Separação <ArrowRight className="w-3.5 h-3.5" />
           </button>
         ) : (
           <button
             onClick={() => onAction(pedido)}
-            className="w-full sm:w-auto px-5 py-2.5 bg-amber-600 text-white font-bold text-xs uppercase tracking-wide rounded-lg flex items-center justify-center gap-1.5 hover:bg-amber-700 active:scale-[0.97] transition-all shadow-md shadow-amber-600/20"
+            className="w-full py-2.5 bg-amber-600 text-white font-bold text-xs uppercase tracking-wider rounded-lg flex items-center justify-center gap-2 hover:bg-amber-500 active:scale-[0.98] transition-all shadow-md shadow-amber-600/20 cursor-pointer"
           >
             <Camera className="w-4 h-4" /> Continuar Checklist
           </button>
@@ -224,9 +266,15 @@ export default function AlmoxarifadoPage() {
     return () => clearInterval(interval);
   }, [updating, separacaoModal, estornoModal]);
 
-  // Filtra por aba (Ignora pedidos que são 100% resolvidos pelo Estoque Alternativo)
-  const pendentes = pedidos.filter(p => p.status === 'AGUARDANDO_SEPARACAO' && p.itens?.some(pi => pi.qtd_caixas_central > 0));
-  const emSeparacao = pedidos.filter(p => p.status === 'EM_SEPARACAO' && p.itens?.some(pi => pi.qtd_caixas_central > 0));
+  // Filtra por aba (Ignora pedidos que são 100% resolvidos pelo Estoque Alternativo) e aplica ordenação FIFO (mais antigos primeiro)
+  const pendentes = pedidos
+    .filter(p => p.status === 'AGUARDANDO_SEPARACAO' && p.itens?.some(pi => pi.qtd_caixas_central > 0))
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+  const emSeparacao = pedidos
+    .filter(p => p.status === 'EM_SEPARACAO' && p.itens?.some(pi => pi.qtd_caixas_central > 0))
+    .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
   const currentList = activeTab === "PENDENTES" ? pendentes : emSeparacao;
 
   // Iniciar separação: muda status e abre modal
