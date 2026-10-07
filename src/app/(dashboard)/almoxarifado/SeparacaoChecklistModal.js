@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, CheckCircle2, AlertCircle, Camera, PackageCheck, Loader2, Mail, ShoppingCart, Check, MapPin } from "lucide-react";
+import { X, CheckCircle2, AlertCircle, Camera, PackageCheck, Loader2, Mail, ShoppingCart, MapPin } from "lucide-react";
 import { Scanner } from "@yudiel/react-qr-scanner";
 
 export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
@@ -291,7 +291,7 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
                           {scanError}
                         </p>
                       )}
-                      <div className="flex gap-2">
+                      <div className="flex justify-center">
                         <button
                           onClick={() => {
                             setScannerAtivo(null);
@@ -300,12 +300,6 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
                           className="mt-3 px-4 py-1.5 rounded-full bg-slate-800 text-xs font-bold text-slate-300 hover:text-white"
                         >
                           Cancelar
-                        </button>
-                        <button
-                          onClick={() => handleScan([{ rawValue: item.item.codigo }], item)}
-                          className="mt-3 px-4 py-1.5 rounded-full bg-slate-800 text-xs font-bold text-slate-300 hover:text-white opacity-50 hover:opacity-100"
-                        >
-                          Bypass
                         </button>
                       </div>
                     </div>
@@ -398,18 +392,12 @@ export function SeparacaoChecklistModal({ pedido, onClose, onSuccess }) {
                       )}
                     </div>
                   ) : (
-                    <div className="flex flex-col gap-2 mt-1">
+                    <div className="mt-1">
                       <button
                         onClick={() => setScannerAtivo(item.id)}
                         className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all"
                       >
                         <Camera className="w-5 h-5" /> Escanear QR Code
-                      </button>
-                      <button
-                        onClick={() => handleScan([{ rawValue: item.item.codigo }], item)}
-                        className="w-full py-3 px-4 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all"
-                      >
-                        <Check className="w-5 h-5 text-emerald-400" /> Bypass (Dar Baixa)
                       </button>
                     </div>
                   )}

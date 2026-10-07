@@ -55,8 +55,10 @@ export default function SolicitantePage() {
         .then(r => r.json())
         .then(data => {
           if (Array.isArray(data)) {
+            const userIdNum = parseInt(session?.user?.id);
+            const isAdminOuAlmoxarife = session?.user?.role === "ADMIN" || session?.user?.role === "ALMOXARIFE";
             const filtrados = data
-              .filter(p => p.userId === parseInt(session?.user?.id) && p.status !== "CONCLUIDO" && p.status !== "ENTREGUE" && p.status !== "ESTORNADO")
+              .filter(p => (isAdminOuAlmoxarife || p.userId === userIdNum) && p.status !== "CONCLUIDO" && p.status !== "ENTREGUE" && p.status !== "ESTORNADO")
               .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
             setMeusPedidos(filtrados);
           }
@@ -64,7 +66,7 @@ export default function SolicitantePage() {
         .catch(() => { })
         .finally(() => setLoadingPedidos(false));
     }
-  }, [tab, session?.user?.id]);
+  }, [tab, session?.user?.id, session?.user?.role]);
 
   const [deliveringId, setDeliveringId] = useState(null);
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
+import { checkAndTriggerStockAlert } from "@/lib/emailService";
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,8 @@ export async function POST(request) {
     if (!itens || !Array.isArray(itens) || itens.length === 0) {
       return NextResponse.json({ error: 'Nenhum item informado' }, { status: 400 });
     }
+
+    const itensEmAlerta = [];
 
     const pedido = await prisma.$transaction(async (tx) => {
       // Lógica de Roteamento (Estoque Alternativo vs Central)
@@ -84,6 +87,16 @@ export async function POST(request) {
             where: { id: itemDb.id },
             data: { quantidade: novoSaldoCentral }
           });
+
+          // Se atingiu o limite mínimo de segurança, enfileira para disparo de alerta
+          const limiteSeguranca = itemDb.limiteMinimo ?? 10;
+          if (novoSaldoCentral <= limiteSeguranca) {
+            itensEmAlerta.push({
+              itemDb,
+              novoSaldo: novoSaldoCentral,
+              setor: setorFiltro,
+            });
+          }
         }
 
         if (qtd_alternativo > 0) {
@@ -127,6 +140,13 @@ export async function POST(request) {
 
       return novoPedido;
     });
+
+    // Dispara alertas de estoque em segundo plano
+    if (itensEmAlerta.length > 0) {
+      itensEmAlerta.forEach(({ itemDb, novoSaldo, setor }) => {
+        checkAndTriggerStockAlert(itemDb, novoSaldo, setor);
+      });
+    }
 
     return NextResponse.json(pedido, { status: 201 });
   } catch (error) {
