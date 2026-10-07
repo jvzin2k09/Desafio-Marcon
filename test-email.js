@@ -43,7 +43,7 @@ function buildStockAlertHtml({
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Alerta de Reposição Crítica - MARCON | WINE</title>
+  <title>Alerta de Reposição Crítica - MARCON</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #0B1120; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #E2E8F0;">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0B1120; padding: 32px 16px;">
@@ -51,17 +51,20 @@ function buildStockAlertHtml({
       <td align="center">
         <table role="presentation" width="100%" max-width="600" style="max-width: 600px; background-color: #0F172A; border: 1px solid #1E293B; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);">
           
-          <!-- Header Banner -->
+          <!-- Header Banner com Fundo Branco, Logo Ampliada e Tipografia Azul Marcon -->
           <tr>
-            <td style="background: linear-gradient(135deg, #091E42 0%, #1E3A8A 50%, #2563EB 100%); padding: 24px 32px; border-bottom: 2px solid #3B82F6;">
+            <td style="background-color: #FFFFFF; padding: 22px 28px; border-bottom: 3px solid #2563EB;">
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                 <tr>
-                  <td>
-                    <div style="font-size: 22px; font-weight: 900; letter-spacing: 1.5px; color: #FFFFFF; text-transform: uppercase;">
-                      MARCON <span style="color: #60A5FA;">|</span> WINE
+                  <td width="170" style="vertical-align: middle;">
+                    <img src="cid:marconlogo" alt="Marcon" style="height: 52px; width: auto; max-width: 160px; display: block; border: 0;" />
+                  </td>
+                  <td style="vertical-align: middle; padding-left: 20px; border-left: 2px solid #E2E8F0;">
+                    <div style="font-size: 21px; font-weight: 900; letter-spacing: 1.2px; color: #0A326E; text-transform: uppercase; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+                      MARCON METALÚRGICA
                     </div>
-                    <div style="font-size: 11px; font-weight: 700; color: #93C5FD; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px;">
-                      Gestão de Estoque Industrial & Almoxarifado Inteligente
+                    <div style="font-size: 11px; font-weight: 700; color: #1D4ED8; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px;">
+                      Gestão de Estoque & Almoxarifado Inteligente
                     </div>
                   </td>
                 </tr>
@@ -144,7 +147,7 @@ function buildStockAlertHtml({
                 <tr>
                   <td align="center" style="border-radius: 10px; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);">
                     <a href="${ctaUrl}" target="_blank" style="display: inline-block; padding: 14px 28px; font-size: 13px; font-weight: 800; color: #FFFFFF; text-decoration: none; text-transform: uppercase; letter-spacing: 0.8px; border-radius: 10px;">
-                      Acessar Painel de Controle WINE &rarr;
+                      Acessar Painel de Controle de Estoque &rarr;
                     </a>
                   </td>
                 </tr>
@@ -159,7 +162,7 @@ function buildStockAlertHtml({
           <tr>
             <td style="background-color: #090E17; padding: 20px 32px; border-top: 1px solid #1E293B; text-align: center;">
               <p style="margin: 0; font-size: 11px; line-height: 18px; color: #64748B;">
-                Mensagem automática gerada pelo <strong>Sistema WINE - Marcon Indústria</strong>. Não responda a este e-mail.
+                Mensagem automática gerada pelo <strong>Almoxarifado Marcon Metalúrgica</strong>. Não responda a este e-mail.
               </p>
               <p style="margin: 6px 0 0 0; font-size: 10px; color: #475569;">
                 Til Marcon Equipamentos Industriais &bull; Módulo de Suprimentos & Almoxarifado 4.0
@@ -178,7 +181,7 @@ function buildStockAlertHtml({
 
 async function run() {
   console.log('====================================================');
-  console.log('  TESTE DE DISPARO DE E-MAIL - MARCON / WINE        ');
+  console.log('  TESTE DE DISPARO DE E-MAIL - MARCON METALÚRGICA   ');
   console.log('====================================================');
   console.log(`Destinatário Alvo: ${DESTINATARIO}`);
 
@@ -227,7 +230,7 @@ async function run() {
       console.log('Aviso: Ethereal indisponível na rede atual. Simulando envio local em modo demonstrativo...');
       transporter = {
         sendMail: async (opts) => {
-          return { messageId: `wine-local-${Date.now()}` };
+          return { messageId: `marcon-local-${Date.now()}` };
         }
       };
     }
@@ -235,12 +238,23 @@ async function run() {
 
   const html = buildStockAlertHtml(itemTeste);
 
-  console.log('Enviando e-mail temático Dark Industrial...');
+  const logoPath = path.join(__dirname, 'public', 'Logo.png');
+  const attachments = [];
+  if (fs.existsSync(logoPath)) {
+    attachments.push({
+      filename: 'logo-marcon.png',
+      path: logoPath,
+      cid: 'marconlogo',
+    });
+  }
+
+  console.log('Enviando e-mail temático com Logotipo Oficial da Marcon...');
   const info = await transporter.sendMail({
-    from: process.env.SMTP_FROM || '"WINE Marcon Alertas" <estoque@tilmarcon.com.br>',
+    from: process.env.SMTP_FROM || '"Almoxarifado Marcon" <estoque@tilmarcon.com.br>',
     to: DESTINATARIO,
-    subject: `⚠️ [MARCON WINE] ALERTA DE REPOSIÇÃO: ${itemTeste.codigo} - ${itemTeste.nome} (${itemTeste.quantidadeAtual}/${itemTeste.limiteMinimo} ${itemTeste.unidade})`,
+    subject: `⚠️ [MARCON] ALERTA DE REPOSIÇÃO: ${itemTeste.codigo} - ${itemTeste.nome} (${itemTeste.quantidadeAtual}/${itemTeste.limiteMinimo} ${itemTeste.unidade})`,
     html,
+    attachments,
   });
 
   console.log('\n✅ E-MAIL DISPARADO COM SUCESSO!');

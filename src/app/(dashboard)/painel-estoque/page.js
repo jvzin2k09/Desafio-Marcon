@@ -13,8 +13,21 @@ import {
   ShieldAlert,
   MinusCircle,
   Package,
-  X
+  X,
+  Volume2,
+  VolumeX,
+  Radio,
+  Sparkles,
+  Smartphone
 } from "lucide-react";
+import {
+  isDeviceNotificationSupported,
+  getDeviceNotificationPermission,
+  requestDeviceNotificationPermission,
+  sendStockDeviceNotification,
+  sendTestDeviceNotification,
+  playIndustrialAlertSound,
+} from "@/lib/deviceNotification";
 
 export default function PainelEstoquePage() {
   const [items, setItems] = useState([]);
@@ -25,15 +38,16 @@ export default function PainelEstoquePage() {
   const [notifPerm, setNotifPerm] = useState("default");
   const [lastSync, setLastSync] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
-  const audioCtxRef = useRef(null);
   const prevItemsRef = useRef([]);
   const [custoRequested, setCustoRequested] = useState({});
   const [showCriticalModal, setShowCriticalModal] = useState(false);
+  const [testingNotif, setTestingNotif] = useState(false);
+  const [notifyingAll, setNotifyingAll] = useState(false);
 
-  // Inicializa permissão de notificações
+  // Inicializa permissão de notificações do dispositivo
   useEffect(() => {
     if (typeof window !== "undefined") {
-      if ("Notification" in window) setNotifPerm(Notification.permission);
+      setNotifPerm(getDeviceNotificationPermission());
       try {
         const saved = localStorage.getItem("custoRequested");
         if (saved) setCustoRequested(JSON.parse(saved));
@@ -44,19 +58,22 @@ export default function PainelEstoquePage() {
   // Busca dados reais da API
   async function fetchItems(silent = false) {
     try {
-      const res = await fetch("/api/items");
+      const res = await fetch("/api/items", { cache: "no-store" });
       if (!res.ok) return;
       const apiItems = await res.json();
       if (!Array.isArray(apiItems)) return;
 
       // Verifica se algum item cruzou o limite mínimo desde a última fetch
       const prev = prevItemsRef.current;
-      if (prev.length > 0) {
+      if (prev && prev.length > 0) {
         apiItems.forEach(newItem => {
           const oldItem = prev.find(o => o.id === newItem.id);
-          if (oldItem && newItem.quantidade <= newItem.quantidade /* sempre false, guard */ ) return;
-          if (oldItem && newItem.quantidade <= (newItem.limiteMinimo ?? 0) && oldItem.quantidade > (newItem.limiteMinimo ?? 0)) {
-            triggerAlert(newItem);
+          if (oldItem) {
+            const min = newItem.limiteMinimo ?? 10;
+            // Se a quantidade diminuiu e atingiu ou ficou abaixo do limite mínimo
+            if (newItem.quantidade < oldItem.quantidade && newItem.quantidade <= min && oldItem.quantidade > min) {
+              sendStockDeviceNotification(newItem);
+            }
           }
         });
       }
@@ -78,57 +95,51 @@ export default function PainelEstoquePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Alerta sonoro sintetizado
-  const playBeep = () => {
-    try {
-      if (!audioEnabled || typeof window === "undefined") return;
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === "suspended") ctx.resume();
-
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(600, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.3);
-      gain.gain.setValueAtTime(0.2, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + 0.3);
-    } catch (e) {}
+  // Solicitar permissão de notificação no dispositivo
+  const handleRequestNotif = async () => {
+    await requestDeviceNotificationPermission();
+    setNotifPerm(getDeviceNotificationPermission());
   };
 
-  // Disparo da Notification API do Navegador
-  const triggerAlert = (item) => {
-    playBeep();
-    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
-    const isZero = item.quantidade === 0;
-    const title = isZero 
-      ? `ESTOQUE ZERADO: ${item.codigo}` 
-      : `ALERTA ESTOQUE BAIXO: ${item.codigo}`;
-      
-      new Notification(title, {
-        body: `A peça "${item.nome}" atingiu nível crítico: ${item.quantidade} ${item.unidade} disponíveis (Mínimo: ${item.limiteMinimo}). Local: ${item.localizacao}`,
-        icon: "/Logo.png",
-        tag: `stock-${item.id}`
-      });
+  // Disparo de teste para o dispositivo
+  const handleTestDeviceNotification = async () => {
+    setTestingNotif(true);
+    try {
+      if (notifPerm !== "granted") {
+        const res = await requestDeviceNotificationPermission();
+        setNotifPerm(getDeviceNotificationPermission());
+        if (res.permission !== "granted") {
+          setTestingNotif(false);
+          return;
+        }
+      }
+      sendTestDeviceNotification();
+    } finally {
+      setTimeout(() => setTestingNotif(false), 800);
     }
   };
 
-  const requestNotif = async () => {
-    if (typeof window !== "undefined" && "Notification" in window) {
-      const res = await Notification.requestPermission();
-      setNotifPerm(res);
-      if (res === "granted") {
-        new Notification("Almoxarifado Marcon", {
-          body: "Notificações em tempo real ativadas com sucesso.",
-          icon: "/Logo.png"
-        });
+  // Notificar todas as peças críticas no dispositivo
+  const handleNotifyCriticalItems = async () => {
+    if (allCritical.length === 0) return;
+    setNotifyingAll(true);
+    try {
+      if (notifPerm !== "granted") {
+        const res = await requestDeviceNotificationPermission();
+        setNotifPerm(getDeviceNotificationPermission());
+        if (res.permission !== "granted") {
+          setNotifyingAll(false);
+          return;
+        }
       }
+
+      allCritical.forEach((critItem, idx) => {
+        setTimeout(() => {
+          sendStockDeviceNotification(critItem);
+        }, idx * 600);
+      });
+    } finally {
+      setTimeout(() => setNotifyingAll(false), allCritical.length * 600 + 400);
     }
   };
 
@@ -196,30 +207,75 @@ export default function PainelEstoquePage() {
       
       {/* CABEÇALHO */}
       <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm shrink-0 lg:bg-slate-900/80 lg:backdrop-blur-md lg:shadow-xl lg:border-slate-800/80 lg:text-slate-200">
-        <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
               <h1 className="text-xl sm:text-2xl font-display font-black tracking-tight text-slate-900 lg:text-white">
                 Painel de Controle de Estoque
               </h1>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 lg:text-slate-400 mt-1">
-              Monitoramento de unidades disponíveis e alertas automáticos de reposição crítica
+            <p className="text-xs sm:text-sm text-slate-500 lg:text-slate-400 mt-0.5">
+              Monitoramento de unidades disponíveis e alertas automáticos enviados ao dispositivo
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          {/* CONTROLES DE NOTIFICAÇÃO NO DISPOSITIVO */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Status / Ativação de Notificações */}
             <button
-              onClick={requestNotif}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold border transition-colors ${
+              onClick={handleRequestNotif}
+              className={`flex items-center gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                 notifPerm === "granted"
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                  : "bg-slate-50 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 text-slate-700 lg:text-slate-300 border-slate-300 hover:bg-slate-100 hover:lg:bg-slate-800/60 lg:bg-slate-800/60 lg:border lg:border-slate-700/50"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
+                  : notifPerm === "denied"
+                  ? "bg-red-50 text-red-700 border-red-300 hover:bg-red-100"
+                  : "bg-blue-600 text-white border-blue-700 hover:bg-blue-700 shadow-md shadow-blue-500/20"
               }`}
+              title={
+                notifPerm === "denied"
+                  ? "Permissão bloqueada no navegador. Clique no ícone de cadeado na barra de endereços para permitir notificações."
+                  : notifPerm === "granted"
+                  ? "Notificações nativas e som industrial ativos no dispositivo"
+                  : "Clique para permitir o envio de notificações no seu dispositivo"
+              }
             >
-              {notifPerm === "granted" ? <Bell className="w-4 h-4 text-emerald-600" /> : <BellOff className="w-4 h-4 text-slate-500 lg:text-slate-400" />}
-              {notifPerm === "granted" ? "Notificações Ativas" : "Ativar Notificações"}
+              {notifPerm === "granted" ? (
+                <Bell className="w-4 h-4 text-emerald-600" />
+              ) : notifPerm === "denied" ? (
+                <BellOff className="w-4 h-4 text-red-600" />
+              ) : (
+                <Bell className="w-4 h-4 text-white animate-bounce" />
+              )}
+              {notifPerm === "granted"
+                ? "Notificações Ativas no Dispositivo"
+                : notifPerm === "denied"
+                ? "Notificações Bloqueadas"
+                : "Ativar no Dispositivo"}
             </button>
+
+            {/* Botão Testar no Dispositivo */}
+            <button
+              onClick={handleTestDeviceNotification}
+              disabled={testingNotif}
+              className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold border bg-slate-50 text-slate-700 border-slate-300 hover:bg-slate-100 lg:bg-slate-800 lg:border-slate-700 lg:text-slate-200 hover:lg:bg-slate-700/80 transition-all cursor-pointer shadow-sm active:scale-95"
+              title="Disparar notificação de teste imediata com som industrial e card nativo"
+            >
+              <Smartphone className="w-4 h-4 text-blue-600 lg:text-blue-400" />
+              {testingNotif ? "Disparando Teste..." : "Testar no Dispositivo"}
+            </button>
+
+            {/* Botão de Notificar Todas as Peças Críticas */}
+            {allCritical.length > 0 && (
+              <button
+                onClick={handleNotifyCriticalItems}
+                disabled={notifyingAll}
+                className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold border bg-red-50 text-red-700 border-red-200 hover:bg-red-100 lg:bg-red-950/40 lg:border-red-800/60 lg:text-red-300 transition-all cursor-pointer shadow-sm active:scale-95"
+                title="Enviar alertas de todas as peças críticas para este dispositivo"
+              >
+                <Radio className="w-4 h-4 text-red-600 animate-pulse" />
+                {notifyingAll ? "Notificando..." : `Notificar Críticas (${allCritical.length})`}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -241,31 +297,51 @@ export default function PainelEstoquePage() {
                 </p>
               </div>
             </div>
-            <span className="px-2.5 py-0.5 bg-red-600 text-white font-mono font-bold text-xs rounded-full self-start sm:self-auto">
-              {allCritical.length} {allCritical.length === 1 ? "PEÇA CRÍTICA" : "PEÇAS CRÍTICAS"}
-            </span>
+            
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                onClick={handleNotifyCriticalItems}
+                disabled={notifyingAll}
+                className="flex items-center gap-1.5 px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer"
+                title="Disparar alerta das peças críticas para o dispositivo"
+              >
+                <Bell className="w-3.5 h-3.5" />
+                {notifyingAll ? "Notificando..." : "Notificar no Dispositivo"}
+              </button>
+              <span className="px-2.5 py-1 bg-red-100 text-red-800 border border-red-300 font-mono font-bold text-xs rounded-xl">
+                {allCritical.length} {allCritical.length === 1 ? "PEÇA CRÍTICA" : "PEÇAS CRÍTICAS"}
+              </span>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 pt-0.5">
+          <div className="flex flex-wrap items-center gap-2 pt-0.5">
             {allCritical.slice(0, 4).map(item => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setFilter("all");
-                  setSearch(item.codigo);
-                }}
-                className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-red-100/80 hover:bg-red-200 border border-red-300 text-xs font-medium text-red-900 transition-all hover:scale-105 cursor-pointer"
-                title="Filtrar esta peça na tabela"
-              >
-                {getTotal(item) === 0 
-                  ? <XCircle className="w-3.5 h-3.5 shrink-0 text-red-700" />
-                  : <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-600" />}
-                <span className="font-mono font-bold">{item.codigo}</span>
-                <span className="truncate max-w-[160px]">{item.nome}</span>
-                <span className="font-mono font-bold text-red-700 bg-white/70 px-1.5 py-0.5 rounded">
-                  {getTotal(item)}/{getMin(item)} {item.unidade}
-                </span>
-              </button>
+              <div key={item.id} className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    setFilter("all");
+                    setSearch(item.codigo);
+                  }}
+                  className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-red-100/80 hover:bg-red-200 border border-red-300 text-xs font-medium text-red-900 transition-all hover:scale-105 cursor-pointer"
+                  title="Filtrar esta peça na tabela"
+                >
+                  {getTotal(item) === 0 
+                    ? <XCircle className="w-3.5 h-3.5 shrink-0 text-red-700" />
+                    : <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-600" />}
+                  <span className="font-mono font-bold">{item.codigo}</span>
+                  <span className="truncate max-w-[150px]">{item.nome}</span>
+                  <span className="font-mono font-bold text-red-700 bg-white/70 px-1.5 py-0.5 rounded">
+                    {getTotal(item)}/{getMin(item)} {item.unidade}
+                  </span>
+                </button>
+                <button
+                  onClick={() => sendStockDeviceNotification(item)}
+                  className="p-1 rounded-lg bg-red-200/80 hover:bg-red-300 text-red-800 border border-red-300 transition-all cursor-pointer"
+                  title={`Disparar notificação de ${item.codigo} para o dispositivo`}
+                >
+                  <Bell className="w-3 h-3" />
+                </button>
+              </div>
             ))}
             {allCritical.length > 4 && (
               <button
@@ -472,13 +548,24 @@ export default function PainelEstoquePage() {
                         </span>
                       )}
                     </div>
-                    {isZero ? (
-                      <span className="shrink-0 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide animate-pulse">Esgotado</span>
-                    ) : isLow ? (
-                      <span className="shrink-0 bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">Est. Baixo</span>
-                    ) : (
-                      <span className="shrink-0 bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">Em Dia</span>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {isZero ? (
+                        <span className="shrink-0 bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide animate-pulse">Esgotado</span>
+                      ) : isLow ? (
+                        <span className="shrink-0 bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">Est. Baixo</span>
+                      ) : (
+                        <span className="shrink-0 bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide">Em Dia</span>
+                      )}
+                      {(isZero || isLow) && (
+                        <button
+                          onClick={() => sendStockDeviceNotification(item)}
+                          className="p-1 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 border border-red-200 transition-all cursor-pointer"
+                          title={`Disparar alerta de ${item.codigo} para o dispositivo`}
+                        >
+                          <Bell className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                   
                   {/* Linha Inferior: Código, Local, Qtd, Data */}
@@ -631,23 +718,35 @@ export default function PainelEstoquePage() {
 
                       {/* BADGES DE STATUS */}
                       <td className="py-2.5 px-4">
-                        {isZero ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200 animate-pulse">
-                            <XCircle className="w-3.5 h-3.5" /> Esgotado
-                          </span>
-                        ) : isSobras ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                            <AlertTriangle className="w-3.5 h-3.5" /> Disponível em Sobras
-                          </span>
-                        ) : isLow ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                            <AlertTriangle className="w-3.5 h-3.5" /> Estoque Baixo
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Em Dia
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {isZero ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200 animate-pulse">
+                              <XCircle className="w-3.5 h-3.5" /> Esgotado
+                            </span>
+                          ) : isSobras ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                              <AlertTriangle className="w-3.5 h-3.5" /> Disponível em Sobras
+                            </span>
+                          ) : isLow ? (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                              <AlertTriangle className="w-3.5 h-3.5" /> Estoque Baixo
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Em Dia
+                            </span>
+                          )}
+
+                          {(isZero || isLow) && (
+                            <button
+                              onClick={() => sendStockDeviceNotification(item)}
+                              className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-all cursor-pointer shadow-xs active:scale-95"
+                              title={`Disparar notificação de ${item.codigo} para o dispositivo`}
+                            >
+                              <Bell className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </td>
 
                       {/* ATUALIZADO */}
@@ -671,9 +770,20 @@ export default function PainelEstoquePage() {
                 <ShieldAlert className="w-5 h-5 text-red-500" />
                 Peças em Nível Crítico ({allCritical.length})
               </h2>
-              <button onClick={() => setShowCriticalModal(false)} className="text-slate-400 hover:text-slate-600">
-                <XCircle className="w-6 h-6" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleNotifyCriticalItems}
+                  disabled={notifyingAll}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm cursor-pointer"
+                  title="Enviar notificações de todas as peças críticas para este dispositivo"
+                >
+                  <Bell className="w-3.5 h-3.5" />
+                  {notifyingAll ? "Notificando..." : "Notificar Todas no Dispositivo"}
+                </button>
+                <button onClick={() => setShowCriticalModal(false)} className="text-slate-400 hover:text-slate-600 ml-1">
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
             </div>
             <div className="overflow-y-auto p-4 space-y-2">
               {allCritical.map((item) => (
@@ -684,11 +794,20 @@ export default function PainelEstoquePage() {
                     </span>
                     <span className="text-sm font-bold text-slate-800 lg:text-slate-200">{item.nome}</span>
                   </div>
-                  <div className="text-right">
-                    <div className={`font-mono text-sm font-black ${getTotal(item) === 0 ? 'text-red-600' : 'text-amber-500'}`}>
-                      {getTotal(item)} / {getMin(item)} {item.unidade}
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <div className={`font-mono text-sm font-black ${getTotal(item) === 0 ? 'text-red-600' : 'text-amber-500'}`}>
+                        {getTotal(item)} / {getMin(item)} {item.unidade}
+                      </div>
+                      <div className="text-[10px] text-slate-500 uppercase font-bold">{getTotal(item) === 0 ? 'Esgotado' : 'Baixo'}</div>
                     </div>
-                    <div className="text-[10px] text-slate-500 uppercase font-bold">{getTotal(item) === 0 ? 'Esgotado' : 'Baixo'}</div>
+                    <button
+                      onClick={() => sendStockDeviceNotification(item)}
+                      className="p-2 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 dark:bg-red-900/30 dark:hover:bg-red-800/40 dark:text-red-300 transition-all cursor-pointer"
+                      title={`Disparar alerta de ${item.codigo} para o dispositivo`}
+                    >
+                      <Bell className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))}

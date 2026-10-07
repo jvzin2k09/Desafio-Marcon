@@ -9,6 +9,8 @@ import { signOut } from "next-auth/react";
 import Image from "next/image";
 import SplashScreen from "@/components/SplashScreen";
 import KineticGrid from "@/components/ui/kinetic-grid";
+import DeviceNotificationToast from "@/components/DeviceNotificationToast";
+import GlobalDeviceNotificationWatcher from "@/components/GlobalDeviceNotificationWatcher";
 
 export default function DashboardLayout({ children }) {
   const { data: session } = useSession();
@@ -59,6 +61,8 @@ export default function DashboardLayout({ children }) {
   return (
     <>
       <SplashScreen />
+      <DeviceNotificationToast />
+      <GlobalDeviceNotificationWatcher />
       <KineticGrid>
       <div className="min-h-screen md:h-screen md:overflow-hidden flex flex-col md:flex-row" style={{ background: "transparent" }}>
       {/* Sidebar - Desktop Only */}
