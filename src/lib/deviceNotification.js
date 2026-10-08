@@ -211,7 +211,111 @@ export function sendStockDeviceNotification(item) {
   });
 }
 
-// Disparo de teste rápido para validar no dispositivo do usuário
+// Helper para disparar resumo consolidado de peças críticas no dispositivo
+export function sendStockSummaryNotification(criticalItems) {
+  if (!criticalItems || criticalItems.length === 0) return null;
+  const count = criticalItems.length;
+  const zeroCount = criticalItems.filter(i => (i.quantidade || 0) === 0).length;
+  const codes = criticalItems.slice(0, 4).map(i => i.codigo).join(", ");
+  const extra = count > 4 ? ` e mais ${count - 4} peças` : "";
+
+  const title = zeroCount > 0 
+    ? `🚨 ESTOQUE CRÍTICO: ${count} peças em alerta (${zeroCount} esgotadas)`
+    : `⚠️ ALERTA AUTOMÁTICO: ${count} peças abaixo do limite mínimo`;
+
+  const body = `Reposição necessária para: ${codes}${extra}. Verifique os detalhes no Almoxarifado.`;
+
+  return sendDeviceNotification({
+    title,
+    body,
+    tag: `marcon-stock-summary`,
+    severity: "critical",
+    url: "/painel-estoque",
+  });
+}
+
+// Cache local de notificações em sessionStorage para não repetir alarmes no mesmo saldo da sessão
+function getNotifiedCache() {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = sessionStorage.getItem("marcon_notified_stock_v2");
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function markAsNotified(key) {
+  if (typeof window === "undefined") return;
+  try {
+    const cache = getNotifiedCache();
+    cache[key] = Date.now();
+    sessionStorage.setItem("marcon_notified_stock_v2", JSON.stringify(cache));
+  } catch {}
+}
+
+/**
+ * Função de automação total: analisa o estoque e dispara notificações automaticamente no dispositivo.
+ * - Na primeira carga da sessão: avisa sobre peças críticas pendentes de alerta
+ * - Durante o uso (tempo real/polling): se qualquer item tiver estoque reduzido para <= limite mínimo, notifica imediatamente
+ */
+export function autoCheckAndNotifyStock(currentItems, prevItems) {
+  if (!Array.isArray(currentItems) || currentItems.length === 0) return;
+
+  const getMin = (i) => i.limiteMinimo ?? 10;
+  const getTotal = (i) => (i.quantidade || 0) + (i.estoques_alt?.reduce((s, e) => s + (e.quantidade_avulsa || 0), 0) || 0);
+
+  const criticalList = currentItems.filter(i => getTotal(i) <= getMin(i));
+  if (criticalList.length === 0) return;
+
+  const cache = getNotifiedCache();
+  const now = Date.now();
+  const COOLDOWN_MS = 20 * 60 * 1000; // 20 minutos de cooldown se o saldo permanecer o mesmo
+
+  // CASO 1: Primeira carga da sessão (prevItems é nulo ou vazio)
+  if (!prevItems || prevItems.length === 0) {
+    const unnotified = criticalList.filter(item => {
+      const key = `${item.id}_${getTotal(item)}`;
+      const lastTime = cache[key];
+      return !lastTime || (now - lastTime > COOLDOWN_MS);
+    });
+
+    if (unnotified.length === 0) return;
+
+    // Registra cada peça no cache da sessão
+    unnotified.forEach(item => markAsNotified(`${item.id}_${getTotal(item)}`));
+
+    if (unnotified.length === 1) {
+      sendStockDeviceNotification(unnotified[0]);
+    } else {
+      sendStockSummaryNotification(unnotified);
+    }
+    return;
+  }
+
+  // CASO 2: Alteração de estoque em tempo real (baixa de pedido, consumo ou sincronização)
+  currentItems.forEach(newItem => {
+    const oldItem = prevItems.find(o => o.id === newItem.id);
+    if (!oldItem) return;
+
+    const newTotal = getTotal(newItem);
+    const oldTotal = getTotal(oldItem);
+    const min = getMin(newItem);
+
+    // Condição 1: Cruzou para baixo do limite mínimo
+    const crossedThreshold = oldTotal > min && newTotal <= min;
+    // Condição 2: Já estava crítico e caiu ainda mais (ex: 3 un para 1 un, ou para 0 un)
+    const droppedFurtherWhileCritical = oldTotal <= min && newTotal < oldTotal;
+
+    if (crossedThreshold || droppedFurtherWhileCritical) {
+      const key = `${newItem.id}_${newTotal}`;
+      markAsNotified(key);
+      sendStockDeviceNotification(newItem);
+    }
+  });
+}
+
+// Disparo de teste rápido para validar no dispositivo do usuário (caso necessário para debug)
 export function sendTestDeviceNotification() {
   return sendDeviceNotification({
     title: "🔔 Teste de Notificação - Almoxarifado Marcon",

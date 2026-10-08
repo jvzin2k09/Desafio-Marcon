@@ -4,12 +4,29 @@ import { useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import {
   isDeviceNotificationSupported,
-  sendStockDeviceNotification,
+  autoCheckAndNotifyStock,
 } from "@/lib/deviceNotification";
 
 export default function GlobalDeviceNotificationWatcher() {
   const { data: session } = useSession();
   const prevItemsRef = useRef(null);
+
+  useEffect(() => {
+    // Tenta solicitar permissão no primeiro toque/clique do usuário se ainda não estiver definida
+    if (isDeviceNotificationSupported() && Notification.permission === "default") {
+      const handleUserGesture = () => {
+        Notification.requestPermission().catch(() => {});
+        window.removeEventListener("click", handleUserGesture);
+        window.removeEventListener("keydown", handleUserGesture);
+      };
+      window.addEventListener("click", handleUserGesture, { once: true });
+      window.addEventListener("keydown", handleUserGesture, { once: true });
+      return () => {
+        window.removeEventListener("click", handleUserGesture);
+        window.removeEventListener("keydown", handleUserGesture);
+      };
+    }
+  }, []);
 
   useEffect(() => {
     // Monitora estoque para almoxarifes e administradores
@@ -26,23 +43,8 @@ export default function GlobalDeviceNotificationWatcher() {
         const currentItems = await res.json();
         if (!Array.isArray(currentItems) || !isMounted) return;
 
-        // Se já temos a lista anterior, verifica se alguma peça caiu para nível crítico
-        if (prevItemsRef.current && prevItemsRef.current.length > 0) {
-          currentItems.forEach((newItem) => {
-            const oldItem = prevItemsRef.current.find((o) => o.id === newItem.id);
-            if (oldItem) {
-              const min = newItem.limiteMinimo ?? 10;
-              // Se a quantidade diminuiu e atingiu ou ficou abaixo do limite mínimo
-              if (
-                newItem.quantidade < oldItem.quantidade &&
-                newItem.quantidade <= min &&
-                oldItem.quantidade > min
-              ) {
-                sendStockDeviceNotification(newItem);
-              }
-            }
-          });
-        }
+        // Disparo e monitoramento 100% automático
+        autoCheckAndNotifyStock(currentItems, prevItemsRef.current);
 
         prevItemsRef.current = currentItems;
       } catch (e) {
@@ -50,13 +52,13 @@ export default function GlobalDeviceNotificationWatcher() {
       }
     }
 
-    // Primeira verificação leve após 3 segundos
+    // Primeira verificação leve após 2 segundos
     const initialTimer = setTimeout(() => {
       checkStockChanges();
-    }, 3000);
+    }, 2000);
 
-    // Polling a cada 40 segundos
-    const interval = setInterval(checkStockChanges, 40000);
+    // Polling a cada 30 segundos
+    const interval = setInterval(checkStockChanges, 30000);
 
     return () => {
       isMounted = false;
