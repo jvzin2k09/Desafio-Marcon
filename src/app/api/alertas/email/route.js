@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const targetEmail = searchParams.get('to') || 'joao.v.coelho14@aluno.senai.br';
+    const targetEmail = searchParams.get('to') || process.env.STOCK_ALERT_EMAIL || 'joao.v.coelho14@aluno.senai.br';
     const itemCode = searchParams.get('codigo') || 'TM-004'; // Padrão: Chapa de Aço (Estoque Baixo)
 
     let item = await prisma.item.findUnique({
@@ -70,8 +70,7 @@ export async function POST(request) {
       codigo,
       quantidadeAtual,
       limiteMinimo,
-      destinatario = 'joao.v.coelho14@aluno.senai.br',
-    } = body;
+      destinatario = body.destinatario || process.env.STOCK_ALERT_EMAIL || 'joao.v.coelho14@aluno.senai.br';
 
     let item = null;
     if (itemId) {

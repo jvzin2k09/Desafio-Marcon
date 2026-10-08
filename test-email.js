@@ -12,7 +12,8 @@ try {
       if (trimmed && !trimmed.startsWith('#')) {
         const [key, ...vals] = trimmed.split('=');
         if (key && vals.length > 0) {
-          process.env[key.trim()] = vals.join('=').trim();
+          const val = vals.join('=').trim();
+          process.env[key.trim()] = val.replace(/^["']|["']$/g, '');
         }
       }
     });
