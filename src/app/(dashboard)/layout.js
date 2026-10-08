@@ -19,12 +19,13 @@ export default function DashboardLayout({ children }) {
 
   if (!session) return null;
 
-  const role = session.user.role;
+  const role = (session.user.role || "").toUpperCase();
 
   const navItems = [];
 
-  if (role === "OPERADOR") {
+  if (role === "OPERADOR" || role === "RESPONSAVEL" || role === "SOLICITANTE") {
     navItems.push({ href: "/solicitante", icon: Package, label: "Novo Pedido" });
+    navItems.push({ href: "/estoque-alternativo", icon: Recycle, label: "Estoque Alt." });
   }
   if (role === "ALMOXARIFE") {
     navItems.push({ href: "/almoxarifado", icon: ClipboardList, label: "Fila de Pedidos" });
@@ -40,16 +41,22 @@ export default function DashboardLayout({ children }) {
     navItems.push({ href: "/historico", icon: History, label: "Histórico" });
   }
 
+  // Garantia de segurança: se a role não for reconhecida, fornece o menu padrão de solicitante
+  if (navItems.length === 0) {
+    navItems.push({ href: "/solicitante", icon: Package, label: "Novo Pedido" });
+    navItems.push({ href: "/estoque-alternativo", icon: Recycle, label: "Estoque Alt." });
+  }
+
   const roleBadge = {
     ADMIN: { label: "Administrador", color: "#7c3aed" },
     ALMOXARIFE: { label: "Almoxarife", color: "#1B3A6B" },
     OPERADOR: { label: "Operador", color: "#16a34a" },
-  }[role] || { label: role, color: "#64748b" };
-
-
+    RESPONSAVEL: { label: "Responsável", color: "#16a34a" },
+    SOLICITANTE: { label: "Solicitante", color: "#16a34a" },
+  }[role] || { label: session.user.role || role, color: "#64748b" };
 
   // Filtramos o "Dashboard" apenas para o menu inferior móvel e definimos a ordem exata
-  const mobileOrder = ["/almoxarifado", "/estoque-alternativo", "/solicitante", "/painel-estoque", "/historico"];
+  const mobileOrder = ["/almoxarifado", "/solicitante", "/estoque-alternativo", "/painel-estoque", "/historico"];
   const mobileNavItems = navItems
     .filter(item => item.label !== "Dashboard")
     .sort((a, b) => {
